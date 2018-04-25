@@ -98,7 +98,20 @@ vector<pt> voronoi(const vector<pt>& p) {
 	return res;
 }
 
+/*
+ * Bary Coordinates
+ * Centroid:		( 1, 1, 1 )
+ * Circumcenter:	( a^2(b^2+c^2-a^2), b^2(c^2+a^2-b^2), c^2(a^2+b^2-c^2) )
+ * Orthocenter:		( (a^2+b^2-c^2)(c^2+a^2-b^2), (b^2+c^2-a^2)(a^2+b^2-c^2), (c^2+a^2-b^2)(b^2+c^2-a^2) )
+ * Incenter:		( a, b, c )
+ * Excenter-A:		( -a, b, c )
+ * Nagel Point:		( s-a, s-b, s-c )
+ * Symmedian Point:	( a^2, b^2, c^2 )
+ * Gergonne Point:	( (s-b)(s-c), (s-c)(s-a), (s-a)(s-b) )
+ */
+
 ////////////////////////////////////////////////////////////////////////
 int main() {
 	return 0;
 }
+

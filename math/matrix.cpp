@@ -154,8 +154,8 @@ template <class T> struct Matrix {
 
     // EDIT THIS FOR NON-INTEGER TYPES
     bool iszero(const T& x) {
-        //return x == 0;
-        return abs(x) < 1e-9;
+        return x == 0;
+        //return abs(x) < EPS;  // for floating point T
     }
 
     // diagonal constructor

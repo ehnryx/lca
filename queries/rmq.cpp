@@ -22,7 +22,7 @@ struct RMQ {
 				rmq[i][j] = min(rmq[i][j-1], rmq[i+(1<<(j-1))][j-1]);
 	}
 	ll query(int l, int r) {
-		int j = __builtin_clz(r-l+1);
+		int j = 31 - __builtin_clz(r-l+1);
 		return min(rmq[l][j], rmq[r-(1<<j)+1][j]);
 	}
 };

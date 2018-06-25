@@ -8,37 +8,17 @@ typedef vector<int> vi;
 
 const int INF = 0x3f3f3f3f;
 
-const ld EPS = 1e-10;
-
-////////////////////////////////////////////////////////////////////////
-// Integer 2D Geometry (UNTESTED)
-//*! Point struct
-struct Point {
-};
-//*/
-
-//*! General
-
-//*/
-
-//*! Segment-Segment Intersection
-
-//*/
-
 // Circumcenter of triangle defined by three points
-//*! use Bary
 pt circumcenter(const pt& A, const pt& B, const pt& C) {
 	ld a = norm(B-C), b = norm(C-A), c = norm(A-B);
 	ld fa = a*(b+c-a), fb = b*(c+a-b), fc = c*(a+b-c);
 	return (fa*A + fb*B + fc*C) / (fa+fb+fc);
 }
-//*/
 
 ///////////////////////////////////////////////////////////////////////
 // Delaunay Triangulation -- usually O(nlogn), worst case O(n^2)
 // returns the Delaunay Triangulation as triples of indices
 // TESTED on WF2018G 
-//*!
 
 struct Tuple { vi v;
 	Tuple() {}
@@ -106,9 +86,8 @@ vector<Tuple> delaunay(vector<pt> p) {
 
 	return res;
 }
-//*/
 
-//*! Get Voronoi vertices from Delaunay Triangulation (UNTESTED) (for reference)
+// returns the voronoi vertices (UNTESTED) (for reference)
 vector<pt> voronoi(const vector<pt>& p) {
 	vector<Tuple> triangles = delaunay(p);
 	vector<pt> res;
@@ -117,24 +96,5 @@ vector<pt> voronoi(const vector<pt>& p) {
 	}
 	return res;
 }
-//*/
 
-///////////////////////////////////////////////////////////////////////
-// Barycentric Coordinates
-//*!
-/* Centroid:		( 1, 1, 1 )
- * Circumcenter:	( a^2(b^2+c^2-a^2), b^2(c^2+a^2-b^2), c^2(a^2+b^2-c^2) )
- * Orthocenter:		( (a^2+b^2-c^2)(c^2+a^2-b^2), (b^2+c^2-a^2)(a^2+b^2-c^2), (c^2+a^2-b^2)(b^2+c^2-a^2) )
- * Incenter:		( a, b, c )
- * Excenter-A:		( -a, b, c )
- * Nagel Point:		( s-a, s-b, s-c )
- * Symmedian Point:	( a^2, b^2, c^2 )
- * Gergonne Point:	( (s-b)(s-c), (s-c)(s-a), (s-a)(s-b) )
- */
-//*/
-
-////////////////////////////////////////////////////////////////////////
-int main() {
-	return 0;
-}
-
+int main() {}

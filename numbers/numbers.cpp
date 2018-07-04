@@ -9,7 +9,7 @@ const ll MOD = 1e9+7;
 ////////////////////////////////////////////////////////////////////////
 // Extended Euclidean Algorithm (UBC)
 // egcd(a,b,x,y) calculates x,y such that ax+by=gcd(a,b)
-// To find a^{-1} mod m, use egcd(a,m,x,y) and x = a^{-1}
+// To find a^{-1} mod m, use egcd(a,m,x,y), then x = a^{-1}
 // Returns gcd(a,b)
 //*!
 ll egcd(ll a, ll b, ll &x, ll &y) {

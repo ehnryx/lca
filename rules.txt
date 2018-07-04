@@ -2,20 +2,21 @@ ACM Guildlines
 0.  Read all the problems!
 1.  Use meaningful variable names (no nonsense like vvv, aa, asdf).
 2.  Use plenty of empty lines for better code legibility.
-3.  Always use braces, unless the statement is on the same line as the conditional. 
-4.  Do not use the comma operator.
-5.  Use cerr for debug statements.
-6.  Do not delete debug statements, comment them out instead.
-7.  Use an init() function to initialize variables if needed.
-8.  Always test with input files.
-9.  Always test with more than just the sample.
-10. Always reread the code before submitting.
+3.  Tabs should be no less than 2 spaces, and no more than 4 spaces.
+4.  Always use braces, unless the statement is on the same line as the conditional. 
+5.  Do not use the comma operator.
+6.  Use cerr for debug statements.
+7.  Do not delete debug statements, comment them out instead.
+8.  Use an init() function to initialize variables if needed.
+9.  Always test with input files.
+10. Always test with more than just the sample.
+11. Always reread the code before submitting.
 12. Do the math on paper.
-11. Write dp transitions on paper.
-13. Use arrays instead of vectors for dp.
-14. Avoid using pairs, define structs instead.
-15. The variable T is reserved for test cases or similar. 
-16. The variables N, M, K are reserved for limits.
-17. Other single letter variables are reserved for input or temporary.
-18. In geometry, p is reserved for a vector of points.
-19. Pray harder.
+13. Write dp transitions on paper.
+14. Use arrays instead of vectors for dp.
+15. Avoid using pairs, define structs instead.
+16. The variable T is reserved for test cases or similar. 
+17. The variables N, M, K are reserved for limits.
+18. Other single letter variables are reserved for input or temporary.
+19. In geometry, p is reserved for a vector of points.
+20. Pray harder.

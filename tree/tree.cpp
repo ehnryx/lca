@@ -60,14 +60,90 @@ struct LCA {
 };
 //*/
 
+// TODO make HLD inherit from LCA or something
 ////////////////////////////////////////////////////////////////////////
 // Heavy Light Decomposition -- O(n) to build
 // Paths on the tree go through O(log(n)) heavy chains
 // * Nodes are 1-indexed
 //*!
 struct HLD {
+	vector<int> sz, root, start;
+	vector<int> parent, subsz, chain, pos;
+	int hldnum, segnum;
 
 	HLD(int n) {
+		hldnum = segnum = 0;
+		parent.resize(n);
+		subsz.resize(n);
+		chain.resize(n);
+		pos.resize(n);
+	}
+
+	// 0 indexed, returns the position
+	int get(int i) {
+		return start[chain[i]] + pos[i];
+	}
+
+	void build(int root) {
+		precmp(root); // comment this out if parent and subsz are calculated already
+		build_hld(root);
+	}
+
+	// This function does not need to be in here,
+	// will speed it up to compute subsz and parent in LCA dfs
+	int precmp(int cur, int par = 0) {
+		parent[cur] = par;
+		subsz[cur] = 1;
+		for (int x : adj[cur]) {
+			if (x != par) {
+				subsz[cur] += precmp(x, cur);
+			}
+		}
+		return subsz[cur];
+	}
+
+	void build_hld(int cur, int par = 0) {
+		if (hldnum == root.size()) {
+			root.push_back(cur);
+			start.push_back(segnum);
+			sz.push_back(0);
+		}
+		chain[cur] = hldnum;
+		pos[cur] = sz[chain[cur]]++;
+		segnum++;
+
+		int best = -1;
+		int child = -1;
+		for (int x : adj[cur]) {
+			if (x != par && subsz[x] > best) {
+				best = subsz[x];
+				child = x;
+			}
+		}
+		if (child != -1) build_hld(child, cur);
+
+		for (int x : adj[cur]) {
+			if (x != par && x != child) {
+				hldnum++;
+				build_hld(x, cur);
+			}
+		}
+	}
+
+	// Inserting a path into a segtree on the chains
+	// UPDATE interval is [a,b)
+	// path: a -> b, b is an ancestor of a
+	// value: c
+	void insert_path(int a, int b, int v) {
+		while (chain[a] != chain[b]) {
+			int s = start[chain[a]];
+			UPDATE(s, s + pos[a], v); // update segtree here
+			a = parent[root[chain[a]]];
+		}
+		if (pos[a] != pos[b]) {
+			int s = start[chain[a]];
+			UPDATE(s + pos[b] + 1, s + pos[a], v); // update segtree here
+		}
 	}
 };
 //*/

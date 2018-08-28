@@ -1,17 +1,27 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+typedef long long ll;
+
 // INF > 1e9, INF+INF does not overflow int
 // can memset to INF because repeating bytes
+// INFLL > 1e18, INF+INF does not overflow ll
 const int INF = 0x3f3f3f3f;
+const ll INFLL = 0x3f3f3f3f3f3f3f3f;
 
 // Edge struct for adjacency lists of weighted graphs
 // id: adjacent node
 // cost: weight of edge
+// USAGE:
+//  1. vector<vector<Edge>> adj(n); or vector<Edge> adj[n];
+//     to create an adjacency list. Must have n >= number of nodes.
+//  2. adj[a].push_back(Edge(b,c)); 
+//     to add the directed edge a->b with cost c
 struct Edge {
-    int id, cost;
+    int pre, id; ll cost;
     Edge() {}
-    Edge(int i, int c): id(i), cost(c) {}
+    Edge(int i, ll c): id(i), cost(c) {}
+    Edge(int p, int i, ll c): pre(p), id(i), cost(c) {}
     // reverse comparator for priority queue (max heap)
     bool operator < (const Edge& v) const {
         return cost > v.cost;
@@ -23,9 +33,12 @@ struct Edge {
 // Finds the shortest path from s to t on a weighted directed graph
 // Add u->v and u<-v for undirected graphs
 // weights MUST be non-negative
+// USAGE:
+//  1. adj stores the graph as an adjacency list
+//  2. min dist from start to dest = dijkstra(adj, start, dest);
 //*!
-int dijkstra(const vector<vector<Edge>>& adj, int s, int t) {
-    vector<int> dist(adj.size(), -1);
+ll dijkstra(const vector<vector<Edge>>& adj, int s, int t) {
+    vector<ll> dist(adj.size(), -1);
     priority_queue<Edge> todo;
     todo.push(Edge(s, 0));
     while (!todo.empty()) {
@@ -45,23 +58,33 @@ int dijkstra(const vector<vector<Edge>>& adj, int s, int t) {
 //*/
 
 ////////////////////////////////////////////////////////////////////////
-// Bellman-Ford -- O(VE) (UNTESTED)
+// Bellman-Ford -- O(VE)
+// TESTED ON: cf/101498/l, cf/101873/e
 // Finds the shortest path from s to t on a weighted directed graph
 // Add u->v and u<-v for undirected graphs
 // NO restriction on weights
+// USAGE:
+//  1. edges stores all the edges in the graph
+//  2. cycle = bellmanford(edges, numNodes, start, dest, ans);
+//  3. ans stores the minimum distance from start to dest
+//  4. cycle is a bool that is True iff there is a negative cycle
 //*!
-int bellmanford(const vector<vector<Edge>>& adj, int s, int t) {
-    int n = adj.size();
-    vector<int> dist(n, INF);
+bool bellmanford(const vector<Edge>& edges, int n, int s, int t, ll& res) {
+    vector<ll> dist(n, INFLL);
     dist[s] = 0;
     for (int r = 1; r < n; r++) {
-        for (int u = 0; u < n; u++) {
-            for (const Edge& e : adj[u]) {
-                dist[e.id] = min(dist[e.id], dist[u] + e.cost);
-            }
+        for (const Edge& e : edges) {
+            dist[e.id] = min(dist[e.id], dist[e.pre] + e.cost);
         }
     }
-    return dist[t];
+    res = dist[t];
+    // find negative cycles
+    for (const Edge& e : edges) {
+        if (dist[e.pre] + e.cost < dist[e.id]) {
+            return true;
+        }
+    }
+    return false;
 }
 //*/
 

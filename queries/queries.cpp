@@ -3,20 +3,25 @@ using namespace std;
 
 typedef pair<int,int> pii;
 
+// FOR QUERIES ON TREES: 
+// General data structure to store the tree
+vector<vector<int>> adj;
+
 ////////////////////////////////////////////////////////////////////////
 // Range Minimum Query -- O(nlogn) to build, O(1) to query
 // Maximum query is also possible
 // The code is 0-indexed, change the loops in build to make it 1-indexed
 // Query range is inclusive
+// USAGE:
+//  1. RMQ rmq(n);
+//  2. rmq.build(vector containing the values);
+//  3. rmq.query(l,r);  // range inclusive [l,r]
 //*!
 template <class T> struct RMQ {
     int lg;
     vector<vector<T>> rmq;
 
-    RMQ(int n = 0) {
-        if (n) resize(n);
-    }
-    void resize(int n) {
+    RMQ(int n) {
         lg = 32 - __builtin_clz(n);
         rmq.resize(n, vector<T>(lg));
     }
@@ -39,22 +44,20 @@ template <class T> struct RMQ {
 };
 //*/
 
-// FOR QUERIES ON TREES: 
-// General data structure to store the tree
-vector<vector<int>> adj;
-
 ////////////////////////////////////////////////////////////////////////
 // Lowest Common Ancestor -- Using RMQ
 // Nodes are 1-indexed
+// USAGE:
+//  1. LCA lca(numNodes);
+//  2. lca.build(root);
+//  3. lca.query(u,v);
 //*!
-struct LCA {
-    RMQ<pii> rmq;
+struct LCA : RMQ<pii> {
     vector<int> depth, segpos;
     vector<int> parent, subsz; // These are for HLD
     int lcanum = 0;
 
-    LCA(int n) {
-        rmq.resize(2*n);
+    LCA(int n): RMQ<pii>(2*n) {
         lcanum = 0;
         depth.resize(n);
         segpos.resize(n);
@@ -65,7 +68,7 @@ struct LCA {
 
     void build(int root) {
         build(root, 0);
-        rmq.build();
+        RMQ::build();
     }
 
     int build(int cur, int par) {
@@ -73,18 +76,20 @@ struct LCA {
         segpos[cur] = lcanum;
         parent[cur] = par; // for HLD
         subsz[cur] = 1; // for HLD
-        rmq.rmq[lcanum++][0] = pii(depth[cur], cur);
+        RMQ::rmq[lcanum++][0] = pii(depth[cur], cur);
         for (int x : adj[cur]) {
             if (x != par) {
                 subsz[cur] += build(x, cur);
-                rmq.rmq[lcanum++][0] = pii(depth[cur], cur);
+                RMQ::rmq[lcanum++][0] = pii(depth[cur], cur);
             }
         }
         return subsz[cur];
     }
 
+    // returns the index, use .first to return the depth
+    // could also return (depth,index) by returning a pii
     int query(int a, int b) {
-        return rmq.query(a,b).second;
+        return RMQ::query(a,b).second;
     }
 };
 //*/
@@ -94,6 +99,10 @@ struct LCA {
 // TESTED ON cf1023/f
 // Paths on the tree go through O(log(n)) heavy chains
 // * Nodes are 1-indexed
+// USAGE:
+//  1. HLD hld(numNodes);
+//  2. hld.build(root)
+//  3. look at insert_path for update/query example, we need lca
 //*!
 struct HLD : LCA {
     vector<int> sz, root, start; // indexed by chains
@@ -145,9 +154,9 @@ struct HLD : LCA {
     }
 
     // Inserting a path into a segtree on the chains
-    // UPDATE interval is [a,b)
+    // insert_path interval is [a,b), but UPDATE is [s,t]
     // path: a -> b, b is an ancestor of a
-    // value: c
+    // value: v
     void insert_path(int a, int b, int v) {
         while (chain[a] != chain[b]) {
             int s = start[chain[a]];

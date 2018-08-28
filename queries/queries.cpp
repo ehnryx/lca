@@ -90,7 +90,7 @@ struct LCA : RMQ<pii> {
     // returns the index, use .first to return the depth
     // could also return (depth,index) by returning a pii
     int query(int a, int b) {
-        return RMQ::query(a,b).second;
+        return RMQ::query(segpos[a],segpos[b]).second;
     }
 };
 //*/

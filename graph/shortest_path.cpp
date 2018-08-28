@@ -19,14 +19,13 @@ struct Edge {
 };
 
 ////////////////////////////////////////////////////////////////////////
-// Dijkstra O(Elog(E)) (UNTESTED)
+// Dijkstra -- O(Elog(E)) (UNTESTED)
 // Finds the shortest path from s to t on a weighted directed graph
 // Add u->v and u<-v for undirected graphs
 // weights MUST be non-negative
 //*!
 int dijkstra(const vector<vector<Edge>>& adj, int s, int t) {
     vector<int> dist(adj.size(), -1);
-
     priority_queue<Edge> todo;
     todo.push(Edge(s, 0));
     while (!todo.empty()) {
@@ -41,13 +40,12 @@ int dijkstra(const vector<vector<Edge>>& adj, int s, int t) {
             }
         }
     }
-
     return dist[t];
 }
 //*/
 
 ////////////////////////////////////////////////////////////////////////
-// Bellman-Ford O(VE) (UNTESTED)
+// Bellman-Ford -- O(VE) (UNTESTED)
 // Finds the shortest path from s to t on a weighted directed graph
 // Add u->v and u<-v for undirected graphs
 // NO restriction on weights
@@ -55,7 +53,6 @@ int dijkstra(const vector<vector<Edge>>& adj, int s, int t) {
 int bellmanford(const vector<vector<Edge>>& adj, int s, int t) {
     int n = adj.size();
     vector<int> dist(n, INF);
-
     dist[s] = 0;
     for (int r = 1; r < n; r++) {
         for (int u = 0; u < n; u++) {
@@ -64,7 +61,6 @@ int bellmanford(const vector<vector<Edge>>& adj, int s, int t) {
             }
         }
     }
-
     return dist[t];
 }
 //*/

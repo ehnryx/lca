@@ -6,7 +6,7 @@ typedef pair<int,int> pii;
 const int INF = 0x3f3f3f3f;
 
 ////////////////////////////////////////////////////////////////////////
-// Longest Increasing Subsequence O(nlog(n)) (UNTESTED)
+// Longest Increasing Subsequence -- O(nlog(n)) (UNTESTED)
 // Finds the longest increasing subsequence
 // Returns the length, stores the answer in lis
 //*!
@@ -40,7 +40,7 @@ int get_lis(const vector<int>& a, vector<int>& lis) {
 //*/
 
 ////////////////////////////////////////////////////////////////////////
-// Longest Increasing Subsequence Length O(nlog(n)) (UNTESTED)
+// Longest Increasing Subsequence Length -- O(nlog(n)) (UNTESTED)
 // Returns the length of a longest increasing subsequence
 //*!
 int lis_len(const vector<int>& a) {

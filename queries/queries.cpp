@@ -38,6 +38,7 @@ template <class T> struct RMQ {
     }
 
     T query(int l, int r) {
+        if (l > r) swap(l, r);
         int j = 31 - __builtin_clz(r-l+1);
         return min(rmq[l][j], rmq[r-(1<<j)+1][j]);
     }

@@ -4,7 +4,7 @@ using namespace std;
 typedef long long ll;
 
 ////////////////////////////////////////////////////////////////////////
-// Templated Simple Segment Tree -- O(log(n)) per reasonable query
+// Templated Segment Tree -- O(log(n)) per reasonable query
 // Warning: possibly SLOW! because Node is copied when querying
 // 
 // The Node class requires the following: (SEE EXAMPLE BELOW)

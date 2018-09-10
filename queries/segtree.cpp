@@ -4,8 +4,26 @@ using namespace std;
 typedef long long ll;
 
 ////////////////////////////////////////////////////////////////////////
-// Templated Simple Segment Tree -- O(log(n)) per query (UNTESTED)
+// Templated Simple Segment Tree -- O(log(n)) per reasonable query
 // Warning: possibly SLOW! because Node is copied when querying
+// 
+// The Node class requires the following: (SEE EXAMPLE BELOW)
+// Node();
+//  The default constructor that is called initially, and when a query
+//  range is out of bounds.
+// Node(T v);
+//  The constructor that is called in set(int i, T v);
+// bool put();
+//  The break condition when updating. For normal queries, return true.
+// bool get();
+//  The break condition when querying. For normal queries, return true.
+// void update(T v, int len);
+//  Used to update the Node with value v at a segment with length len.
+// void push(Node& left, Node& right, int len);
+//  Used to lazy propagate from current node with length len to left 
+//  and right children.
+// Node pull(Node left, Node right);
+//  Used to update current node from left and right children.
 //*!
 template <class Node, class T>
 struct SegmentTree {
@@ -32,10 +50,10 @@ struct SegmentTree {
     void update(int l, int r, const T& v, int i, int s, int e) {
         if (e < l || s > r) return;
         if (l <= s && e <= r && segt[i].put()) {
-            segt[i].update(v);
+            segt[i].update(v, e-s+1);
             return;
         }
-        segt[i].push(segt[2*i], segt[2*i+1]);
+        segt[i].push(segt[2*i], segt[2*i+1], e-s+1);
         int m = (s + e) / 2;
         update(l, r, v, 2*i, s, m);
         update(l, r, v, 2*i+1, m+1, e);
@@ -50,7 +68,7 @@ struct SegmentTree {
         if (l <= s && e <= r && segt[i].get()) {
             return segt[i];
         }
-        segt[i].push(segt[2*i], segt[2*i+1]);
+        segt[i].push(segt[2*i], segt[2*i+1], e-s+1);
         int m = (s + e) / 2;
         return Node().pull(query(l, r, 2*i, s, m), query(l, r, 2*i+1, m+1, e));
     }
@@ -66,11 +84,11 @@ struct Int {
     Int(int x=0x3f3f3f3f): x(x), d(x), lazy(true) {}
     bool get() { return true; }
     bool put() { return true; }
-    void update(int v) {
+    void update(int v, int len) {
         x = d = v;
         lazy = true;
     }
-    void push(Int& left, Int& right) {
+    void push(Int& left, Int& right, int len) {
         if (lazy) {
             left.x = right.x = d;
             left.d = right.d = d;

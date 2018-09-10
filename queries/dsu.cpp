@@ -3,8 +3,6 @@ using namespace std;
 
 typedef long long ll;
 
-const int N = 1<<17; // length of array
-
 ////////////////////////////////////////////////////////////////////////
 // Disjoint Set Union -- O(a(n)) per query, (inverse ackermann)
 // Usage: 

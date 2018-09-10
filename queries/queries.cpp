@@ -26,10 +26,8 @@ template <class T> struct RMQ {
         rmq.resize(n, vector<T>(lg));
     }
 
-    void build(const vector<T>& a) {
-        for (int i = 0; i < a.size(); i++)
-            rmq[i][0] = a[i];
-        build();
+    void set(int i, const T& v) {
+        rmq[i][0] = v;
     }
     void build() {
         for (int j = 1; j < lg; j++)
@@ -98,7 +96,7 @@ struct LCA : RMQ<pii> {
 ////////////////////////////////////////////////////////////////////////
 // Heavy Light Decomposition -- O(n) to build
 // TESTED ON cf1023/f
-// Paths on the tree go through O(log(n)) heavy chains
+// Paths on the tree go through O(log(n)) chains
 // * Nodes are 1-indexed
 // USAGE:
 //  1. HLD hld(numNodes);

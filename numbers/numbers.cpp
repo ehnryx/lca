@@ -54,16 +54,16 @@ struct Int {
 //*!
 struct Frac {
     ll n, d;
-    Frac(ll a = 0, ll b = 1) {
-        if (b == 0) {
-            n = (a==0 ? 0 : a/abs(a));
-            d = 0;
-        } else {
-            ll g = __gcd(a,b); 
-            n = a/g; d = b/g;
-            if (d < 0) { n = -n; d = -d; }
-        }
-    }
+	Frac(ll a=0, ll b=1) {
+		if (b) {
+			ll g = __gcd(a,b);
+			n = a/g; d = b/g;
+			if (d<0) { n = -n; d = -d; }
+		} else {
+			n = (a ? a/abs(a) : 0);
+			d = 0;
+		}
+	}
     friend ostream& operator << (ostream& os, const Frac& f) {
         return os << '(' << f.n << '/' << f.d << ')';
     }
@@ -75,7 +75,7 @@ struct Frac {
     bool operator == (const Frac& f) const {
         if (!n && !d) return false;
         if (!f.n && !f.d) return false;
-        return n*f.d == d*f.n;
+        return n==f.n && d==f.d;
     }
     bool operator < (const Frac& f) const {
         if (!n && !d) return false;

@@ -35,13 +35,13 @@ struct IntervalSet {
             b = max(b, it->second);
             it = s.erase(it);
         }
-		it = s.upper_bound({a,inf});
-		while (it != s.begin() && cmp(a,(--it)->second,lin,rin)) {
-			a = min(a, it->first);
-			b = max(b, it->second);
-			it = s.erase(it);
-		}
-		s.insert({a,b});
+        it = s.upper_bound({a,inf});
+        while (it != s.begin() && cmp(a,(--it)->second,lin,rin)) {
+            a = min(a, it->first);
+            b = max(b, it->second);
+            it = s.erase(it);
+        }
+        s.insert({a,b});
     }
     pair<T,T> find(T x) {
         if (s.empty()) { return {inf,inf}; }

@@ -20,12 +20,10 @@ vector<vector<int>> adj;
 template <class T> struct RMQ {
     int lg;
     vector<vector<T>> rmq;
-
     RMQ(int n) {
         lg = 32 - __builtin_clz(n);
         rmq.resize(n, vector<T>(lg));
     }
-
     void set(int i, const T& v) {
         rmq[i][0] = v;
     }
@@ -34,7 +32,6 @@ template <class T> struct RMQ {
             for (int i = 0; i+(1<<j)-1 < rmq.size(); i++)
                 rmq[i][j] = min(rmq[i][j-1], rmq[i+(1<<(j-1))][j-1]);
     }
-
     T query(int l, int r) {
         if (l > r) swap(l, r);
         int j = 31 - __builtin_clz(r-l+1);
@@ -55,7 +52,6 @@ struct LCA : RMQ<pii> {
     vector<int> depth, segpos;
     vector<int> parent, subsz; // These are for HLD
     int lcanum = 0;
-
     LCA(int n): RMQ<pii>(2*n) {
         lcanum = 0;
         depth.resize(n);
@@ -64,12 +60,10 @@ struct LCA : RMQ<pii> {
         subsz.resize(n); // for HLD
         depth[0] = 0;
     }
-
     void build(int root) {
         build(root, 0);
         RMQ::build();
     }
-
     int build(int cur, int par) {
         depth[cur] = depth[par] + 1;
         segpos[cur] = lcanum;
@@ -84,7 +78,6 @@ struct LCA : RMQ<pii> {
         }
         return subsz[cur];
     }
-
     // returns the index, use .first to return the depth
     // could also return (depth,index) by returning a pii
     int query(int a, int b) {
@@ -107,23 +100,19 @@ struct HLD : LCA {
     vector<int> sz, root, start; // indexed by chains
     vector<int> chain, pos; // indexed by nodes
     int hldnum, segnum;
-
     HLD(int n): LCA(n) {
         hldnum = segnum = 0;
         chain.resize(n);
         pos.resize(n);
     }
-
     // 0 indexed, returns the position
     int get(int i) const {
         return start[chain[i]] + pos[i];
     }
-
     void build(int root) {
         LCA::build(root);
         build_hld(root, 0);
     }
-
     void build_hld(int cur, int par) {
         if (hldnum == root.size()) {
             root.push_back(cur);
@@ -133,7 +122,6 @@ struct HLD : LCA {
         chain[cur] = hldnum;
         pos[cur] = sz[chain[cur]]++;
         segnum++;
-
         int best = -1;
         int child = -1;
         for (int x : adj[cur]) {
@@ -143,7 +131,6 @@ struct HLD : LCA {
             }
         }
         if (child != -1) build_hld(child, cur);
-
         for (int x : adj[cur]) {
             if (x != par && x != child) {
                 hldnum++;
@@ -151,7 +138,6 @@ struct HLD : LCA {
             }
         }
     }
-
     // Inserting a path into a segtree on the chains
     // insert_path interval is [a,b), but UPDATE is [s,t]
     // path: a -> b, b is an ancestor of a

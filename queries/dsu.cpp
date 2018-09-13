@@ -13,17 +13,14 @@ typedef long long ll;
 struct DSU {
 	vector<int> root;
 	vector<int> sz;
-
 	DSU(int n) {
 		root.resize(n, -1);
 		sz.resize(n, 1);
 	}
-
 	int find(int i) {
 		if (root[i] == -1) return i;
 		return root[i] = find(root[i]);
 	}
-
 	// returns true if we combine two sets
 	bool link(int i, int j) {
 		i = find(i);

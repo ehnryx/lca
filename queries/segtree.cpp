@@ -8,7 +8,7 @@ typedef long long ll;
 // Warning: possibly SLOW! because Node is copied when querying
 //
 // USAGE:
-// 	SegmentTree<Node> magic(length);
+// 	SegmentTree<Node,T> magic(length);
 // 	magic.set(i,v); sets ith value to v, DOES NOT PULL
 // 	magic.build(); pulls leaves up
 // 	magic.query(l,r); range [l,r], combines segments using pull

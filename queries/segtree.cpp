@@ -20,7 +20,7 @@ typedef long long ll;
 //  range is out of bounds.
 // Node(T v);
 //  The constructor that is called in set(int i, T v);
-// bool put();
+// bool put(T v);
 //  The break condition when updating. For normal queries, return true.
 // bool get();
 //  The break condition when querying. For normal queries, return true.
@@ -53,7 +53,7 @@ struct SegmentTree {
     }
     void update(int l, int r, const T& v, int i, int s, int e) {
         if (e < l || s > r) return;
-        if (l <= s && e <= r && segt[i].put()) {
+        if (l <= s && e <= r && segt[i].put(v)) {
             segt[i].update(v, e-s+1);
             return;
         }
@@ -86,7 +86,7 @@ struct Int {
     bool lazy;
     Int(int x=0x3f3f3f3f): x(x), d(x), lazy(true) {}
     bool get() { return true; }
-    bool put() { return true; }
+    bool put(const T& v) { return true; }
     void update(int v, int len) {
         x = d = v;
         lazy = true;

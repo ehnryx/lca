@@ -6,6 +6,13 @@ typedef long long ll;
 ////////////////////////////////////////////////////////////////////////
 // Templated Segment Tree -- O(log(n)) per reasonable query
 // Warning: possibly SLOW! because Node is copied when querying
+//
+// USAGE:
+// 	SegmentTree<Node> magic(length);
+// 	magic.set(i,v); sets ith value to v, DOES NOT PULL
+// 	magic.build(); pulls leaves up
+// 	magic.query(l,r); range [l,r], combines segments using pull
+// 	magic.update(l,r,v); range [l,r], updates with v
 // 
 // The Node class requires the following: (SEE EXAMPLE BELOW)
 // Node();
@@ -29,12 +36,10 @@ template <class Node, class T>
 struct SegmentTree {
     int n;
     vector<Node> segt;
-
     SegmentTree(int len) {
         n = 1 << (32 - __builtin_clz(len-1));
         segt.resize(2*n);
     }
-
     void set(int i, const T& v) {
         segt[n+i] = Node(v);
     }
@@ -43,7 +48,6 @@ struct SegmentTree {
             segt[i].pull(segt[2*i], segt[2*i+1]);
         }
     }
-
     void update(int l, int r, const T& v) {
         update(l, r, v, 1, 0, n-1);
     }
@@ -59,7 +63,6 @@ struct SegmentTree {
         update(l, r, v, 2*i+1, m+1, e);
         segt[i].pull(segt[2*i], segt[2*i+1]);
     }
-
     Node query(int l, int r) {
         return query(l, r, 1, 0, n-1);
     }

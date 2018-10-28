@@ -16,9 +16,8 @@ void UPDATE(int, int, int);
 
 ////////////////////////////////////////////////////////////////////////
 // Range Minimum Query -- O(nlogn) to build, O(1) to query
-// Maximum query is also possible
-// The code is 0-indexed, change the loops in build to make it 1-indexed
 // Query range is inclusive
+// Code is probably not very safe
 //*!
 template<class T> struct RMQ {
   T rmq[2*N][L+1]; int lg[2*N];
@@ -51,15 +50,13 @@ struct LCA : RMQ<pii> {
 ////////////////////////////////////////////////////////////////////////
 // Heavy Light Decomposition -- O(n) to build
 // TESTED ON cf1023/f
-// Paths on the tree go through O(log(n)) chains
 // * Nodes are 1-indexed
 //*!
 struct HLD : LCA {
   vector<int> sz, root, start; // indexed by chains
   int chain[N], pos[N]; // indexed by nodes
   int hldn, segn; HLD(): LCA() { hldn = segn = 0; }
-  // 0 indexed, returns the position
-  int get(int i) const { return start[chain[i]] + pos[i]; }
+  int get(int i) const { return start[chain[i]] + pos[i]; } // position
   void build(int r) { LCA::build(r); build_hld(r,0); }
   void build_hld(int cur, int p) {
     if (hldn == root.size()) {
@@ -73,8 +70,7 @@ struct HLD : LCA {
       if (x!=p && x!=child) { hldn++; build_hld(x,cur); } }
   // Inserting a path into a segtree on the chains
   // insert_path interval is [a,b), but UPDATE is [s,t]
-  // path: a -> b, b is an ancestor of a
-  // value: v
+  // path: a -> b, b is an ancestor of a // value: v
   void insert_path(int a, int b, int v) {
     while (chain[a] != chain[b]) {
       int s = start[chain[a]];

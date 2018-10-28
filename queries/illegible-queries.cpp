@@ -25,8 +25,8 @@ template<class T> struct RMQ {
   void build() { for (int j=1; j<2*N; j++) lg[j]=31-__builtin_clz(j);
     for (int j=1; j<L+1; j++) for (int i=0; i+(1<<j)-1<2*N; i++)
       rmq[i][j] = min(rmq[i][j-1], rmq[i+(1<<(j-1))][j-1]); }
-  T query(int a, int b) { if (a>b) swap(a,b); int j=lg[b-a+1];
-    return min(rmq[a][j], rmq[b-(1<<j)+1][j]); }
+  T query(int a, int b) { if (a>b) swap(a,b);
+    int j=lg[b-a+1]; return min(rmq[a][j], rmq[b-(1<<j)+1][j]); }
 };
 //*/
 
@@ -57,8 +57,7 @@ struct LCA : RMQ<pii> {
 struct HLD : LCA {
   vector<int> sz, root, start; // indexed by chains
   int chain[N], pos[N]; // indexed by nodes
-  int hldn, segn;
-  HLD(): LCA() { hldn=segn=0; }
+  int hldn, segn; HLD(): LCA() { hldn = segn = 0; }
   // 0 indexed, returns the position
   int get(int i) const { return start[chain[i]] + pos[i]; }
   void build(int r) { LCA::build(r); build_hld(r,0); }
@@ -68,7 +67,7 @@ struct HLD : LCA {
     } chain[cur] = hldn; pos[cur] = sz[chain[cur]]++; segn++;
     int best=-1, child=-1;
     for (int x:adj[cur])
-      if (x!=p && subsz[x] > best) { best = subsz[x]; child = x; }
+      if (x!=p && subsz[x]>best) { best = subsz[child=x]; }
     if (child != -1) build_hld(child, cur);
     for (int x:adj[cur])
       if (x!=p && x!=child) { hldn++; build_hld(x,cur); } }

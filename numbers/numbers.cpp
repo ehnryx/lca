@@ -1,6 +1,5 @@
 #include <bits/stdc++.h>
 using namespace std;
-
 typedef long long ll;
 typedef long double ld;
 
@@ -54,16 +53,16 @@ struct Int {
 //*!
 struct Frac {
     ll n, d;
-	Frac(ll a=0, ll b=1) {
-		if (b) {
-			ll g = __gcd(a,b);
-			n = a/g; d = b/g;
-			if (d<0) { n = -n; d = -d; }
-		} else {
-			n = (a ? a/abs(a) : 0);
-			d = 0;
-		}
-	}
+  Frac(ll a=0, ll b=1) {
+    if (b) {
+      ll g = __gcd(a,b);
+      n = a/g; d = b/g;
+      if (d<0) { n = -n; d = -d; }
+    } else {
+      n = (a ? a/abs(a) : 0);
+      d = 0;
+    }
+  }
     friend ostream& operator << (ostream& os, const Frac& f) {
         return os << '(' << f.n << '/' << f.d << ')';
     }

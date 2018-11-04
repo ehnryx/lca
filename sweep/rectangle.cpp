@@ -9,7 +9,7 @@ typedef long long ll;
 // Allows storing of prefix areas up to specific points, for prefix sums
 // USAGE:
 //  1. add_rect(x1,y1,x2,y2); with x1<x2 and y1<y2
-//     This defines the rectangle [x1,x2] x [y1,y2]
+//   This defines the rectangle [x1,x2] x [y1,y2]
 //  2. add_query(l,r); with l<r. Query is for the area with l<x<r
 //  3. solve(); to compute the areas, should only be called ONCE
 //  4. query(l,r); to query
@@ -76,18 +76,45 @@ struct RectangleUnion {
         }
     }
 
+    // Example: flip when mod 2 swapped
+    bool flip(int a, int b) {
+        return a%2 != b%2;
+    }
+    
+    void push(int i) {
+        if (tag[i]) {
+            int left = tag[2*i];
+            int right = tag[2*i+1];
+            tag[2*i] += tag[i];
+            tag[2*i+1] += tag[i];
+            tag[i] = 0;
+            if (flip(left, tag[2*i])) {
+                cover[2*i] = length[2*i] - cover[2*i];
+            }
+            if (flip(right, tag[2*i+1])) {
+                cover[2*i+1] = length[2*i+1] - cover[2*i+1];
+            }
+        }
+    }
+    void pull(int i) {
+        cover[i] = cover[2*i] + cover[2*i+1];
+    }
+
     void update(int l, int r, int v, int i, int s, int e) {
         if (e < l || r < s) return;
         if (l <= s && e <= r) {
+            int before = tag[i];
             tag[i] += v;
+            if (flip(before, tag[i])) {
+                cover[i] = length[i] - cover[i];
+            }
         } else {
+            push(i);
             int mid = (s+e)/2;
             update(l, r, v, 2*i, s, mid);
             update(l, r, v, 2*i+1, mid+1, e);
+            pull(i);
         }
-        if (tag[i]) cover[i] = length[i];
-        else if (i < n) cover[i] = cover[2*i] + cover[2*i+1];
-        else cover[i] = 0;
     }
 };
 //*/

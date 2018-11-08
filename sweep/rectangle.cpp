@@ -78,7 +78,7 @@ struct RectangleUnion {
 
     // Example: flip when mod 2 swapped
     bool flip(int a, int b) {
-        return a%2 != b%2;
+        return abs(a)%2 != abs(b)%2;
     }
     
     void push(int i) {

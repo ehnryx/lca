@@ -55,6 +55,7 @@ struct SegmentTree {
         if (e < l || s > r) return;
         if (l <= s && e <= r && segt[i].put(v)) {
             segt[i].update(v, e-s+1);
+            // if (i<n) segt[i].pull(segt[2*i], segt[2*i+1]);
             return;
         }
         segt[i].push(segt[2*i], segt[2*i+1], e-s+1);
@@ -86,7 +87,7 @@ struct Int {
     bool lazy;
     Int(int x=0x3f3f3f3f): x(x), d(x), lazy(true) {}
     bool get() { return true; }
-    bool put(const T& v) { return true; }
+    bool put(const int& v) { return true; }
     void update(int v, int len) {
         x = d = v;
         lazy = true;

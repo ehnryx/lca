@@ -130,6 +130,8 @@ vector<pt> voronoi(const vector<pt>& p) {
  * Nagel Point:     ( s-a, s-b, s-c )
  * Symmedian Point: ( a^2, b^2, c^2 )
  * Gergonne Point:  ( (s-b)(s-c), (s-c)(s-a), (s-a)(s-b) )
+ * First Brocard Point:  ( (ca)^2, (ab)^2, (bc^2) )
+ * Second Brocard Point: ( (ab)^2, (bc)^2, (ca^2) )
  */
 //*/
 

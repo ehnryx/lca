@@ -55,6 +55,7 @@ struct HLD : LCA {
     for (int x:adj[cur]) if (x!=p && subsz[x]>b) { b = subsz[c=x]; }
     if (c != -1) build(c, cur);
     for (int y:adj[cur]) if (y!=p && y!=c) { hldn++; build(y,cur); } }
+  void insert_node(int a, int v) { segt[chain[a]]->update(pos[a],pos[a],v); }
   // ASSUMES b IS AN ANCESTOR OF a, UPDATES PATH [a,b), SEGTREE IS [l,r]
   void insert_path(int a, int b, int v) {
     while (chain[a] != chain[b]) {

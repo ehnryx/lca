@@ -39,7 +39,6 @@ namespace HLD {
     for (int x:adj[u]) if (x!=p && sub[x]>b) { b = sub[c=x]; }
     if (c!=-1) build_hld(c,u);
     for (int y:adj[u]) if (y!=p && y!=c) { dn++; build_hld(y,u); } }
-
   void build(int r, int n=N) { d[0] = lcan = dn = cn = 0;
     build_lca(r,0); build_rmq(2*n); build_hld(r,0);
     for (int i=0; i<cn; i++) segt[i] = new SegTree(sz[i]); }

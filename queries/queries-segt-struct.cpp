@@ -3,7 +3,7 @@ using namespace std;
 
 typedef pair<int,int> pii;
 
-const int N = 1e5+1;
+const int N = 1e5+1; const int L = 17;
 vector<int> adj[N];
 
 // EXAMPLE SegTree
@@ -46,11 +46,11 @@ namespace HLD {
   // ASSUME b IS ANCESTOR OF a, modify for insert_node, query_path, query_node
   void insert_path(int a, int b, int v) {
     while (ch[a] != ch[b]) {
-      segt[ch[a]].update(0, pos[a], v); // update segtree
+      segt[ch[a]]->update(0, pos[a], v); // update segtree
       a = par[root[ch[a]]];
     }
     if (pos[a] != pos[b]) {
-      segt[ch[a]].update(pos[b]+1, pos[a], v); // update segtree
+      segt[ch[a]]->update(pos[b]+1, pos[a], v); // update segtree
     }
   }
 }

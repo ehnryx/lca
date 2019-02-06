@@ -3,20 +3,14 @@ using namespace std;
 
 typedef pair<int,int> pii;
 
-// values for 1e5
-const int L = 17;
-const int N = 1<<L;
-
-// FOR QUERIES ON TREES: 
-// General data structure to store the tree
+const int N = 1e5+1;
 vector<int> adj[N];
 
 // EXAMPLE SegTree
 struct SegTree {
-  int n;
-  int *segt;
+  int n; int *segt;
   SegTree(int len) {
-    n = 1 << (32-__builtin_clz(max(1,len-1)));
+    n = 1 << (32-__builtin_clz(len)); // make power of 2
     segt = new int[2*n];
     fill(segt, segt+2*n, 0); // remember to initialize
   }
@@ -24,52 +18,45 @@ struct SegTree {
 };
 // END EXAMPLE
 
-template<class T> struct RMQ {
-  T rmq[2*N][L+1]; int lg[2*N];
-  void build() { for (int j=1; j<2*N; j++) lg[j]=31-__builtin_clz(j);
-    for (int j=1; j<L+1; j++) for (int i=0; i+(1<<j)-1<2*N; i++)
+namespace HLD {
+  int lg[2*N]; pii rmq[2*N][L+1]; // N is the number of nodes, L >= log(N)
+  void build_rmq(int n) { for (int i=1; i<n; i++) lg[i] = 31-__builtin_clz(i);
+    for (int j=1; j<=L; j++) for (int i=0; i+(1<<j)-1<n; i++)
       rmq[i][j] = min(rmq[i][j-1], rmq[i+(1<<(j-1))][j-1]); }
-  T query(int a, int b) { if (a>b) swap(a,b);
-    int j=lg[b-a+1]; return min(rmq[a][j], rmq[b-(1<<j)+1][j]); } };
+  int query_rmq(int l, int r) { if (l>r) swap(l,r); int j = lg[r-l+1];
+    return min(rmq[l][j], rmq[r-(1<<j)+1][j]).second; }
 
-// No need to extend RMQ if HLD only has vertical paths, also remove commented
-struct LCA : RMQ<pii> {
-  int dh[N], sp[N], par[N], subsz[N]; int lcan; LCA() { lcan = dh[0] = 0; }
-  void build(int root) { build(root,0); RMQ::build(); }
-  int build(int u, int p) { dh[u]=dh[par[u]=p]+1; sp[u]=lcan; subsz[u]=1;
-    rmq[lcan++][0] = pii(dh[u],u); // RMQ
-    for (int i:adj[u]) if (i!=p) { subsz[u] += build(i,u);
-      rmq[lcan++][0] = pii(dh[u],u); // RMQ
-		} return subsz[u]; }
-  int query(int a, int b) { return RMQ::query(sp[a],sp[b]).second; } // RMQ
-}; // Henry X's signature LCA
+  int d[N], sp[N], par[N], sub[N]; int lcan;
+  int build_lca(int u, int p) {
+    d[u] = d[par[u]=p]+1; sub[u] = 1; rmq[sp[u]=lcan++][0] = pii(d[u], u);
+    for (int x:adj[u]) if (x!=p) { sub[u] += build_lca(x,u);
+      rmq[lcan++][0] = pii(d[u], u); } return sub[u]; }
+  int query_lca(int a, int b) { return query_rmq(sp[a], sp[b]); }
 
-struct HLD : LCA {
-  vector<int> sz, root; vector<SegTree*> segt; int chain[N], pos[N];
-	int hldn, segn; HLD(): LCA() { hldn = segn = 0; }
-  void build(int r) { LCA::build(r); build(r,0);
-    for (int it:sz) segt.push_back(new SegTree(it)); }
-  void build(int cur, int p) {
-    if (hldn == root.size()) { root.push_back(cur); sz.push_back(0); }
-		chain[cur] = hldn; pos[cur] = sz[chain[cur]]++; segn++; int b=-1, c=-1;
-    for (int x:adj[cur]) if (x!=p && subsz[x]>b) { b = subsz[c=x]; }
-    if (c != -1) build(c, cur);
-    for (int y:adj[cur]) if (y!=p && y!=c) { hldn++; build(y,cur); } }
-  void insert_node(int a, int v) { segt[chain[a]]->update(pos[a],pos[a],v); }
-  // ASSUMES b IS AN ANCESTOR OF a, UPDATES PATH [a,b), SEGTREE IS [l,r]
+  SegTree* segt[N]; int sz[N], root[N], ch[N], pos[N]; int dn, cn;
+  void build_hld(int u, int p) { if (dn == cn) { root[cn]=u; sz[cn++]=0; }
+    pos[u] = sz[ch[u]=dn]++; int b=-1, c=-1;
+    for (int x:adj[u]) if (x!=p && sub[x]>b) { b = sub[c=x]; }
+    if (c!=-1) build_hld(c,u);
+    for (int y:adj[u]) if (y!=p && y!=c) { dn++; build_hld(y,u); } }
+
+  void build(int r, int n=N) { d[0] = lcan = dn = cn = 0;
+    build_lca(r,0); build_rmq(2*n); build_hld(r,0);
+    for (int i=0; i<cn; i++) segt[i] = new SegTree(sz[i]); }
+
+  // ASSUME b IS ANCESTOR OF a, modify for insert_node, query_path, query_node
   void insert_path(int a, int b, int v) {
-    while (chain[a] != chain[b]) {
-      segt[chain[a]]->update(0, pos[a], v);
-      a = par[root[chain[a]]];
+    while (ch[a] != ch[b]) {
+      segt[ch[a]].update(0, pos[a], v); // update segtree
+      a = par[root[ch[a]]];
     }
     if (pos[a] != pos[b]) {
-      segt[chain[a]]->update(pos[b]+1, pos[a], v);
+      segt[ch[a]].update(pos[b]+1, pos[a], v); // update segtree
     }
   }
-};
-
+}
 
 ////////////////////////////////////////////////////////////////////////
 int main() {
-  return 0;
+    return 0;
 }

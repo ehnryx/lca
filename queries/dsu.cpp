@@ -11,26 +11,26 @@ typedef long long ll;
 // 3. dsu.find(i) to find the root of the set containing i
 //*!
 struct DSU {
-	vector<int> root;
-	vector<int> sz;
-	DSU(int n) {
-		root.resize(n, -1);
-		sz.resize(n, 1);
-	}
-	int find(int i) {
-		if (root[i] == -1) return i;
-		return root[i] = find(root[i]);
-	}
-	// returns true if we combine two sets
-	bool link(int i, int j) {
-		i = find(i);
-		j = find(j);
-		if (i == j) return false;
-		if (sz[i] < sz[j]) swap(i,j);
-		root[j] = i;
-		sz[i] += sz[j];
-		return true;
-	}
+    vector<int> root;
+    vector<int> sz;
+    DSU(int n) {
+        root.resize(n, -1);
+        sz.resize(n, 1);
+    }
+    int find(int i) {
+        if (root[i] == -1) return i;
+        return root[i] = find(root[i]);
+    }
+    // returns true if we combine two sets
+    bool link(int i, int j) {
+        i = find(i);
+        j = find(j);
+        if (i == j) return false;
+        if (sz[i] < sz[j]) swap(i,j);
+        root[j] = i;
+        sz[i] += sz[j];
+        return true;
+    }
 };
 //*/
 

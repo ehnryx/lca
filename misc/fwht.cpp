@@ -4,7 +4,8 @@ using namespace std;
 typedef long long ll;
 typedef pair<int,int> pii;
 
-const int INF = 0x3f3f3f3f;
+// value works for 1e5. N must be a power of 2
+const int N = 1<<17;
 
 ////////////////////////////////////////////////////////////////////////
 // Fast Walsh Hadamard Transform -- O(nlog(n))
@@ -27,8 +28,8 @@ template<class T> void fwht(T p[], bool inv = false) {
         }
     }
     if (inv) {
-        For(i,N) {
-            p[i] = p[i] * invN;
+        for (int i=0; i<N; i++) {
+            p[i] = p[i] / N;
         }
     }
 }

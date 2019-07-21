@@ -83,6 +83,43 @@ ll weighted_lis_len(const vector<pair<int,ll>>& a) {
 //*/
 
 ////////////////////////////////////////////////////////////////////////
+// Longest Common Increasing Subsequence Length -- O(nm) (TESTED)
+// Returns the length of a longest common increasing subsequence
+// pii: value, weight
+//*!
+int lcis_len(vector<int>& a, vector<int>& b) {
+    bool swapped = false;
+    if (a.size() < b.size()) {
+        swap(a, b);
+        swapped = true;
+    }
+    int n = a.size();
+    int m = b.size();
+    int lcis[2][m];
+    memset(lcis[1], 0, sizeof lcis[1]);
+    for (int i = 0; i < n; i++) {
+        int maxv = 0;
+        for (int j = 0; j < m; j++) {
+            lcis[i&1][j] = lcis[(i&1)^1][j];
+            if (a[i] == b[j]) {
+                lcis[i&1][j] = maxv+1;
+            } else if (a[i] > b[j]) {
+                maxv = max(maxv, lcis[(i&1)^1][j]);
+            }
+        }
+    }
+    if (swapped) {
+        swap(a, b);
+    }
+    int res = 0;
+    for (int j = 0; j < m; j++) {
+        res = max(res, lcis[(n&1)^1][j]);
+    }
+    return res;
+}
+//*/
+
+////////////////////////////////////////////////////////////////////////
 int main() {
     return 0;
 }

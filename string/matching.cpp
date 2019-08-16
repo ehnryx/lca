@@ -2,7 +2,7 @@
 using namespace std;
 
 ////////////////////////////////////////////////////////////////////////
-// Z Value String Matching -- O(n+m) (UNTESTED)
+// Z Value String Matching -- O(n+m)
 // n = length of string; m = length of pattern
 // USAGE:
 //  0. given string s and pattern t
@@ -22,7 +22,7 @@ vector<int> zValue(const string& s) {
 //*/
 
 ////////////////////////////////////////////////////////////////////////
-// KMP String Matching (prefix function) -- O(n+m) (UNTESTED)
+// KMP String Matching (prefix function) -- O(n+m)
 // n = length of string; m = length of pattern
 // USAGE:
 //  0. given string s and pattern t
@@ -54,11 +54,11 @@ vector<int> kmp(const string& s, const string& t) {
 //*/
 
 ////////////////////////////////////////////////////////////////////////
-// KMP String Matching (prefix function) -- O(n+m) (UNTESTED)
-// n = length of string; m = length of pattern
+// Aho-Corasick String Matching -- O(n + m + numMatches)
+// WARNING: all pattern strings must be different; patterns 0-indexed
 // USAGE:
 //  0. AhoCorasick trie;
-//  1. trie.insert(word) to insert words
+//  1. trie.insert(pattern) to insert patterns
 //  2. trie.build() to build links once all words are inserted
 //  3. auto matches = trie.match(string) to find words in string
 //*!
@@ -66,8 +66,8 @@ struct AhoCorasick {
 	struct Node {
 		Node *par, *end, *p;
 		unordered_map<char,Node*> ch;
-		vector<int> id;
-		Node(Node* u=0): par(u) {}
+        int id;
+		Node(Node* u=0): par(u), id(-1) {}
 	};
 
 	Node* root;
@@ -81,7 +81,7 @@ struct AhoCorasick {
 			if (!u->ch.count(c)) u->ch[c] = new Node(u);
 			u = u->ch[c];
 		}
-		u->id.push_back(wcnt++);
+		u->id = wcnt++;
 		len.push_back(s.size());
 	}
 
@@ -95,7 +95,7 @@ struct AhoCorasick {
 				Node* v = u->par->p;
 				while (v!=root && !v->ch.count(c)) v = v->p;
 				if (v->ch.count(c) && v->ch[c]!=u) u->p = v->ch[c];
-				u->end = (u->id.empty() ? u->p->end : u);
+				u->end = (u->id==-1 ? u->p->end : u);
 			}
 		}
 	}
@@ -108,7 +108,7 @@ struct AhoCorasick {
 			if (u->ch.count(s[i])) u = u->ch[s[i]];
 			for (Node* v=u; v->end!=root; v=v->p) {
 				v = v->end; // get matches
-				for (int j : v->id) m[j].push_back(i-len[j]+1);
+                m[v->id].push_back(i-len[v->id]+1);
 			}
 		}
 		return m;

@@ -81,7 +81,7 @@ struct AhoCorasick {
 			if (!u->ch.count(c)) u->ch[c] = new Node(u);
 			u = u->ch[c];
 		}
-		u->id = wcnt++;
+		assert(u->id==-1); u->id = wcnt++;
 		len.push_back(s.size());
 	}
 

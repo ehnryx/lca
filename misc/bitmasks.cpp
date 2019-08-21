@@ -14,6 +14,16 @@ for (int bm=1; bm<1<<n; bm++) {
 //*/
 
 ////////////////////////////////////////////////////////////////////////
+// Next Permutation for bitmasks -- O(1)
+// first permutation of k bits is (1<<k)-1
+//*!
+int next_bits(int v) {
+    int t = (v|(v-1))+1;
+    return t|((((t&-t)/(v&-v))>>1)-1);
+}
+//*/
+
+////////////////////////////////////////////////////////////////////////
 int main() {
     return 0;
 }

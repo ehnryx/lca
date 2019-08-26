@@ -24,6 +24,24 @@ int next_bits(int v) {
 //*/
 
 ////////////////////////////////////////////////////////////////////////
+// Sum Over Subsets DP -- O(n2^n)
+// calculates sum[x] = sum_{i subset of x} a[i]
+//*!
+void sosdp(int n, int a[], int sum[]) {
+    for (int i = 0; i < 1<<n; i++) {
+        sum[i] = a[i];
+    }
+    for (int i = 0; i < n; i++) {
+        for (int bm = 0; bm < 1<<n; bm++) {
+            if (bm & 1<<i) {
+                sum[bm] += sum[bm ^ 1<<i];
+            }
+        }
+    }
+}
+//*/
+
+////////////////////////////////////////////////////////////////////////
 int main() {
     return 0;
 }

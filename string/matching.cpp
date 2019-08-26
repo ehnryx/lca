@@ -65,39 +65,37 @@ vector<int> kmp(const string& s, const string& t) {
 //*!
 struct AhoCorasick {
     struct Node {
-        Node *par, *end, *p;
+        Node *end, *p;
         unordered_map<char,Node*> ch;
-        int id;
-        Node(Node* u=0): par(u), id(-1) {}
+        int id, d;
+        Node(int d=0): id(-1), d(d) {}
     };
 
     Node* root;
-    vector<int> len;
     int wcnt;
     AhoCorasick(): root(new Node), wcnt(0) {}
 
     void insert(const string& s) {
         Node* u = root;
         for (char c : s) {
-            if (!u->ch.count(c)) u->ch[c] = new Node(u);
+            if (!u->ch.count(c)) u->ch[c] = new Node(u->d+1);
             u = u->ch[c];
         }
-        assert(u->id==-1); u->id = wcnt++;
-        len.push_back(s.size());
+        assert(u->id == -1); u->id = wcnt++;
     }
 
     void build() {
-        queue<pair<char,Node*>> bfs; bfs.push({0,root});
+        root->end = root; root->p = 0;
+        queue<Node*> bfs; bfs.push(root);
         while (!bfs.empty()) {
-            char c; Node* u;
-            tie(c,u) = bfs.front(); bfs.pop();
-            for (const auto& i : u->ch) bfs.push(i);
-            u->p = u->end = root;
-            if (u!=root) {
-                Node* v = u->par->p;
-                while (v!=root && !v->ch.count(c)) v = v->p;
-                if (v->ch.count(c) && v->ch[c]!=u) u->p = v->ch[c];
-                u->end = (u->id==-1 ? u->p->end : u);
+            Node* u = bfs.front(); bfs.pop();
+            for (const auto& it : u->ch) {
+                char c; Node* v; tie(c,v) = it;
+                Node* j = u->p;
+                while (j && !j->ch.count(c)) j = j->p;
+                v->p = (j ? j->ch[c] : root);
+                v->end = (v->id == -1 ? v->p->end : v);
+                bfs.push(v);
             }
         }
     }
@@ -110,7 +108,7 @@ struct AhoCorasick {
             if (u->ch.count(s[i])) u = u->ch[s[i]];
             for (Node* v=u; v->end!=root; v=v->p) {
                 v = v->end; // get matches
-                m[v->id].push_back(i-len[v->id]+1);
+                m[v->id].push_back(i-v->d+1);
             }
         }
         return m;

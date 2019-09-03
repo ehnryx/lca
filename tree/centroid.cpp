@@ -43,11 +43,12 @@ namespace Centroid {
         cdepth[u] = cdepth[p] + 1;
         cpar[u] = p;
         if (p != -1) cent[p].push_back(u);
+        csub[u].insert(u);
         for(int v : adj[u]) {
             if (cdepth[v] == -1) {
-                centroid(v, u);
+                int cv = centroid(v, u);
                 //*! to save vertices in subtree
-                for (int it : csub[v]) {
+                for (int it : csub[cv]) {
                     csub[u].insert(it);
                 }
                 //*/

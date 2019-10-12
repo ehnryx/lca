@@ -8,9 +8,9 @@ const int M = 1e5; // number of edges
 
 ////////////////////////////////////////////////////////////////////////
 // Minimum Spanning Arborescence -- O(Elog(E) + V)
-// Finds the minimum spanning arborescence of a strongly connected graph
+// Finds the minimum spanning arborescence of a STRONGLY CONNECTED graph
 //
-// TESTED on: nwerc2018/f
+// TESTED on: nwerc2018/f, uva/11183
 //
 // USAGE:
 //  1. MinArb::add_edge(a,b,c);  // add edge a -> b with cost c
@@ -18,7 +18,7 @@ const int M = 1e5; // number of edges
 //  3. MinArb::expand(r);  // builds minimum out arb rooted at r
 //                            the edge ids are stored in[u] for u != r
 //                            edge values are: from[e], to[e], cost[e]
-//  If multiple runs are needed, reset the edge with MinArb::m = 0;
+//  If multiple runs are needed, call MinArb::init(n);
 //*!
 namespace MinArb {
 	const int N = 1e5+1; // number of vertices
@@ -38,6 +38,10 @@ namespace MinArb {
 		nc[m] = cost[m] = c;
 		m++;
 	}
+    void init(int n) {
+        m = 0;
+        fill(p, p+2*n, priority_queue<pair<ll,int>());
+    }
 
 	int dsu[2*N];
 	int find(int i) {

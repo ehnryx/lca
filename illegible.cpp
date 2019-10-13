@@ -121,19 +121,19 @@ struct WaveletTree { int lo, hi; vector<int> b; WaveletTree *left, *right;
 //*/
 
 ////////////////////////////////////////////////////////////////////////////////
-// Minimum Spanning Arborescence -- O(Elog(E) + V)
+// Minimum Spanning Arborescence -- O(Elog(E) + V)  TESTED: nwerc2018f uva11183
 // Finds the minimum spanning arborescence of a STRONGLY CONNECTED graph
-// TESTED on: nwerc2018/f uva/11183
 // USAGE:
 //  1. MinArb::add_edge(a,b,c);  // add edge a -> b with cost c
 //  2. MinArb::contract(u);  // u is the vertex with highest id
 //  3. MinArb::expand(r);  // builds minimum out arb rooted at r
-//                            the edge ids are stored in[u] for u != r
-//                            edge values are: from[e], to[e], cost[e]
-//  If multiple runs are needed, call MinArb::init(n);
+//     arb edge ids are e=in[u] for u!=r, values are: from[e], to[e], cost[e]
+//     If multiple expands per contract, do
+//     MinArb::save(n); MinArb::expand(r); MinArb::load(n);
+//  If multiple calls to contract are needed, call MinArb::init(n);
 //*!
 namespace MinArb {
-  int in[2*N], pre[2*N], par[2*N], dsu[2*N]; ll sh[2*N];
+  int in[2*N], pre[2*N], par[2*N], dsu[2*N], spar[2*N], sin[2*N]; ll sh[2*N]; 
   vector<int> child[2*N]; priority_queue<pair<ll,int>> p[2*N];
   int from[M], to[M]; ll cost[M], nc[M]; int m = 0;
   void add_edge(int a, int b, ll c=0) {
@@ -160,6 +160,8 @@ namespace MinArb {
       if (u!=v) { par[v] = -1; if (!child[v].empty()) roots.push(v); } } };
   for (dismantle(r); !roots.empty(); ) { int c = roots.top(); roots.pop();
     int v = to[in[c]]; in[v] = in[c]; dismantle(v); } }
+  void save(int n=N) { for(int i=0;i<2*n;i++) { spar[i]=par[i]; sin[i]=in[i]; }}
+  void load(int n=N) { for(int i=0;i<2*n;i++) { par[i]=spar[i]; in[i]=sin[i]; }}
 }
 //*/
 

@@ -5,6 +5,8 @@ typedef long long ll;
 typedef pair<int,int> pii;
 
 const int INF = 0x3f3f3f3f;
+const int N = 1e5+1;
+const int M = 1e5+1;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Fast Walsh Hadamard Transform -- O(nlog(n))
@@ -116,6 +118,49 @@ struct WaveletTree { int lo, hi; vector<int> b; WaveletTree *left, *right;
     else return right->count(l-lb, r-rb, k);
   }
 };
+//*/
+
+////////////////////////////////////////////////////////////////////////////////
+// Minimum Spanning Arborescence -- O(Elog(E) + V)
+// Finds the minimum spanning arborescence of a STRONGLY CONNECTED graph
+// TESTED on: nwerc2018/f uva/11183
+// USAGE:
+//  1. MinArb::add_edge(a,b,c);  // add edge a -> b with cost c
+//  2. MinArb::contract(u);  // u is the vertex with highest id
+//  3. MinArb::expand(r);  // builds minimum out arb rooted at r
+//                            the edge ids are stored in[u] for u != r
+//                            edge values are: from[e], to[e], cost[e]
+//  If multiple runs are needed, call MinArb::init(n);
+//*!
+namespace MinArb {
+  int in[2*N], pre[2*N], par[2*N], dsu[2*N]; ll sh[2*N];
+  vector<int> child[2*N]; priority_queue<pair<ll,int>> p[2*N];
+  int from[M], to[M]; ll cost[M], nc[M]; int m = 0;
+  void add_edge(int a, int b, ll c=0) {
+    from[m] = a; to[m] = b; nc[m] = cost[m] = -c; p[b].push({-c, m++}); }
+  void init(int n=N) { m = 0;
+    fill(p,p+2*n,priority_queue<pair<ll,int>>());
+    fill(child,child+2*n,vector<int>()); }
+  int find(int i) { return dsu[i] == -1 ? i : dsu[i] = find(dsu[i]); }
+  void link(int i, int j) { if (find(i) != find(j)) dsu[find(i)] = find(j); }
+  void contract(int n) { memset(dsu, -1, sizeof dsu);
+    memset(in, -1, sizeof in); memset(sh, 0, sizeof sh);
+    memset(pre, -1, sizeof pre); memset(par, -1, sizeof par);
+    for (int a = n; !p[a].empty(); ) {
+      int e = p[a].top().second; p[a].pop(); int u = from[e]; int b = find(u);
+      if (a != b) { in[a] = e; pre[a] = b; if (in[u] == -1) a = b; else {
+        for (int c = ++n; a != c; a = find(pre[a])) {
+          par[a] = c; sh[a] = -nc[in[a]]; child[c].push_back(a);
+          if (p[a].size()>p[c].size()) { swap(p[a],p[c]); swap(sh[a],sh[c]); }
+          for (ll add = sh[a]-sh[c]; !p[a].empty(); ) { auto it = p[a].top();
+            p[a].pop(); p[c].push({it.first + add, it.second});
+            nc[it.second] += add; } link(a, c); } } } } }
+  void expand(int r) { stack<int> roots; auto dismantle = [&](int u) {
+    for ( ; par[u] != -1; u = par[u]) for (int v : child[par[u]]) {
+      if (u!=v) { par[v] = -1; if (!child[v].empty()) roots.push(v); } } };
+  for (dismantle(r); !roots.empty(); ) { int c = roots.top(); roots.pop();
+    int v = to[in[c]]; in[v] = in[c]; dismantle(v); } }
+}
 //*/
 
 ////////////////////////////////////////////////////////////////////////////////

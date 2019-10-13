@@ -18,6 +18,7 @@ const int M = 1e5; // number of edges
 //  3. MinArb::expand(r);  // builds minimum out arb rooted at r
 //                            the edge ids are stored in[u] for u != r
 //                            edge values are: from[e], to[e], cost[e]
+//  If multiple runs are needed, call MinArb::init(n);
 //*!
 namespace MinArb {
 	const int N = 2500+1;

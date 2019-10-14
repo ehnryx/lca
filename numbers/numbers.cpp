@@ -55,7 +55,7 @@ struct Frac {
     ll n, d;
     Frac(ll a=0, ll b=1) {
         if (b) {
-            ll g = __gcd(a,b);
+            ll g = abs(__gcd(a,b));
             n = a/g; d = b/g;
             if (d<0) { n = -n; d = -d; }
         } else {

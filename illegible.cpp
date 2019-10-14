@@ -122,7 +122,7 @@ struct WaveletTree { int lo, hi; vector<int> b; WaveletTree *left, *right;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Minimum Spanning Arborescence -- O(Elog(E) + V)  TESTED: nwerc2018f uva11183
-// Finds the minimum spanning arborescence of a STRONGLY CONNECTED graph
+// graph needs to be STRONGLY CONNECTED (make G strong again by adding edges)
 // USAGE:
 //  1. MinArb::add_edge(a,b,c);  // add edge a -> b with cost c
 //  2. MinArb::contract(u);  // u is the vertex with highest id
@@ -137,7 +137,7 @@ namespace MinArb {
   vector<int> child[2*N]; priority_queue<pair<ll,int>> p[2*N];
   int from[M], to[M]; ll cost[M], nc[M]; int m = 0;
   void add_edge(int a, int b, ll c=0) {
-    from[m] = a; to[m] = b; nc[m] = cost[m] = -c; p[b].push({-c, m++}); }
+    from[m] = a; to[m] = b; nc[m] = -c; cost[m] = c; p[b].push({-c, m++}); }
   void init(int n=N) { m = 0;
     fill(p,p+2*n,priority_queue<pair<ll,int>>());
     fill(child,child+2*n,vector<int>()); }

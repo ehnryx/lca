@@ -8,7 +8,7 @@ const int M = 1e5; // number of edges
 
 ////////////////////////////////////////////////////////////////////////////////
 // Minimum Spanning Arborescence -- O(Elog(E) + V)  TESTED: nwerc2018f uva11183
-// Finds the minimum spanning arborescence of a STRONGLY CONNECTED graph
+// graph needs to be STRONGLY CONNECTED (make G strong again by adding edges)
 // USAGE:
 //  1. MinArb::add_edge(a,b,c);  // add edge a -> b with cost c
 //  2. MinArb::contract(u);  // u is the vertex with highest id

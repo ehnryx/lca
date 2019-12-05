@@ -23,7 +23,7 @@ pt circumcenter(const pt& A, const pt& B, const pt& C) {
 // TESTED on WF2018G 
 //*!
 
-struct Tuple { vi v;
+struct Tuple { vector<int> v;
     Tuple() {}
     Tuple(int a, int b) { v={a,b}; sort(v.begin(), v.end()); }
     Tuple(int a, int b, int c) { v={a,b,c}; sort(v.begin(),v.end()); }

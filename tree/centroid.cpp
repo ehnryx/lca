@@ -10,6 +10,7 @@ vector<int> adj[N];
 ////////////////////////////////////////////////////////////////////////
 // Centroid Decomposition -- O(nlog(n)) to build (UNTESTED)
 // USAGE:
+//  0. MUST BE 1-indexed
 //  1. decompose(u); where u is some vertex in the tree
 //  2. centroid tree stored as adjacency list in cent[]
 //  3. centroid parents stored in cpar[]
@@ -42,7 +43,7 @@ namespace Centroid {
         // at centroid
         cdepth[u] = cdepth[p] + 1;
         cpar[u] = p;
-        if (p != -1) cent[p].push_back(u);
+        if (p) cent[p].push_back(u);
         csub[u].insert(u);
         for(int v : adj[u]) {
             if (cdepth[v] == -1) {
@@ -59,8 +60,8 @@ namespace Centroid {
 
     int decompose(int u) {
         memset(cdepth, -1, sizeof cdepth);
-        dfs(u, -1);
-        return centroid(u, -1);
+        dfs(u, 0);
+        return centroid(u, 0);
     }
 }
 //*/

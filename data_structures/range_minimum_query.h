@@ -8,7 +8,7 @@
  *  O(NlogN) construction, O(1) per query
  *  N = |array|
  * STATUS
- *  tested: kattis/tourists
+ *  tested: kattis/tourists, cf/1454/f
  */
 #pragma once
 

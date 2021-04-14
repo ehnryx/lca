@@ -2,9 +2,14 @@
 
 import sys, os
 
+have = set()
 def expand(filename, ouf, wait = False):
-    cwd = os.getcwd()
     realname = os.path.realpath(filename)
+    if realname in have:
+        ouf.write("// already included\n")
+        return
+    have.add(realname)
+    cwd = os.getcwd()
     os.chdir(os.path.dirname(realname))
     inf = open(realname)
     print(f"copying {realname}")

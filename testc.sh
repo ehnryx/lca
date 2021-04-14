@@ -5,7 +5,7 @@ echo "#include <bits/stdc++.h>
 using namespace std;
 using ll = long long;
 using ld = long double;
-using pt = complex<ld>;
+const ld EPS = 1e-9; // for geometry
 int main() {}" > $temp.cpp
 
 echo "test compile"

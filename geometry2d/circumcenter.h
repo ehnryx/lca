@@ -19,3 +19,8 @@ point<T> circumcenter(const point<T>& a, const point<T>& b, const point<T>& c) {
   return a + perp((b-a) * norm(c-a) - (c-a) * norm(b-a)) / cross(b-a, c-a) / 2;
 }
 
+template <typename T>
+T circumradius(const point<T>& a, const point<T>& b, const point<T>& c) {
+  return sqrt(norm(a-b) * norm(b-c) * norm(c-a)) / abs(cross(b-a, c-a)) / 2;
+}
+

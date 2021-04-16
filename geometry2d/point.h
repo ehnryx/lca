@@ -3,7 +3,7 @@
  *  pt<T>(x, y);
  *  default T = long double
  * STATUS
- *  tested
+ *  tested somewhat
  */
 #pragma once
 
@@ -35,6 +35,9 @@ struct point {
   T abs() const { return sqrt(norm()); }
   T dot(const point& v) const { return x*v.x + y*v.y; }
   T cross(const point& v) const { return x*v.y - y*v.x; }
+  static point polar(const T& r, const T& angle) {
+    return point<T>(r * cos(angle), r * sin(angle));
+  }
 };
 
 template <class T> auto real(const T& v) { return v.real(); }
@@ -46,4 +49,12 @@ template <class T> auto norm(const T& v) { return v.norm(); }
 template <class T> auto abs(const T& v) { return v.abs(); }
 template <class T> auto dot(const T& a, const T& b) { return a.dot(b); }
 template <class T> auto cross(const T& a, const T& b) { return a.cross(b); }
+
+template <typename T>
+bool equals(const point<T>& a, const point<T>& b, const T& eps) {
+  return abs(a - b) <= eps;
+}
+
+template <typename T>
+int sign(const T& x, const T& eps) { return x < -eps ? -1 : x > eps ? 1 : 0; }
 

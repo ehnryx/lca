@@ -13,11 +13,12 @@
  * STATUS
  *  tested: kattis/pandapreserve, acmsguru/383 (up to |coordinate| < 1e4)
  *  fails with probability proportional to max |coordinate|
+ *  TODO: cf/442e, 102058k, timus/1369
  */
 #pragma once
 
 #include "point.h"
-#include "lines.h"
+#include "general.h"
 #include "circumcenter.h"
 
 namespace delaunay_triangulator {

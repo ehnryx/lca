@@ -38,6 +38,9 @@ struct point {
   static point polar(const T& r, const T& angle) {
     return point<T>(r * cos(angle), r * sin(angle));
   }
+  static bool by_angle(const point& a, const point& b) {
+    return a.arg() < b.arg();
+  }
 };
 
 template <class T> auto real(const T& v) { return v.real(); }
@@ -51,10 +54,12 @@ template <class T> auto dot(const T& a, const T& b) { return a.dot(b); }
 template <class T> auto cross(const T& a, const T& b) { return a.cross(b); }
 
 template <typename T>
-bool equals(const point<T>& a, const point<T>& b, const T& eps) {
+bool equal(const point<T>& a, const point<T>& b, const T& eps = 1e-9) {
   return abs(a - b) <= eps;
 }
 
 template <typename T>
-int sign(const T& x, const T& eps) { return x < -eps ? -1 : x > eps ? 1 : 0; }
+int sign(const T& x, const T& eps = 1e-9) {
+  return x < -eps ? -1 : x > eps ? 1 : 0;
+}
 

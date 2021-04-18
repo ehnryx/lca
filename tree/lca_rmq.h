@@ -16,7 +16,7 @@
 #pragma once
 
 #include "rooted_tree.h"
-#include "../data_structures/range_minimum_query.h"
+#include "../data_structure/range_minimum_query.h"
 
 struct lca_rmq : rooted_tree {
   vector<int> idx;
@@ -33,7 +33,7 @@ struct lca_rmq : rooted_tree {
           arr.emplace_back(depth[v], v);
         }
       }
-      idx[u] = arr.size();
+      idx[u] = (int)arr.size();
       arr.emplace_back(depth[u], u);
     }
     rmq.build(arr);

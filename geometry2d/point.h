@@ -30,28 +30,33 @@ struct point {
   point perp() const { return point(-y, x); }
   T real() const { return x; }
   T imag() const { return y; }
-  T arg() const { return atan2(y, x); }
+  template <typename D = T>
   T norm() const { return x*x + y*y; }
-  T abs() const { return sqrt(norm()); }
   T dot(const point& v) const { return x*v.x + y*v.y; }
   T cross(const point& v) const { return x*v.y - y*v.x; }
+#ifndef USE_RATIONAL_POINTS
+  T arg() const { return atan2(y, x); }
+  T abs() const { return sqrt(norm()); }
   static point polar(const T& r, const T& angle) {
     return point<T>(r * cos(angle), r * sin(angle));
   }
   static bool by_angle(const point& a, const point& b) {
     return a.arg() < b.arg();
   }
+#endif
 };
 
-template <class T> auto real(const T& v) { return v.real(); }
-template <class T> auto imag(const T& v) { return v.imag(); }
-template <class T> auto arg(const T& v) { return v.arg(); }
-template <class T> auto conj(const T& v) { return v.conj(); }
-template <class T> auto perp(const T& v) { return v.perp(); }
-template <class T> auto norm(const T& v) { return v.norm(); }
-template <class T> auto abs(const T& v) { return v.abs(); }
-template <class T> auto dot(const T& a, const T& b) { return a.dot(b); }
-template <class T> auto cross(const T& a, const T& b) { return a.cross(b); }
+template <typename T> auto real(const point<T>& v) { return v.real(); }
+template <typename T> auto imag(const point<T>& v) { return v.imag(); }
+template <typename T> auto conj(const point<T>& v) { return v.conj(); }
+template <typename T> auto perp(const point<T>& v) { return v.perp(); }
+template <typename T> auto norm(const point<T>& v) { return v.norm(); }
+template <typename T> auto dot(const point<T>& a, const point<T>& b) { return a.dot(b); }
+template <typename T> auto cross(const point<T>& a, const point<T>& b) { return a.cross(b); }
+
+#ifndef USE_RATIONAL_POINTS
+template <typename T> auto arg(const point<T>& v) { return v.arg(); }
+template <typename T> auto abs(const point<T>& v) { return v.abs(); }
 
 template <typename T>
 bool equal(const point<T>& a, const point<T>& b, const T& eps = 1e-9) {
@@ -62,4 +67,26 @@ template <typename T>
 int sign(const T& x, const T& eps = 1e-9) {
   return x < -eps ? -1 : x > eps ? 1 : 0;
 }
+
+#else
+template <typename T>
+bool equal(const point<T>& a, const point<T>& b) { return a == b; }
+
+template <typename T>
+int sign(const T& x) { return x < T(0) ? -1 : T(0) < x ? 1 : 0; }
+
+template <typename T>
+int sign_cross(const point<T>& a, const point<T>& b) {
+  T left = a.x * b.y;
+  T right = a.y * b.x;
+  return left == right ? 0 : left < right ? -1 : 1;
+}
+
+template <typename T>
+int sign_dot(const point<T>& a, const point<T>& b) {
+  T left = a.x * b.x;
+  T right = -a.y * b.y;
+  return left == right ? 0 : left < right ? -1 : 1;
+}
+#endif
 

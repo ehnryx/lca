@@ -1,6 +1,8 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+#define USE_RATIONAL_POINTS
+
 #ifdef HENRYX
 #include "../convex_hull.h"
 #else

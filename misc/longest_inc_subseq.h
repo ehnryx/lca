@@ -19,7 +19,7 @@ vector<int> longest_inc_subseq(const vector<T>& arr, bool strict = true) {
   if (arr.empty()) return {};
   vector<pair<T, int>> inc;
   vector<int> previous(size(arr), -1);
-  for (int i = 0; i < size(arr); i++) {
+  for (int i = 0; i < (int)size(arr); i++) {
     auto it = lower_bound(begin(inc), end(inc), pair(arr[i], !strict * i));
     if (it != begin(inc)) previous[i] = prev(it)->second;
     if (it == end(inc)) {

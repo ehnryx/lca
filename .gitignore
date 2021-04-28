@@ -6,3 +6,4 @@ to_submit.cpp
 *.in
 *.out
 *.ans
+*__illegible.*

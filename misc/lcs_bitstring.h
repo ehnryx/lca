@@ -28,10 +28,10 @@ int lcs_bitstring(const vector<T>& a, const vector<T>& b) {
   }
   // precompute the bitstrings
   constexpr int word = 8 * sizeof(word_t);
-  const int n = (size(a) + word - 1) / word;
+  const int n = ((int)size(a) + word - 1) / word;
   vector bits(m, vector<word_t>(n));
   for (auto [c, j] : alphabet) {
-    for (int i = 0; i < size(a); i++) {
+    for (int i = 0; i < (int)size(a); i++) {
       if (a[i] == c) {
         bits[j][i/word] |= (word_t)1 << (i % word);
       }
@@ -39,7 +39,7 @@ int lcs_bitstring(const vector<T>& a, const vector<T>& b) {
   }
   // update lcs
   vector<word_t> row(n);
-  for (int i = 0; i < size(b); i++) {
+  for (int i = 0; i < (int)size(b); i++) {
     if (!alphabet.count(b[i])) continue;
     const auto& bs = bits[alphabet[b[i]]];
     for (int j = 0, carry = 1, borrow = 0; j < n; j++) {
@@ -54,3 +54,4 @@ int lcs_bitstring(const vector<T>& a, const vector<T>& b) {
   return accumulate(begin(row), end(row), 0, [](int c, word_t v) {
       return c + __builtin_popcountll(v); });
 }
+

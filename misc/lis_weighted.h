@@ -20,7 +20,7 @@ vector<int> lis_weighted(const vector<pair<T, U>>& arr, bool strict = true) {
   if (arr.empty()) return {};
   map<pair<T, int>, U> inc;
   vector<int> previous(size(arr), -1);
-  for (int i = 0; i < size(arr); i++) {
+  for (int i = 0; i < (int)size(arr); i++) {
     pair<T, int> key(arr[i].first, strict ? -i : i);
     auto it = inc.lower_bound(key);
     for (U cur = arr[i].second; cur > 0 && it != end(inc); ) {

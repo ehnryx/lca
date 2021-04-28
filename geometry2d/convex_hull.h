@@ -22,14 +22,14 @@ vector<point<T>> convex_hull(vector<point<T>> points, bool keep=false) {
   points.resize(unique(begin(points), end(points)) - begin(points));
   vector<point<T>> hull(2 * size(points));
   int top = 0, bot = 0;
-  for (int i = 0, dir = 1; i < size(points) && i >= 0; i += dir) {
+  for (int i = 0, dir = 1; i < (int)size(points) && i >= 0; i += dir) {
     while (top - bot > 1) {
       T turn = cross(hull[top-1] - hull[top-2], points[i] - hull[top-2]);
       if (keep ? turn >= 0 : turn > 0) break;
       top--; // pop
     }
     hull[top++] = points[i];
-    if (i + 1 == size(points)) {
+    if (i + 1 == (int)size(points)) {
       dir = -1;
       bot = top - 1;
     }

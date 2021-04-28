@@ -27,3 +27,4 @@ struct suffix_array_lcp : suffix_array<T>, range_minimum_query<int> {
     return range_minimum_query<int>::query(l + 1, r + 1);
   }
 };
+

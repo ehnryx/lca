@@ -29,7 +29,7 @@ vector<T> lcs_hunt_szymanski(const vector<T>& a, const vector<T>& b) {
   vector<Item*> link(size(a));
   vector<int> thresh(size(a), size(b));
   // find lcs
-  for (int i = 0; i < size(a); i++) {
+  for (int i = 0; i < (int)size(a); i++) {
     auto ub = end(thresh);
     for (int j : matchlist[a[i]]) {
       ub = lower_bound(begin(thresh), ub, j);
@@ -49,3 +49,4 @@ vector<T> lcs_hunt_szymanski(const vector<T>& a, const vector<T>& b) {
   }
   return lcs;
 }
+

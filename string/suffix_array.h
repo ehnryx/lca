@@ -15,7 +15,7 @@
  *  O(N)
  *  N = |string|
  * STATUS
- *  tested: cf/102803c, spoj/LCS, spoj/LCS2
+ *  tested: cf/102803c, spoj/LCS,LCS2, nadc21/b,h
  */
 #pragma once
 

@@ -9,7 +9,7 @@
  * TIME
  *  O(1) push/pop/min/top
  * STATUS
- *  tested: spoj/ARRAYSUB, spoj/LCS2
+ *  tested: spoj/ARRAYSUB,LCS2
  */
 #pragma once
 

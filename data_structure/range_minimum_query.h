@@ -8,11 +8,11 @@
  *  O(NlogN) construction, O(1) query
  *  N = |array|
  * STATUS
- *  tested: kattis/tourists, cf/1454/f
+ *  tested: kattis/tourists, cf/1454f
  */
 #pragma once
 
-template <typename T>
+template <typename T, class Compare = less<>>
 struct range_minimum_query : vector<vector<T>> {
   range_minimum_query() = default;
   range_minimum_query(const vector<T>& arr) {
@@ -25,14 +25,14 @@ struct range_minimum_query : vector<vector<T>> {
     for (int j = 1; j < L; j++) {
       this->data()[j].resize(size(arr) - (1 << j) + 1);
       for (int i = 0; i + (1 << j) <= (int)size(arr); i++) {
-        this->data()[j][i] = min(this->at(j-1)[i], this->at(j-1)[i + (1<<(j-1))]);
+        this->data()[j][i] = min(this->at(j-1)[i], this->at(j-1)[i + (1<<(j-1))], Compare());
       }
     }
   }
   T query(int l, int r) const {
     assert(l < r);
     int j = 31 - __builtin_clz(r - l);
-    return min(this->at(j)[l], this->at(j)[r - (1<<j)]);
+    return min(this->at(j)[l], this->at(j)[r - (1<<j)], Compare());
   }
 };
 

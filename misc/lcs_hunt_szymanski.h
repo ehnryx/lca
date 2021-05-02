@@ -27,13 +27,13 @@ vector<T> lcs_hunt_szymanski(const vector<T>& a, const vector<T>& b) {
     Item(T v, Item* previous): pair<T, Item*>(v, previous) {}
   };
   vector<Item*> link(size(a));
-  vector<int> thresh(size(a), size(b));
+  vector<int> thresh(size(a), (int)size(b));
   // find lcs
   for (int i = 0; i < (int)size(a); i++) {
     auto ub = end(thresh);
     for (int j : matchlist[a[i]]) {
       ub = lower_bound(begin(thresh), ub, j);
-      int k = ub - begin(thresh);
+      int k = (int)(ub - begin(thresh));
       if (j < thresh[k]) {
         thresh[k] = j;
         link[k] = new Item(a[i], k > 0 ? link[k-1] : nullptr);
@@ -41,7 +41,7 @@ vector<T> lcs_hunt_szymanski(const vector<T>& a, const vector<T>& b) {
     }
   }
   // recover lcs
-  int k = lower_bound(begin(thresh), end(thresh), size(b)) - begin(thresh);
+  int k = (int)(lower_bound(begin(thresh), end(thresh), size(b)) - begin(thresh));
   if (k == 0) return {};
   vector<T> lcs(k);
   for (Item* cur = link[k-1]; cur != nullptr; cur = cur->second) {

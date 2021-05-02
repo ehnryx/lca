@@ -9,11 +9,24 @@ const ld EPS = 1e-9; // for geometry
 int main() {}" > $temp.cpp
 
 echo "test compile"
+cpp_files=()
 for arg; do
-  echo "  $arg"
-  echo "#include \"$arg\"" >> $temp.cpp
+  if [[ $arg = *.h ]]; then
+    echo "  $arg"
+    echo "#include \"$arg\"" >> $temp.cpp
+  else
+    cpp_files+=($arg)
+  fi
 done
 
+echo "compiling headers"
 g++ -Wall -Wextra -Wshadow -Wfatal-errors -Wpedantic -Wconversion \
-  -std=c++17 $temp.cpp -o $temp && rm $temp
+  -D HENRYX -std=c++17 $temp.cpp -o $temp && rm $temp
 rm $temp.cpp
+
+for f in ${cpp_files[@]}; do
+  printf "\ncompiling $f\n"
+  g++ -Wall -Wextra -Wshadow -Wfatal-errors -Wpedantic -Wconversion \
+    -D HENRYX -std=c++17 $f -o $temp && rm $temp
+done
+

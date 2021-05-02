@@ -18,7 +18,7 @@ int main() {
 
   string s;
   cin >> s;
-  int n = size(s);
+  int n = (int)size(s);
   suffix_array_lcp sa(s);
 
   for(int d=1; d<=n/3; d++) {

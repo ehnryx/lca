@@ -8,7 +8,7 @@ using ll = long long;
 
 struct Frac {
   int a, b;
-  Frac(ll _a=0, ll _b=0): a(_a), b(_b) {}
+  Frac(int _a=0, int _b=0): a(_a), b(_b) {}
   bool operator < (const Frac& o) const { return (ll)a*o.b < (ll)b*o.a; }
   bool operator <= (const Frac& o) const { return (ll)a*o.b <= (ll)b*o.a; }
   void operator += (const Frac& o) { a += o.a; b += o.b; }

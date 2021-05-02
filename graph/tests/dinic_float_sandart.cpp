@@ -17,12 +17,12 @@ int main() {
 	int n, m, w, h;
 	cin >> n >> m >> w >> h;
 
-	ld v[m];
+  vector<ld> v(m);
 	for(int i=0; i<m; i++) {
 		cin >> v[i];
 	}
 
-	ld len[n];
+	vector<ld> len(n);
 	ld pre = 0;
 	for(int i=0; i<n-1; i++) {
 		ld x;
@@ -32,8 +32,8 @@ int main() {
 	}
 	len[n-1] = w - pre;
 
-	ld done[n];
-	ld minv[n][m];
+  vector<ld> done(n);
+  vector minv(n, vector<ld>(m));
 	ld minh = 1e9;
 	ld maxh = 0;
 	for(int i=0; i<n; i++) {
@@ -48,7 +48,7 @@ int main() {
 		done[i] = cur;
 	}
 
-	ld maxv[n][m];
+  vector maxv(n, vector<ld>(m));
 	for(int i=0; i<n; i++) {
 		for(int j=0; j<m; j++) {
 			cin >> maxv[i][j];
@@ -84,7 +84,7 @@ int main() {
 			right = mid;
 		}
 	}
-	cout << maxh - left << nl;
+	cout << fixed << setprecision(3) << maxh - left << nl;
 
 	return 0;
 }

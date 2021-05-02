@@ -30,7 +30,7 @@ int main() {
 
   string s;
   cin >> s;
-  int n = size(s);
+  int n = (int)size(s);
   suffix_array sa(s);
 
   for(int i=0; i<n; i++) {

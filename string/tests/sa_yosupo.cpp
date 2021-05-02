@@ -9,7 +9,7 @@ int main() {
   string s;
   cin >> s;
   suffix_array sa(s);
-  for(int i=1; i<=size(s); i++) {
+  for(int i=1; i<=(int)size(s); i++) {
     cout << sa[i] << " ";
   }
   cout << '\n';

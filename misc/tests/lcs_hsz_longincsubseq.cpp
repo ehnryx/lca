@@ -25,9 +25,9 @@ int main() {
     for (int i=0; i<4; i++) lcs_hunt_szymanski(a, order);
 
     vector<int> lis;
-    for(int i=0, s=0; i<size(lcs); i++) {
+    for(int i=0, s=0; i<(int)size(lcs); i++) {
       auto it = find(begin(a) + s, end(a), lcs[i]);
-      lis.push_back(s = it - begin(a));
+      lis.push_back(s = (int)(it - begin(a)));
     }
 
     cout << size(lis) << nl;

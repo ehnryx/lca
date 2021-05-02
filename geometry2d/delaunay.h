@@ -185,7 +185,7 @@ namespace delaunay_triangulator {
 
     vector<tuple<int, int, int>> triangles;
     priority_queue<Event<T>> events;
-    for (int i = 0; i < size(data<T>); i++) {
+    for (int i = 0; i < (int)size(data<T>); i++) {
       events.emplace(data<T>[i].x, i, i, i);
     }
     while (!events.empty()) {

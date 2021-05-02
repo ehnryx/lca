@@ -66,10 +66,10 @@ int main() {
 
   vector<ll> unit(scc.size());
   vector<int> remap(n + 1);
-  for(int i=0; i<size(scc); i++) {
+  for(int i=0; i<(int)size(scc); i++) {
     if(size(scc.group[i]) == 1) continue;
     vector<vector<pair<int,int>>> comp(size(scc.group[i]));
-    for(int j=0; j<size(scc.group[i]); j++) {
+    for(int j=0; j<(int)size(scc.group[i]); j++) {
       remap[scc.group[i][j]] = j;
     }
     for(int u : scc.group[i]) {

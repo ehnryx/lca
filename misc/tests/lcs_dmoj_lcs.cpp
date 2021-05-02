@@ -24,8 +24,8 @@ int main() {
   int len = lcs_bitstring(a, b);
   cout << len << nl;
 
-  assert(len == size(lcs));
-  assert(len == size(hsz));
+  assert(len == (int)size(lcs));
+  assert(len == (int)size(hsz));
 
   return 0;
 }

@@ -75,7 +75,7 @@ int main() {
     }
   };
 
-  while(size(ans) < n-1) {
+  while((int)size(ans) < n-1) {
     assert(!most.empty());
     auto [value, u] = most.top();
     most.pop();

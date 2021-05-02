@@ -32,7 +32,7 @@ ordered_set<int> dfs(
     cur.insert(st.root() - (st.depth(u) + st.length(u)) + 1);
   }
   for (auto [i, it] : put[u]) {
-    if (it <= size(cur)) {
+    if (it <= (int)size(cur)) {
       ans[i] = *cur.find_by_order(it - 1);
     }
   }

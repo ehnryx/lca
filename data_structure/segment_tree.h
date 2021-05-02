@@ -35,7 +35,7 @@ struct segment_tree {
   }
   template <class Input_t>
   segment_tree(const vector<Input_t>& a, int offset = 0) {
-    int n = size(a);
+    int n = (int)size(a);
     length = 1 << (n == 1 ? 0 : 32 - __builtin_clz(n - 1));
     data.resize(2 * length);
     for (int i = offset; i < n; i++) {

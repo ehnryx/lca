@@ -8,7 +8,7 @@ constexpr char nl = '\n';
 fraction<long long> read_fraction() {
   string s;
   cin >> s;
-  if(s.find('/') != -1) {
+  if(s.find('/') != string::npos) {
     return fraction<long long>(
         stoll(s.substr(0, s.find('/'))),
         stoll(s.substr(s.find('/') + 1)));

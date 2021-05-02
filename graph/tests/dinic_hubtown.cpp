@@ -34,9 +34,6 @@ void readchar(char& c) {
 }
 // END MAGIC IO
 
-const int N = 2e5+1;
-int a[N],b[N],c[N];
-
 int main() {
 	ios::sync_with_stdio(0); cin.tie(0);
 	cout << fixed << setprecision(10);
@@ -44,6 +41,7 @@ int main() {
 	int n,m;
 	//cin>>n>>m;
 	read(n);read(m);
+  vector<int> a(n),b(n),c(m);
 	for(int i=0;i<n;i++) {
 		//cin>>a[i]>>b[i];
 		read(a[i]);read(b[i]);

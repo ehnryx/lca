@@ -8,10 +8,10 @@ const char nl = '\n';
 
 struct Point {
   int x, y; ll v;
-  Point(const pair<int,int>& p, ll v): x(p.first), y(p.second), v(v) {}
-  bool operator < (const Point& v) const {
-    if (x == v.x) return y > v.y;
-    else return x < v.x;
+  Point(const pair<int,int>& p, ll _v): x(p.first), y(p.second), v(_v) {}
+  bool operator < (const Point& o) const {
+    if (x == o.x) return y > o.y;
+    else return x < o.x;
   }
 };
 
@@ -38,7 +38,7 @@ int main() {
   for (const auto& it : p) {
     arr.push_back(Point(it.first, it.second));
   }
-  n = arr.size();
+  n = (int)arr.size();
   sort(arr.begin(), arr.end());
 
   vector<pair<int,ll>> lis;

@@ -27,8 +27,8 @@ int main() {
 	while (T--) {
 		int n;
 		cin >> n;
-		int val[n];
-		vector<int> adj[n];
+		vector<int> val(n);
+		vector<vector<int>> adj(n);
 		for (int i=0; i<n; i++) {
 			cin >> val[i];
 		}

@@ -52,7 +52,7 @@ bool on_segment(
 template <typename T>
 bool on_boundary(const vector<point<T>>& v, const point<T>& c, const T& eps = 1e-9) {
   bool ok = false;
-  for (int i = (int)size(v) - 1, j = 0; !ok && j < size(v); i = j++) {
+  for (int i = (int)size(v) - 1, j = 0; !ok && j < (int)size(v); i = j++) {
     ok |= on_segment(v[i], v[j], c, false, eps);
   }
   return ok;
@@ -64,7 +64,7 @@ bool in_polygon(
     bool strict = false, const T& eps = 1e-9) {
   if (on_boundary(v, c, eps)) return !strict;
   T sum = 0;
-  for (int i = (int)size(v) - 1, j = 0; j < size(v); i = j++) {
+  for (int i = (int)size(v) - 1, j = 0; j < (int)size(v); i = j++) {
     sum += atan2(cross(v[i] - c, v[j] - c), dot(v[i] - c, v[j] - c));
   }
   return abs(sum) > 1;
@@ -102,7 +102,7 @@ bool on_segment(
 template <typename T>
 bool on_boundary(const vector<point<T>>& v, const point<T>& c, const T& eps = 1e-9) {
   bool ok = false;
-  for (int i = (int)size(v) - 1, j = 0; !ok && j < size(v); i = j++) {
+  for (int i = (int)size(v) - 1, j = 0; !ok && j < (int)size(v); i = j++) {
     ok |= on_segment(v[i], v[j], c, false);
   }
   return ok;
@@ -112,7 +112,7 @@ template <typename D = long double, typename T>
 bool in_polygon(const vector<point<T>>& v, const point<T>& c, bool strict = false) {
   if (on_boundary(v, c)) return !strict;
   D sum = 0;
-  for (int i = (int)size(v) - 1, j = 0; j < size(v); i = j++) {
+  for (int i = (int)size(v) - 1, j = 0; j < (int)size(v); i = j++) {
     sum += atan2(D(cross(v[i] - c, v[j] - c)), D(dot(v[i] - c, v[j] - c)));
   }
   return abs(sum) > 1;

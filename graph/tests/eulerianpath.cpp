@@ -23,7 +23,7 @@ int main() {
       degree[a]++;
       degree[b]--;
     }
-    int source = max_element(begin(degree), end(degree)) - begin(degree);
+    int source = int(max_element(begin(degree), end(degree)) - begin(degree));
     vector<int> trail = euler_trail(adj, m, source);
     if (empty(trail)) {
       cout << "Impossible" << nl;

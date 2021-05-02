@@ -29,7 +29,7 @@ struct strongly_connected {
   vector<vector<int>> dag;
 #endif
   int operator [] (int i) const { return scc[i]; }
-  int size() const { return group.size(); }
+  int size() const { return (int)group.size(); }
 
   strongly_connected(const vector<vector<int>>& graph):
     idx(graph.size(), -1), low(graph.size(), -1),

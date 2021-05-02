@@ -6,51 +6,48 @@
  *  remove_dups: boolean "remove duplicate edges?"
  * MEMBERS
  *  group: the components. group[i] = vector of nodes in the ith component
- *  low: the component id. low[u] = id of the component to which u belongs
+ *  remap: maps vertex -> index in their component
+ *  scc: the component id. low[u] = id of the component to which u belongs
  *  dag:  the adjacency list for the dag of scc's
  *  indegree: the in-degree of the nodes in the dag
- *  operator[]: alias for low
+ *  operator[]: alias for scc
  * TIME
  *  O(V + E) for remove_dups = false
  *  O(V + ElogE) for remove_dups = true
  *  V = #vertices, E = #edges
  * STATUS
- *  tested: nadc21/f
+ *  tested: cf/1515g
  */
 #pragma once
 
 template <bool remove_dups = true>
 struct strongly_connected {
-  vector<int> idx, low, remap, indegree;
-  vector<vector<int>> group, dag;
-  int operator [] (int i) const { return low[i]; }
+  vector<int> idx, low, scc, remap;
+  vector<vector<int>> group;
+#ifdef USE_SCC_DAG
+  vector<int> indegree;
+  vector<vector<int>> dag;
+#endif
+  int operator [] (int i) const { return scc[i]; }
+  int size() const { return group.size(); }
 
-  strongly_connected(const vector<vector<int>>& graph) {
-    int n = (int)size(graph);
-    idx.resize(n, -1);
-    low.resize(n, n);
-    remap.resize(n);
-
-    int components = 0;
-    for (int i = 0, j = 0; i < n; i++) {
-      if (low[i] == n) {
-        dfs(graph, i, j, components);
+  strongly_connected(const vector<vector<int>>& graph):
+    idx(graph.size(), -1), low(graph.size(), -1),
+    scc(graph.size()), remap(graph.size()) {
+    group.reserve(graph.size());
+    for (int i = 0, j = 0; i < (int)graph.size(); i++) {
+      if (low[i] == -1) {
+        dfs(graph, i, j);
       }
     }
-    group.resize(components);
-    for (int i = 0; i < n; i++) {
-      assert(low[i] < n);
-      low[i] = remap[low[i]];
-      group[low[i]].push_back(i);
-    }
-
-    dag.resize(components);
-    indegree.resize(components);
-    for (int i = 0; i < components; i++) {
+#ifdef USE_SCC_DAG
+    dag.resize(size());
+    indegree.resize(size());
+    for (int i = 0; i < size(); i++) {
       for (int u : group[i]) {
         for (int v : graph[u]) {
-          if (low[v] == i) continue;
-          dag[i].push_back(low[v]);
+          if (scc[v] == i) continue;
+          dag[i].push_back(scc[v]);
         }
       }
       if constexpr (remove_dups) {
@@ -61,21 +58,32 @@ struct strongly_connected {
         indegree[j] += 1;
       }
     }
+#endif
   }
 
-  int dfs(const vector<vector<int>>& graph, int u, int& i, int& r) {
+  int dfs(const vector<vector<int>>& graph, int u, int& i) {
+    static stack<int> stk;
+    stk.push(u);
     idx[u] = low[u] = i++;
     for (int v : graph[u]) {
-      if(low[v] == (int)size(graph)) {
-        low[u] = min(low[u], dfs(graph, v, i, r));
+      if(low[v] == -1) {
+        low[u] = min(low[u], dfs(graph, v, i));
       } else if(idx[v] != -1) {
         low[u] = min(low[u], idx[v]);
       }
     }
     if (idx[u] == low[u]) {
-      remap[low[u]] = r++;
+      vector<int> cur_group;
+      for (int v = -1; v != u; ) {
+        v = stk.top();
+        stk.pop();
+        idx[v] = -1;
+        scc[v] = (int)size();
+        remap[v] = (int)cur_group.size();
+        cur_group.push_back(v);
+      }
+      group.push_back(move(cur_group));
     }
-    idx[u] = -1;
     return low[u];
   }
 };

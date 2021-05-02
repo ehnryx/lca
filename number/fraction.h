@@ -85,29 +85,44 @@ struct fraction {
     if (den == 0 && o.den == 0) return num && o.num && num < o.num;
     if (den == 0) return num < 0;
     if (o.den == 0) return 0 < o.num;
-    if constexpr (overflow_guard) {
+    if constexpr (overflow_guard) return fraction(*this).compare_guard(o);
+    else return num * o.den < o.num * den;
+  }
+  bool compare_guard(fraction o) { // destroys *this
+    while (den != o.den) {
       T y = floor();
       T oy = o.floor();
       if (y != oy) return y < oy;
-      return compare_fractions(num - den * y, den, o.num - o.den * oy, o.den);
-    } else {
-      return num * o.den < o.num * den;
+      num -= den * y;
+      o.num -= o.den * oy;
+      if (num == 0 || o.num == 0) break;
+      if ((den > o.den && 2*num > den) || (o.den > den && 2*o.num > o.den)) {
+        num = den - num;
+        o.num = o.den - o.num;
+      } else {
+        swap(num, den);
+        swap(o.num, o.den);
+      }
+      swap(num, o.num);
+      swap(den, o.den);
     }
-  }
-  bool compare_fractions(const T& a, const T& b, const T& c, const T& d) const {
-    if (b == d || a == 0 || c == 0) return a < c;
-    return 2*a > b && 2*c > d ? fraction(d-c, d) < fraction(b-a, b) :
-      fraction(d, c) < fraction(b, a);
+    return num < o.num;
   }
   bool operator > (const fraction& o) const { return o < *this; }
   bool operator == (const fraction& o) const { return num == o.num && den == o.den; }
   bool operator <= (const fraction& o) const { return operator == (o) || operator < (o); }
   bool operator >= (const fraction& o) const { return o <= *this; }
   template <typename D> D value() const { return D(num) / D(den); }
+  explicit operator float() const { return value<float>(); }
   explicit operator double() const { return value<double>(); }
   explicit operator long double() const { return value<long double>(); }
   fraction abs() const { return fraction(pair(num < 0 ? -num : num, den)); }
   template <typename D = long double> D sqrt() const { return std::sqrt(value<D>()); }
+  struct as_pair {
+    bool operator () (const fraction& a, const fraction& b) const {
+      return a.num < b.num || (a.num == b.num && a.den < b.den);
+    }
+  };
 };
 
 template <typename T, bool G> auto abs(const fraction<T,G>& v) { return v.abs(); }

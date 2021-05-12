@@ -2,45 +2,56 @@
  * USAGE
  *  segment_tree<Node_t, Query_t> segtree(n); initializes a segtree with >= n leaves
  *  segment_tree<Node_t, Query_t> segtree(vector); initializes a segment tree with given values
- *    requires #ifdef USE_LINEAR_BUILD
+ *  template: <Node_t, Query_t, push?, break_conditions?>
  *  Node_t is a class to be implemented, should have the members:
- *    void put(int segment_length, args...); update at node
- *    Query_t get(int segment_length, args...); gets the return value from node
+ *    void put(args...); update at node
+ *    Query_t get(args...); gets the return value from node
  *    static Query_t merge(const Query_t& l, const Query_t& r); merges the return values
  *    static Query_t default_value(); default value for return (when node out of range)
  *    void pull(const Node_t& l, const Node_t& r); pulls values from children
- *    #ifndef USE_NO_PUSH
  *    void push(Node_t& l, Node_t& r); pushes lazy to l and r
- *    #ifdef USE_SEGMENT_TREE_BEATS
- *    bool put_condition(int segment_length, args...); whether to update in segtree beats
- *    bool get_condition(int segment_length, args...); whether to return in segtree beats
+ *    //for searching on the segment tree
+ *    bool contains(args&...); does the segment contain the value? update args if not
+ *    bool found(args...); does the leaf correspond to the value that we want?
+ *    //break conditions
+ *    bool put_condition(args...); whether to update in segtree beats
  * MEMBERS
- *  update(l, r, value); value for range update
+ *  update(l, r, value...); value for range update
  *  query(l, r, ...); query with optional args
+ *  update_point(x, value...); point update
+ *  query_point(x, ...); point query
+ *  search_left(l, r, ...); search on the segtree, starting from the left
+ *  search_right(l, r, ...); search on the segtree, starting from the right
  * TIME
  *  O(logN) per query
  *  N = |array|
  * STATUS
- *  tested: cf/474f,102875a
+ *  tested: cf/474f,102875a, acmhdu/5306
  */
 #pragma once
 
-template <class Node_t, typename Query_t>
+template <class Node_t, typename Query_t, bool push = true, bool break_conds = false>
 struct segment_tree {
-  int length;
+  static_assert(push || !break_conds);
+  int length, lim;
   vector<Node_t> data;
-  segment_tree(int n) {
-    length = 1 << (n == 1 ? 0 : 32 - __builtin_clz(n - 1));
+  Node_t& operator [] (int i) { return data[i]; }
+
+  segment_tree(int n, bool init_build = false): lim(n) {
+    length = 1 << (lim == 1 ? 0 : 32 - __builtin_clz(lim - 1));
     data.resize(2 * length);
+    if (init_build) build();
   }
   template <class Input_t>
-  segment_tree(const vector<Input_t>& a, int offset = 0) {
-    int n = (int)size(a);
-    length = 1 << (n == 1 ? 0 : 32 - __builtin_clz(n - 1));
+  segment_tree(const vector<Input_t>& a, int offset = 0): lim((int)size(a)) {
+    length = 1 << (lim == 1 ? 0 : 32 - __builtin_clz(lim - 1));
     data.resize(2 * length);
-    for (int i = offset; i < n; i++) {
+    for (int i = offset; i < lim; i++) {
       data[length + i] = Node_t(a[i]);
     }
+    build();
+  }
+  void build() {
     for (int i = length - 1; i > 0; i--) {
       data[i].pull(data[2*i], data[2*i + 1]);
     }
@@ -48,48 +59,121 @@ struct segment_tree {
 
   template <class... Args>
   void update(int l, int r, const Args&... args) {
+    if (r < l) return;
+    assert(0 <= l && r < lim);
     update(l, r, 1, 0, length - 1, args...);
   }
   template <class... Args>
   void update(int l, int r, int i, int first, int last, const Args&... args) {
-    if (last < l || r < first) return;
-    if (l <= first && last <= r
-#ifdef USE_SEGTREE_BEATS
-        && data[i].put_condition(last - first + 1, args...)
-#endif
-        ) {
-      return data[i].put(last - first + 1, args...);
+    if (l <= first && last <= r && (!break_conds || data[i].put_condition(args...))) {
+      return data[i].put(args...);
     }
-#ifndef USE_NO_PUSH
-    data[i].push(data[2*i], data[2*i + 1]);
-#endif
+    if constexpr (break_conds) assert(i < length);
+    if constexpr (push) data[i].push(data[2*i], data[2*i + 1]);
     int mid = (first + last) / 2;
-    update(l, r, 2*i, first, mid, args...);
-    update(l, r, 2*i + 1, mid + 1, last, args...);
+    if(l <= mid) update(l, r, 2*i, first, mid, args...);
+    if(mid < r) update(l, r, 2*i + 1, mid + 1, last, args...);
     data[i].pull(data[2*i], data[2*i + 1]);
   }
 
   template <class... Args>
   Query_t query(int l, int r, const Args&... args) {
+    if (r < l) return Node_t::default_value();
+    assert(0 <= l && r < lim);
     return query(l, r, 1, 0, length - 1, args...);
   }
   template <class... Args>
   Query_t query(int l, int r, int i, int first, int last, const Args&... args) {
-    if (last < l || r < first) return Node_t::default_value();
-    if (l <= first && last <= r
-#ifdef USE_SEGTREE_BEATS
-        && data[i].get_condition(last - first + 1, args...)
-#endif
-        ) {
-      return data[i].get(last - first + 1, args...);
-    }
-#ifndef USE_NO_PUSH
-    data[i].push(data[2*i], data[2*i + 1]);
-#endif
+    if (l <= first && last <= r) return data[i].get(args...);
+    if constexpr (push) data[i].push(data[2*i], data[2*i + 1]);
     int mid = (first + last) / 2;
-    Query_t left = query(l, r, 2*i, first, mid, args...);
-    Query_t right = query(l, r, 2*i + 1, mid + 1, last, args...);
-    return Node_t::merge(left, right);
+    if(r <= mid) return query(l, r, 2*i, first, mid, args...);
+    if(mid < l) return query(l, r, 2*i + 1, mid + 1, last, args...);
+    return Node_t::merge(
+        query(l, r, 2*i, first, mid, args...),
+        query(l, r, 2*i + 1, mid + 1, last, args...));
+  }
+
+  template <class... Args>
+  void update_point(int x, const Args&... args) {
+    assert(0 <= x && x < lim);
+    update_point(x, 1, 0, length - 1, args...);
+  }
+  template <class... Args>
+  void update_point(int x, int i, int first, int last, const Args&... args) {
+    if (first == last) return data[i].put(args...);
+    if constexpr (push) data[i].push(data[2*i], data[2*i + 1]);
+    int mid = (first + last) / 2;
+    if (x <= mid) update_point(x, 2*i, first, mid, args...);
+    else update_point(x, 2*i + 1, mid + 1, last, args...);
+    data[i].pull(data[2*i], data[2*i + 1]);
+  }
+
+  template <class... Args>
+  Query_t query_point(int x, const Args&... args) {
+    assert(0 <= x && x < lim);
+    return query_point(x, 1, 0, length - 1, args...);
+  }
+  template <class... Args>
+  Query_t query_point(int x, int i, int first, int last, const Args&... args) {
+    if (first == last) return data[i].get(args...);
+    if constexpr (push) data[i].push(data[2*i], data[2*i + 1]);
+    int mid = (first + last) / 2;
+    if (x <= mid) return query_point(x, 2*i, first, mid, args...);
+    else return query_point(x, 2*i + 1, mid + 1, last, args...);
+  }
+
+  template <class... Args>
+  Query_t query_up(int x, const Args&... args) {
+    assert(0 <= x && x < lim);
+    return query_up(x, 1, 0, length - 1, args...);
+  }
+  template <class... Args>
+  Query_t query_up(int x, int i, int first, int last, const Args&... args) {
+    if (first == last) return data[i].get(args...);
+    if constexpr (push) data[i].push(data[2*i], data[2*i + 1]);
+    int mid = (first + last) / 2;
+    if (x <= mid) {
+      return Node_t::merge(data[i].get(args...), query_up(x, 2*i, first, mid, args...));
+    } else {
+      return Node_t::merge(data[i].get(args...), query_up(x, 2*i + 1, mid + 1, last, args...));
+    }
+  }
+
+  template <class... Args>
+  int search_left(int l, int r, Args... args) {
+    if (r < l) return -1;
+    assert(0 <= l && r < lim);
+    return search_left(l, r, 1, 0, length - 1, forward_as_tuple(args...));
+  }
+  template <class... Args>
+  int search_left(int l, int r, int i, int first, int last, tuple<Args&...> args) {
+    if (l <= first && last <= r
+        && !apply(&Node_t::contains, tuple_cat(tuple(data[i]), args))) return -1;
+    if (first == last) return first;
+    if constexpr (push) data[i].push(data[2*i], data[2*i + 1]);
+    int mid = (first + last) / 2;
+    int res = (l <= mid ? search_left(l, r, 2*i, first, mid, args) : -1);
+    if (res == -1 && mid < r) res = search_left(l, r, 2*i + 1, mid + 1, last, args);
+    return res;
+  }
+
+  template <class... Args>
+  int search_right(int l, int r, Args... args) {
+    if (r < l) return -1;
+    assert(0 <= l && r < lim);
+    return search_right(l, r, 1, 0, length - 1, forward_as_tuple(args...));
+  }
+  template <class... Args>
+  int search_right(int l, int r, int i, int first, int last, tuple<Args&...> args) {
+    if (l <= first && last <= r
+        && !apply(&Node_t::contains, tuple_cat(tuple(data[i]), args))) return -1;
+    if (first == last) return first;
+    if constexpr (push) data[i].push(data[2*i], data[2*i + 1]);
+    int mid = (first + last) / 2;
+    int res = (mid < r ? search_right(l, r, 2*i + 1, mid + 1, last, args) : -1);
+    if (res == -1 && l <= mid) res = search_right(l, r, 2*i, first, mid, args);
+    return res;
   }
 };
 

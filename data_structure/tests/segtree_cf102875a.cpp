@@ -33,7 +33,7 @@ struct Node {
     return pair(add(a.first, b.first, mod), a.second * b.second % mod);
   }
 
-  void put(int, const vector<int>& f) {
+  void put(const vector<int>& f) {
     fill(begin(new_cnt), end(new_cnt), 0);
     for(int j=0; j<mod; j++) {
       new_cnt[f[j]] += cnt[j];
@@ -42,7 +42,7 @@ struct Node {
     cnt = new_cnt;
   }
 
-  pair<int,int> get(int, int k) const {
+  pair<int,int> get(int k) const {
     int sum = 0;
     int prod = 1;
     for(int j=0; j<mod; j++) {
@@ -61,8 +61,8 @@ struct Node {
 
   void push(Node& a, Node& b) {
     if(lazy == identity) return;
-    a.put(0, lazy);
-    b.put(0, lazy);
+    a.put(lazy);
+    b.put(lazy);
     lazy = identity;
   }
 };

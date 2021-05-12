@@ -1,7 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-#define USE_NO_PUSH
 #include "../segment_tree.h"
 
 struct Node {
@@ -9,8 +8,8 @@ struct Node {
   Node() = default;
   static Node default_value() { return Node(); }
   static Node merge(const Node& a, const Node& b) { return Node().pull(a, b); }
-  Node get(int) const { return *this; }
-  void put(int, int v) { value = v; cnt = 1; }
+  Node get() const { return *this; }
+  void put(int v) { value = v; cnt = 1; }
   Node& pull(const Node& a, const Node& b) {
     value = gcd(a.value, b.value);
     cnt = (a.value == value) * a.cnt + (b.value == value) * b.cnt;
@@ -25,7 +24,7 @@ int main() {
 
   int n;
   cin >> n;
-  segment_tree<Node, Node> st(n + 1);
+  segment_tree<Node, Node, false> st(n + 1);
   for(int i=1; i<=n; i++) {
     int a;
     cin >> a;

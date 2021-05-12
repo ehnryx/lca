@@ -62,7 +62,7 @@ int main() {
     tarjan[a].push_back(b);
     adj[a].emplace_back(b, c);
   }
-  strongly_connected scc(tarjan);
+  strongly_connected<true> scc(tarjan);
 
   vector<ll> unit(scc.size());
   vector<int> remap(n + 1);
@@ -105,3 +105,4 @@ int main() {
 
   return 0;
 }
+

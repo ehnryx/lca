@@ -20,71 +20,79 @@
  */
 #pragma once
 
-template <bool remove_dups = true>
-struct strongly_connected {
-  vector<int> idx, low, scc, remap;
+template <bool build_dag, typename = void>
+struct scc_dag_base {
+  scc_dag_base(int) {}
+};
+
+template <bool build_dag>
+struct scc_dag_base<build_dag, enable_if_t<build_dag>> {
+  vector<int> remap;
   vector<vector<int>> group;
-#ifdef USE_SCC_DAG
   vector<int> indegree;
   vector<vector<int>> dag;
-#endif
+  scc_dag_base(size_t n): remap(n) { group.reserve(n); }
+};
+
+template <bool build_dag = false, bool remove_dups = true>
+struct strongly_connected : scc_dag_base<build_dag> {
+  using base = scc_dag_base<build_dag>;
+  int components;
+  vector<int> idx, low, scc;
   int operator [] (int i) const { return scc[i]; }
-  int size() const { return (int)group.size(); }
+  int size() const { return components; }
 
   strongly_connected(const vector<vector<int>>& graph):
-    idx(graph.size(), -1), low(graph.size(), -1),
-    scc(graph.size()), remap(graph.size()) {
-    group.reserve(graph.size());
+    base(graph.size()), components(0),
+    idx(graph.size(), -1), low(graph.size(), -1), scc(graph.size(), -1) {
     for (int i = 0, j = 0; i < (int)graph.size(); i++) {
       if (low[i] == -1) {
         dfs(graph, i, j);
       }
     }
-#ifdef USE_SCC_DAG
-    dag.resize(size());
-    indegree.resize(size());
-    for (int i = 0; i < size(); i++) {
-      for (int u : group[i]) {
-        for (int v : graph[u]) {
-          if (scc[v] == i) continue;
-          dag[i].push_back(scc[v]);
+    if constexpr (build_dag) {
+      base::dag.resize(size());
+      base::indegree.resize(size());
+      for (int i = 0; i < size(); i++) {
+        for (int u : base::group[i]) {
+          for (int v : graph[u]) {
+            if (scc[v] == i) continue;
+            base::dag[i].push_back(scc[v]);
+          }
+        }
+        if constexpr (remove_dups) {
+          sort(begin(base::dag[i]), end(base::dag[i]));
+          base::dag[i].resize(
+              unique(begin(base::dag[i]), end(base::dag[i])) - begin(base::dag[i]));
+        }
+        for (int j : base::dag[i]) {
+          base::indegree[j] += 1;
         }
       }
-      if constexpr (remove_dups) {
-        sort(begin(dag[i]), end(dag[i]));
-        dag[i].resize(unique(begin(dag[i]), end(dag[i])) - begin(dag[i]));
-      }
-      for (int j : dag[i]) {
-        indegree[j] += 1;
-      }
     }
-#endif
   }
 
-  int dfs(const vector<vector<int>>& graph, int u, int& i) {
+  void dfs(const vector<vector<int>>& graph, int u, int& i) {
     static stack<int> stk;
     stk.push(u);
     idx[u] = low[u] = i++;
     for (int v : graph[u]) {
-      if(low[v] == -1) {
-        low[u] = min(low[u], dfs(graph, v, i));
-      } else if(idx[v] != -1) {
-        low[u] = min(low[u], idx[v]);
-      }
+      if (low[v] == -1) dfs(graph, v, i);
+      if (scc[v] == -1) low[u] = min(low[u], low[v]);
     }
     if (idx[u] == low[u]) {
-      vector<int> cur_group;
+      if constexpr (build_dag) base::group.emplace_back();
       for (int v = -1; v != u; ) {
         v = stk.top();
         stk.pop();
-        idx[v] = -1;
-        scc[v] = (int)size();
-        remap[v] = (int)cur_group.size();
-        cur_group.push_back(v);
+        scc[v] = components;
+        if constexpr (build_dag) {
+          base::remap[v] = (int)base::group.back().size();
+          base::group.back().push_back(v);
+        }
       }
-      group.push_back(move(cur_group));
+      components++;
     }
-    return low[u];
   }
 };
 

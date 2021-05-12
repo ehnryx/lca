@@ -16,21 +16,21 @@
  */
 #pragma once
 
-template <typename T>
-vector<T> dijkstra(
-    const vector<vector<pair<int, T>>>& graph,
-    int source) {
-  vector<T> dist(size(graph), -1);
-  struct Node : pair<int, T> {
-    Node(int a, T b): pair<int, T>(a, b) {}
+template <typename T, class G>
+vector<T> dijkstra(const G& graph, int source) {
+  vector<T> dist(graph.size(), -1);
+  struct Node {
+    int to;
+    T cost;
+    Node(int a, const T& b): to(a), cost(b) {}
     bool operator < (const Node& o) const {
-      return this->second > o.second;
+      return o.cost < this->cost;
     }
   };
   priority_queue<Node> todo;
   todo.emplace(source, 0);
   dist[source] = 0;
-  vector<bool> vis(size(graph));
+  vector<bool> vis(graph.size());
   while (!todo.empty()) {
     // get u and the distance to u from the queue
     auto [u, du] = todo.top();

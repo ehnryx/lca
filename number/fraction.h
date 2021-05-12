@@ -45,7 +45,7 @@ struct fraction {
     return os << v.numerator() << '/' << v.denominator();
   }
   fraction operator - () const { return fraction(pair(-num, den)); }
-  fraction operator + (const fraction& o) const { return fraction(*this) += o; } 
+  fraction operator + (const fraction& o) const { return fraction(*this) += o; }
   fraction operator - (const fraction& o) const { return fraction(*this) -= o; }
   fraction operator * (const fraction& o) const { return fraction(*this) *= o; }
   fraction operator / (const fraction& o) const { return fraction(*this) /= o; }

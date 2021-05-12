@@ -19,14 +19,14 @@
 #pragma once
 
 struct rooted_tree : vector<vector<int>> {
-  vector<int> parent, depth, subtree, preorder;
-  rooted_tree(const vector<vector<int>>& adj, int root) : vector<vector<int>>(adj) {
-    parent.resize(size(), -1);
-    depth.resize(size());
-    subtree.resize(size());
+  vector<int> parent, depth, subtree, start, preorder;
+  rooted_tree(const vector<vector<int>>& adj, int root): vector<vector<int>>(adj),
+    parent(adj.size(), -1), depth(adj.size()), subtree(adj.size()), start(adj.size()) {
+    preorder.reserve(adj.size());
     build(root, -1);
   }
   void build(int u, int par) {
+    start[u] = (int)preorder.size();
     preorder.push_back(u);
     parent[u] = par;
     subtree[u] = 1;

@@ -8,7 +8,7 @@
  *    bidirectional? is a boolean specifying whether the edge is undirected.
  *    default is false
  *  flow(source, sink); returns max flow from source to sink.
- *  clear_flow(); clears the flow in the graph
+ *  clear_flow(); clears the flow in the graph (untested)
  * TIME
  *  O(EV^2) in general
  *  O(E min(V^{2/3}, sqrtE)) for unit caps
@@ -34,6 +34,7 @@ struct dinic {
     adj[a].emplace_back(b, (int)size(adj[b]), c, 0);
     adj[b].emplace_back(a, (int)size(adj[a]) - 1, bidirectional ? c : 0, 0);
   }
+  bool left_of_min_cut(int u) const { return layer[u] != -1; }
   void clear_flow() {
     for (vector<edge>& adjacency : adj) {
       for (edge& e : adjacency) {

@@ -8,6 +8,7 @@
  *    bidirectional? is a boolean specifying whether the edge is undirected.
  *    default is false
  *  flow(source, sink); returns max flow from source to sink.
+ *  clear_flow(); clears the flow in the graph (untested)
  * TIME
  *  O(V^2sqrtE)
  *  V = #vertices, E = #edges
@@ -35,7 +36,17 @@ struct push_relabel {
     adj[a].emplace_back(b, (int)size(adj[b]), c, 0);
     adj[b].emplace_back(a, (int)size(adj[a]) - 1, bidirectional ? c : 0, 0);
   }
-  bool left_of_min_cut(int u) { return height[u] >= n; }
+  bool left_of_min_cut(int u) const { return height[u] >= n; }
+  void clear_flow() {
+    active.resize(n);
+    for (int i = 0; i < n; i++) {
+      for (edge& e : adj[i]) {
+        e.flow = 0;
+      }
+      active[i].clear();
+      height[i] = excess[i] = layer[i] = 0;
+    }
+  }
 
   int global_relabel(int sink, int cur_height = -1) {
     work = 0;
@@ -140,7 +151,6 @@ struct push_relabel {
     excess[source] = -inf;
     for (int i = 0; i < n; i++) {
       if (i != source && excess[i] > 0) {
-        assert(height[i] == n);
         active[n].push_back(i);
       }
     }

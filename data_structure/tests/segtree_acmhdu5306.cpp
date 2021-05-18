@@ -46,6 +46,7 @@ struct Node {
   }
 
   bool put_condition(int v) const { return v > max2; }
+  bool break_condition(int) const { return false; }
   static T default_value() { return pair(0, -1); }
   static T merge(const T& a, const T& b) {
     return pair(a.first + b.first, max(a.second, b.second));

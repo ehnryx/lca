@@ -1,8 +1,8 @@
 /* Dinic (Max-Flow Min-Cut)
  * USAGE
- *  dinic graph(n); // n = number of vertices
+ *  dinic<T> graph(n); // n = number of vertices
  *  graph.add_edge(a, b, c, bidirectional?);
- *  graph.flow(source, sink);
+ *  T flow = graph.flow(source, sink);
  * MEMBERS
  *  add_edge(a, b, c, bidirectional?); adds an edge a -> b with capacity c.
  *    bidirectional? is a boolean specifying whether the edge is undirected.
@@ -65,7 +65,7 @@ struct dinic {
     if (u == t || f == 0) return f;
     T res = 0;
     for (int i = cur_edge[u]; i < (int)size(adj[u]) && f != 0; i++) {
-      cur_edge[u] = i; // save edge index
+      cur_edge[u] = i; // save current edge
       if (layer[u] + 1 != layer[adj[u][i].to]) continue;
       if (T cur_flow = dfs(adj[u][i].to, t, min(f, adj[u][i].cap - adj[u][i].flow))) {
         adj[u][i].flow += cur_flow;

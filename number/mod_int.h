@@ -47,12 +47,11 @@ struct mod_int {
     return *this;
   }
   mod_int& operator *= (const mod_int& o) {
-    v = (larger_t)v * o.v % mod;
+    v = (mod_t)((larger_t)v * o.v % mod);
     return *this;
   }
   mod_int& operator /= (const mod_int& o) {
-    v = (larger_t)v * o.inverse() % mod;
-    return *this;
+    return operator *= (o.inverse());
   }
   template <typename T, typename = enable_if_t<is_integral_v<T>>>
   mod_int pow(T exponent) const {

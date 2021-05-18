@@ -114,4 +114,3 @@ namespace multiplicative_functions {
     static T prime_power(int fp, int p, int k) { return fp + (T)powl(p, k * power); }
   };
 }
-

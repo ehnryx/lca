@@ -1,9 +1,9 @@
 /* Linear Sieve for Multiplicative Functions
  * USAGE
- *  linear_sieve<func> f(N);
+ *  linear_sieve<func, store_powers> f(N);
+ *  store_powers? is a bool specifying whether prime powers should be stored
  *  func should have the following members
  *    using T = output_type;
- *    static constexpr bool store_powers = true/false;
  *    static T one(); // f(1) = 1
  *    static T coprime(T f(v), T f(p)); // f(vp) = f(v)f(p) for (v, p) = 1
  *    static T prime(int p); // f(p)
@@ -18,24 +18,38 @@
  */
 #pragma once
 
+template <class Func, typename = void>
+struct linear_sieve_base {
+  linear_sieve_base(int) {}
+};
+
 template <class Func>
-struct linear_sieve {
+struct linear_sieve_base<Func, enable_if_t<!is_same_v<Func, void>>> {
   using T = typename Func::T;
-  static constexpr bool store_powers = Func::store_powers;
-  using prime_t = conditional_t<store_powers, vector<int>, int>;
   vector<T> f;
+  vector<int> cnt;
+  linear_sieve_base(int n): f(n), cnt(n) {}
+  T operator [] (int i) const { return f[i]; }
+};
+
+template <class Func = void, bool store_powers = false>
+struct linear_sieve : linear_sieve_base<Func> {
+  using base = linear_sieve_base<Func>;
+  static constexpr bool has_function = !is_same_v<Func, void>;
+  using prime_t = conditional_t<store_powers, vector<int>, int>;
+  vector<bool> composite;
   vector<prime_t> prime;
-  linear_sieve(int n): f(n) {
+  linear_sieve(int n): linear_sieve_base<Func>(n), composite(n) {
     prime.reserve(n);
-    vector<bool> composite(n);
-    vector<int> cnt(n);
-    f[1] = Func::one();
+    if constexpr (has_function) base::f[1] = Func::one();
     for (int i = 2; i < n; i++) {
       if (!composite[i]) {
         if constexpr (store_powers) prime.emplace_back(1, i);
         else prime.push_back(i);
-        f[i] = Func::prime(i);
-        cnt[i] = 1;
+        if constexpr (has_function) {
+          base::f[i] = Func::prime(i);
+          base::cnt[i] = 1;
+        }
       }
       if constexpr (store_powers) {
         for (auto& p : prime) {
@@ -43,17 +57,22 @@ struct linear_sieve {
           if (ip >= n) break;
           composite[ip] = true;
           if (i % p.front() == 0) {
-            cnt[ip] = cnt[i] + 1;
+            if constexpr (has_function) base::cnt[ip] = base::cnt[i] + 1;
             if (i == p.back()) {
               p.push_back(ip);
-              f[ip] = Func::prime_power(f[i], p.front(), cnt[ip]);
+              if constexpr (has_function) {
+                base::f[ip] = Func::prime_power(base::f[i], p.front(), base::cnt[ip]);
+              }
             } else {
-              f[ip] = Func::coprime(f[i / p[cnt[i] - 1]], f[p[cnt[i]]]);
+              if constexpr (has_function) {
+                base::f[ip] = Func::coprime(
+                  base::f[i / p[base::cnt[i] - 1]], base::f[p[base::cnt[i]]]);
+              }
             }
             break;
-          } else {
-            cnt[ip] = 1;
-            f[ip] = Func::coprime(f[i], f[p.front()]);
+          } else if constexpr (has_function) {
+            base::cnt[ip] = 1;
+            base::f[ip] = Func::coprime(base::f[i], base::f[p.front()]);
           }
         }
       } else {
@@ -61,19 +80,20 @@ struct linear_sieve {
           int ip = i * p;
           if (ip >= n) break;
           composite[ip] = true;
-          if (i % p == 0) {
-            cnt[ip] = cnt[i] + 1;
-            f[ip] = Func::noncoprime(f[i], p, cnt[ip]);
-            break;
-          } else {
-            cnt[ip] = 1;
-            f[ip] = Func::coprime(f[i], f[p]);
+          if constexpr (has_function) {
+            if (i % p == 0) {
+              base::cnt[ip] = base::cnt[i] + 1;
+              base::f[ip] = Func::noncoprime(base::f[i], p, base::cnt[ip]);
+              break;
+            } else {
+              base::cnt[ip] = 1;
+              base::f[ip] = Func::coprime(base::f[i], base::f[p]);
+            }
           }
         }
       }
     }
   }
-  T operator [] (int i) const { return f[i]; }
 };
 
 namespace multiplicative_functions {

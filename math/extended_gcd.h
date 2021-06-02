@@ -1,7 +1,7 @@
 /* Extended Euclidean Algorithm
  * USAGE
  *  auto [gcd, x, y] = extended_gcd(a, b);
- *  returns x and y such that ax + by = gcd
+ *  returns gcd, x and y such that ax + by = gcd
  * STATUS
  *  untested
  */

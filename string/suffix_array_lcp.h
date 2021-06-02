@@ -26,5 +26,6 @@ struct suffix_array_lcp : suffix_array<T>, range_minimum_query<int> {
     int r = max(this->inv[i], this->inv[j]);
     return range_minimum_query<int>::query(l + 1, r + 1);
   }
+  int operator [] (int i) { return suffix_array<T>::operator [] (i); }
 };
 

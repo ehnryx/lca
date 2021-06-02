@@ -1,49 +1,59 @@
-/* Fraction
+/* Mod Int
  * USAGE
- *  mod_int<mod, 32 or 64 bits> v(num);
- *  64 bits requires __int128
+ *  mod_int<mod,prime?> v(num);
+ *  assumes the mod is prime by default.
+ *  64 bit mods require __int128
  * NOTES
  *  division `operator/` is not recommended
  * STATUS
- *  mostly untested
+ *  somewhat tested: spoj/RECPWSUM
  */
 #pragma once
 
-#include "extended_gcd.h"
+#include "../math/extended_gcd.h"
 
-template <long long mod_value, int num_bits = 32, bool is_prime = true>
+template <long long mod_value, bool is_prime = true>
 struct mod_int {
-  static_assert(num_bits == 32 || num_bits == 64);
-  using mod_t = conditional_t<num_bits == 32, int, long long>;
-  using larger_t = conditional_t<num_bits == 32, long long, __int128>;
-  static const mod_t mod = mod_value;
+  static_assert(mod_value > 0);
+  using mod_t = conditional_t < mod_value < 1LL << 31, int, long long>;
+  using larger_t = conditional_t < mod_value < 1LL << 31, long long, __int128>;
+  static constexpr mod_t mod = mod_value;
   mod_t v;
   mod_int() = default;
   mod_int(const mod_t& c): v(c) {
-    if(v < 0) v = v % mod + mod;
-    else if(v >= mod) v = v % mod;
+    if (abs(v) >= mod) v %= mod;
+    if (v < 0) v += mod;
+  }
+  mod_int(const larger_t& c) {
+    v = (mod_t) (abs(c) >= mod ? c % mod : c);
+    if (v < 0) v += mod;
   }
   friend istream& operator >> (istream& is, mod_int& num) {
     is >> num.v;
-    if(num.v < 0) num.v = num.v % mod + mod;
-    else if(num.v >= mod) num.v = num.v % mod;
+    if (abs(num.v) >= mod) num.v %= mod;
+    if (num.v < 0) num.v += mod;
     return is;
   }
   friend ostream& operator << (ostream& os, const mod_int& num) { return os << num.v; }
   bool operator == (const mod_int& o) const { return v == o.v; }
+  bool operator != (const mod_int& o) const { return v != o.v; }
   mod_int operator + (const mod_int& o) const { return mod_int(*this) += o; }
   mod_int operator - (const mod_int& o) const { return mod_int(*this) -= o; }
   mod_int operator * (const mod_int& o) const { return mod_int(*this) *= o; }
   mod_int operator / (const mod_int& o) const { return mod_int(*this) /= o; }
-  mod_int operator - () const { return mod_int(v ? mod - v : v); }
+  mod_int operator - () const { return mod_int(*this).negate(); }
+  mod_int& negate() {
+    if (v != 0) v = mod - v;
+    return *this;
+  }
   mod_int& operator += (const mod_int& o) {
     v += o.v;
-    if(v >= mod) v -= mod;
+    if (v >= mod) v -= mod;
     return *this;
   }
   mod_int& operator -= (const mod_int& o) {
     v -= o.v;
-    if(v < 0) v += mod;
+    if (v < 0) v += mod;
     return *this;
   }
   mod_int& operator *= (const mod_int& o) {
@@ -53,22 +63,24 @@ struct mod_int {
   mod_int& operator /= (const mod_int& o) {
     return operator *= (o.inverse());
   }
-  template <typename T, typename = enable_if_t<is_integral_v<T>>>
-  mod_int pow(T exponent) const {
+  mod_int pow(long long exponent) const {
+    if (exponent == 0) return mod_int(1);
+    if (v == 0) {
+      if (exponent < 0) throw invalid_argument("raising zero to a negative power");
+      return mod_int(0);
+    }
     if constexpr (is_prime) {
-      if (exponent < 0) {
-        assert(v != 0);
-        exponent = mod - 1 + exponent % (mod - 1);
-      }
+      if (abs(exponent) >= mod - 1) exponent %= mod - 1;
+      if (exponent < 0) exponent += mod - 1;
       mod_int res(1), base(*this);
-      for ( ; exponent != 0; exponent /= 2) {
+      for (; exponent != 0; exponent /= 2) {
         if (exponent % 2) res *= base;
         base *= base;
       }
       return res;
     } else {
       mod_int res(1), base(exponent < 0 ? inverse() : *this);
-      for ( ; exponent != 0; exponent /= 2) {
+      for (; exponent != 0; exponent /= 2) {
         if (exponent % 2) res *= base;
         base *= base;
       }
@@ -77,7 +89,8 @@ struct mod_int {
   }
   mod_int inverse() const {
     auto [g, x, y] = extended_gcd(mod, v);
-    assert(g == 1);
+    if (g != 1) throw invalid_argument("taking the inverse of a non-coprime number");
+    assert(operator*(mod_int(y)) == 1);
     return mod_int(y < 0 ? y + mod : y);
   }
 };

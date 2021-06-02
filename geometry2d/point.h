@@ -24,12 +24,20 @@ struct point {
   point operator / (const point& v) const { return (*this) * v.inverse(); }
   point operator * (const T& c) const { return point(x*c, y*c); }
   point operator / (const T& c) const { return point(x/c, y/c); }
+  point& operator += (const point& v) { x += v.x; y += v.y; return *this; }
+  point& operator -= (const point& v) { x -= v.x; y -= v.y; return *this; }
+  point& operator *= (const point& v) { return *this = point(x*v.x - y*v.y, x*v.y + y*v.x); }
+  point& operator /= (const point& v) { return operator *= (v.inverse()); }
+  point& operator *= (const T& c) { x *= c; y *= c; return *this; }
+  point& operator /= (const T& c) { x /= c; y /= c; return *this; }
   friend point operator * (const T& c, const point& v) { return v*c; }
   point inverse() const { return conj() / norm(); }
   point conj() const { return point(x, -y); }
   point perp() const { return point(-y, x); }
   T real() const { return x; }
   T imag() const { return y; }
+  void real(const T& v) { x = v; }
+  void imag(const T& v) { y = v; }
   template <typename D = T>
   T norm() const { return x*x + y*y; }
   T dot(const point& v) const { return x*v.x + y*v.y; }

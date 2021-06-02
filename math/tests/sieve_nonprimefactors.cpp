@@ -35,7 +35,7 @@ int main() {
   cin.tie(0)->sync_with_stdio(0);
 
   const int N = 2e6 + 1;
-  linear_sieve<nonprimefactors> npf(N);
+  linear_sieve<nonprimefactors, nonprimefactors::store_powers> npf(N);
 
   int T;
   cin >> T;

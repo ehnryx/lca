@@ -20,32 +20,41 @@
 struct lca_binary_jumping : rooted_tree {
   int L;
   vector<vector<int>> jump;
-  lca_binary_jumping(const vector<vector<int>>& adj, int root) :
-      rooted_tree(adj, root) {
-    L = 32 - __builtin_clz((int)size());
-    jump.resize(size(), vector<int>(L, -1));
-    for (int u : preorder) {
-      jump[u][0] = parent[u];
-      for (int j = 1; j < L && jump[u][j-1] != -1; j++) {
-        jump[u][j] = jump[jump[u][j-1]][j-1];
-      }
-    }
+  lca_binary_jumping(const vector<vector<int>>& adj_list, int root):
+    rooted_tree(adj_list, root) {
+    build();
+  }
+  lca_binary_jumping(vector<vector<int>>&& adj_list, int root):
+    rooted_tree(move(adj_list), root) {
+    build();
   }
   int lca(int a, int b) {
     if (depth[a] < depth[b]) std::swap(a, b);
     for (int j = L - 1; j >= 0; j--) {
       if (depth[a] - (1 << j) >= depth[b]) {
-        a = jump[a][j];
+        a = jump[j][a];
       }
     }
     if (a == b) return a;
     for (int j = L - 1; j >= 0; j--) {
-      if (jump[a][j] != jump[b][j]) {
-        a = jump[a][j];
-        b = jump[b][j];
+      if (jump[j][a] != jump[j][b]) {
+        a = jump[j][a];
+        b = jump[j][b];
       }
     }
-    return jump[a][0];
+    return parent[a];
+  }
+
+private:
+  void build() {
+    L = 32 - __builtin_clz((int)adj.size());
+    jump.resize(L, vector<int>(adj.size(), -1));
+    for (int u : preorder) {
+      jump[0][u] = parent[u];
+      for (int j = 1; j < L && jump[j-1][u] != -1; j++) {
+        jump[j][u] = jump[j-1][jump[j-1][u]];
+      }
+    }
   }
 };
 

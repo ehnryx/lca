@@ -13,26 +13,37 @@
 #pragma once
 
 template <typename T, class Compare = less<>>
-struct range_minimum_query : vector<vector<T>> {
+struct range_minimum_query {
+  vector<vector<T>> rmq;
   range_minimum_query() = default;
   range_minimum_query(const vector<T>& arr) {
-    build(arr);
+    int n = (int)arr.size();
+    int L = 32 - __builtin_clz(n);
+    rmq.resize(L);
+    rmq.front() = arr;
+    build(n, L);
   }
-  void build(const vector<T>& arr) {
-    int L = 32 - __builtin_clz((int)size(arr));
-    this->resize(L);
-    this->front() = arr;
-    for (int j = 1; j < L; j++) {
-      this->data()[j].resize(size(arr) - (1 << j) + 1);
-      for (int i = 0; i + (1 << j) <= (int)size(arr); i++) {
-        this->data()[j][i] = min(this->at(j-1)[i], this->at(j-1)[i + (1<<(j-1))], Compare());
-      }
-    }
+  range_minimum_query(vector<T>&& arr) {
+    int n = (int)arr.size();
+    int L = 32 - __builtin_clz(n);
+    rmq.resize(L);
+    rmq.front() = move(arr);
+    build(n, L);
   }
   T query(int l, int r) const {
-    assert(l < r);
+    if (l >= r) throw invalid_argument("The range is empty, ie. l >= r");
     int j = 31 - __builtin_clz(r - l);
-    return min(this->at(j)[l], this->at(j)[r - (1<<j)], Compare());
+    return min(rmq[j][l], rmq[j][r - (1<<j)], Compare());
+  }
+
+private:
+  void build(int n, int L) {
+    for (int j = 1; j < L; j++) {
+      rmq[j].resize(n - (1 << j) + 1);
+      for (int i = 0; i + (1 << j) <= n; i++) {
+        rmq[j][i] = min(rmq[j-1][i], rmq[j-1][i + (1<<(j-1))], Compare());
+      }
+    }
   }
 };
 

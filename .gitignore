@@ -7,3 +7,4 @@ to_submit.cpp
 *.out
 *.ans
 *__illegible.*
+.vscode

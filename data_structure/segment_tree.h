@@ -16,6 +16,7 @@
  *    //break conditions
  *    bool put_condition(args...); whether to update in segtree beats
  * MEMBERS
+ *  * All ranges are inclusive
  *  update(l, r, value...); value for range update
  *  query(l, r, ...); query with optional args
  *  update_point(x, value...); point update
@@ -56,6 +57,10 @@ struct segment_tree {
   }
 
   template <class... Args>
+  void update_range(int l, int r, const Args&... args) {
+    update(l, r, args...);
+  }
+  template <class... Args>
   void update(int l, int r, const Args&... args) {
     if (r < l) return;
     assert(0 <= l && r < lim);
@@ -81,6 +86,10 @@ struct segment_tree {
     data[i].pull(data[2*i], data[2*i + 1]);
   }
 
+  template <class... Args>
+  Query_t query_range(int l, int r, const Args&... args) {
+    return query(l, r, args...);
+  }
   template <class... Args>
   Query_t query(int l, int r, const Args&... args) {
     if (r < l) return Node_t::default_value();
@@ -152,6 +161,12 @@ struct segment_tree {
     return __search_left(l, r, 1, 0, length - 1, forward_as_tuple(args...));
   }
   template <class... Args>
+  int search_left_mutable(int l, int r, Args&... args) {
+    if (r < l) return lim;
+    assert(0 <= l && r < lim);
+    return __search_left(l, r, 1, 0, length - 1, forward_as_tuple(args...));
+  }
+  template <class... Args>
   int __search_left(int l, int r, int i, int first, int last, tuple<Args&...> args) {
     if (l <= first && last <= r
         && !apply(&Node_t::contains, tuple_cat(tuple(data[i]), args))) return lim;
@@ -165,6 +180,12 @@ struct segment_tree {
 
   template <class... Args>
   int search_right(int l, int r, Args... args) {
+    if (r < l) return lim;
+    assert(0 <= l && r < lim);
+    return __search_right(l, r, 1, 0, length - 1, forward_as_tuple(args...));
+  }
+  template <class... Args>
+  int search_right_mutable(int l, int r, Args&... args) {
     if (r < l) return lim;
     assert(0 <= l && r < lim);
     return __search_right(l, r, 1, 0, length - 1, forward_as_tuple(args...));

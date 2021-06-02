@@ -17,7 +17,7 @@ int main() {
     adj[a].push_back(b);
     adj[b].push_back(a);
   }
-  lca_rmq graph(adj, 1);
+  lca_rmq graph(move(adj), 1);
   long long ans = 0;
   for (int i = 1; i <= n; i++) {
     for (int j = 2*i; j <= n; j += i) {

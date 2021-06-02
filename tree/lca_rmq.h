@@ -21,8 +21,23 @@
 struct lca_rmq : rooted_tree {
   vector<int> idx;
   range_minimum_query<pair<int, int>> rmq;
-  lca_rmq(const vector<vector<int>>& adj, int root) : rooted_tree(adj, root) {
-    idx.resize(size());
+  lca_rmq(const vector<vector<int>>& adj_list, int root):
+    rooted_tree(adj_list, root) {
+    build();
+  }
+  lca_rmq(vector<vector<int>>&& adj_list, int root):
+    rooted_tree(move(adj_list), root) {
+    build();
+  }
+  int lca(int a, int b) {
+    int l = idx[a];
+    int r = idx[b];
+    return rmq.query(min(l, r), max(l, r) + 1).second;
+  }
+
+private:
+  void build() {
+    idx.resize(adj.size());
     vector<pair<int, int>> arr;
     arr.reserve(2 * preorder.size());
     for (int i = 0; i < (int)preorder.size(); i++) {
@@ -36,12 +51,7 @@ struct lca_rmq : rooted_tree {
       idx[u] = (int)arr.size();
       arr.emplace_back(depth[u], u);
     }
-    rmq.build(arr);
-  }
-  int lca(int a, int b) {
-    int l = idx[a];
-    int r = idx[b];
-    return rmq.query(min(l, r), max(l, r) + 1).second;
+    rmq = range_minimum_query(move(arr));
   }
 };
 

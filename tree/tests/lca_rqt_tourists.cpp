@@ -1,11 +1,7 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-//#ifdef HENRYX
-#include "../lca_binary_jumping.h"
-//#else
-//#include "lca_binary_jumping.h"
-//#endif
+#include "../range_query_tree.h"
 
 constexpr char nl = '\n';
 
@@ -21,7 +17,7 @@ int main() {
     adj[a].push_back(b);
     adj[b].push_back(a);
   }
-  lca_binary_jumping graph(adj, 1);
+  range_query_tree<int, int> graph(move(adj), 1);
   long long ans = 0;
   for (int i = 1; i <= n; i++) {
     for (int j = 2*i; j <= n; j += i) {

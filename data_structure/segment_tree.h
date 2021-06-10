@@ -55,6 +55,14 @@ struct segment_tree {
       data[i].pull(data[2*i], data[2*i + 1]);
     }
   }
+  void assign_lengths() {
+    for (int i = 0; i < length; i++) {
+      data[i + length].length = 1;
+    }
+    for (int i = length - 1; i > 0; i--) {
+      data[i].length = data[2 * i].length + data[2 * i + 1].length;
+    }
+  }
 
   template <class... Args>
   void update_range(int l, int r, const Args&... args) {
@@ -63,7 +71,7 @@ struct segment_tree {
   template <class... Args>
   void update(int l, int r, const Args&... args) {
     if (r < l) return;
-    assert(0 <= l && r < lim);
+    if (l < 0 || lim <= r) throw invalid_argument("update range out of bounds");
     __update(l, r, 1, 0, length - 1, args...);
   }
   template <class... Args>
@@ -73,7 +81,10 @@ struct segment_tree {
       if (l <= first && last <= r && data[i].put_condition(args...)) {
         return data[i].put(args...);
       }
-      assert(i < length);
+      if (i >= length) {
+        throw invalid_argument("put_condition/break_condition is incorrect, "
+                               "trying to descend past a leaf");
+      }
     } else {
       if (l <= first && last <= r) {
         return data[i].put(args...);
@@ -93,7 +104,7 @@ struct segment_tree {
   template <class... Args>
   Query_t query(int l, int r, const Args&... args) {
     if (r < l) return Node_t::default_value();
-    assert(0 <= l && r < lim);
+    if (l < 0 || lim <= r) throw invalid_argument("query range out of bounds");
     return __query(l, r, 1, 0, length - 1, args...);
   }
   template <class... Args>
@@ -110,7 +121,7 @@ struct segment_tree {
 
   template <class... Args>
   void update_point(int x, const Args&... args) {
-    assert(0 <= x && x < lim);
+    if (x < 0 || lim <= x) throw invalid_argument("update_point index out of bounds");
     __update_point(x, 1, 0, length - 1, args...);
   }
   template <class... Args>
@@ -125,7 +136,7 @@ struct segment_tree {
 
   template <class... Args>
   Query_t query_point(int x, const Args&... args) {
-    assert(0 <= x && x < lim);
+    if (x < 0 || lim <= x) throw invalid_argument("query_point index out of bounds");
     return __query_point(x, 1, 0, length - 1, args...);
   }
   template <class... Args>
@@ -139,7 +150,7 @@ struct segment_tree {
 
   template <class... Args>
   Query_t query_up(int x, const Args&... args) {
-    assert(0 <= x && x < lim);
+    if (x < 0 || lim <= x) throw invalid_argument("query_up index out of bounds");
     return __query_up(x, 1, 0, length - 1, args...);
   }
   template <class... Args>
@@ -157,13 +168,13 @@ struct segment_tree {
   template <class... Args>
   int search_left(int l, int r, Args... args) {
     if (r < l) return lim;
-    assert(0 <= l && r < lim);
+    if (l < 0 || lim <= r) throw invalid_argument("search_left range out of bounds");
     return __search_left(l, r, 1, 0, length - 1, forward_as_tuple(args...));
   }
   template <class... Args>
   int search_left_mutable(int l, int r, Args&... args) {
     if (r < l) return lim;
-    assert(0 <= l && r < lim);
+    if (l < 0 || lim <= r) throw invalid_argument("search_left range out of bounds");
     return __search_left(l, r, 1, 0, length - 1, forward_as_tuple(args...));
   }
   template <class... Args>
@@ -181,13 +192,13 @@ struct segment_tree {
   template <class... Args>
   int search_right(int l, int r, Args... args) {
     if (r < l) return lim;
-    assert(0 <= l && r < lim);
+    if (l < 0 || lim <= r) throw invalid_argument("search_right range out of bounds");
     return __search_right(l, r, 1, 0, length - 1, forward_as_tuple(args...));
   }
   template <class... Args>
   int search_right_mutable(int l, int r, Args&... args) {
     if (r < l) return lim;
-    assert(0 <= l && r < lim);
+    if (l < 0 || lim <= r) throw invalid_argument("search_right range out of bounds");
     return __search_right(l, r, 1, 0, length - 1, forward_as_tuple(args...));
   }
   template <class... Args>

@@ -1,4 +1,5 @@
 /* Fast Fourier Transform
+ * http://neerc.ifmo.ru/trains/toulouse/2017/fft2.pdf
  * USAGE
  *  ab = convolve(a, b); to multiply (sum_i a[i] x^i) * (sum_i b[i] x^i)
  * TIME
@@ -45,7 +46,7 @@ void fast_fourier_transform(vector<complex<D>>& a) {
 }
 
 template <typename Out_t, typename D = long double, typename T>
-vector<Out_t> convolve(const vector<T>& a, const vector<T>& b) {
+vector<Out_t> convolve(const vector<T>& a, const vector<T>& b, size_t cut = -1) {
   if (empty(a) || empty(b)) return vector<Out_t>();
   vector<Out_t> res(size(a) + size(b) - 1, 0);
   int L = (size(res) == 1 ? 0 : 32 - __builtin_clz((int)size(res) - 1));
@@ -67,6 +68,9 @@ vector<Out_t> convolve(const vector<T>& a, const vector<T>& b) {
     } else {
       res[i] = imag(out[i]) / (4 * n);
     }
+  }
+  if (cut < size(res)) {
+    res.resize(cut);
   }
   return res;
 }

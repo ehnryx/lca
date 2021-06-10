@@ -20,6 +20,7 @@
 template <typename T>
 struct suffix_tree {
   basic_string<T> t;
+  // suffix_node ranges are [inclusive, exclusive)
   struct suffix_node : vector<pair<T, int>> {
     int parent, depth, left, right;
     suffix_node() = default;
@@ -66,12 +67,18 @@ struct suffix_tree {
     }
   }
 
+  // the root of the suffix tree
   int root() const { return (int)size(t); }
+  // the depth of the start of a vertex (the number of characters above it)
   int depth(int u) const { return nodes[u].depth; }
+  // the parent of a vertex
   int parent(int u) const { return nodes[u].parent; }
+  // the length of the corresponding substring
   int length(int u) const { return nodes[u].right - nodes[u].left; };
+  // whether a vertex is a leaf
   bool is_leaf(int u) const { return u < root(); }
-  const suffix_node& operator [] (int i) { return nodes.at(i); };
+  // the nodes in order, use .get(char) to match a character
+  const suffix_node& operator [] (int i) const { return nodes.at(i); };
 
   // return: (node, idx in range[node]) of the past-the-end of the match.
   //         (-1, -1) if not matched

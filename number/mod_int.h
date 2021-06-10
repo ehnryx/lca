@@ -35,6 +35,7 @@ struct mod_int {
     return is;
   }
   friend ostream& operator << (ostream& os, const mod_int& num) { return os << num.v; }
+  int value() const { return v; }
   bool operator == (const mod_int& o) const { return v == o.v; }
   bool operator != (const mod_int& o) const { return v != o.v; }
   mod_int operator + (const mod_int& o) const { return mod_int(*this) += o; }

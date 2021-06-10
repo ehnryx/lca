@@ -43,12 +43,39 @@ struct range_query_tree : rooted_tree {
     build(root, 0);
   }
 
+  int ancestor(int u, int k) const {
+    if (k < 0) throw invalid_argument("tried to find the kth ancestor where k < 0");
+    if (k > depth[u]) return -1;
+    while (true) {
+      int len = depth[u] - depth[top[u]] + 1;
+      if (k < len) {
+        return preorder[start[u] - k];
+      }
+      u = parent[top[u]];
+      k -= len;
+    }
+  }
   int lca(int u, int v) const {
     while (top[u] != top[v]) {
       if (depth[top[u]] < depth[top[v]]) swap(u, v);
       u = parent[top[u]];
     }
     return depth[u] < depth[v] ? u : v;
+  }
+  int distance(int u, int v) const {
+    int c = lca(u, v);
+    return depth[u] + depth[v] - 2 * depth[c];
+  }
+  // k is 0 indexed (0th vertex on path u->v is u)
+  int kth(int u, int v, int k) const {
+    int c = lca(u, v);
+    int up = depth[u] - depth[c];
+    int down = depth[v] - depth[c];
+    if (k <= up) {
+      return ancestor(u, k);
+    } else {
+      return ancestor(v, up + down - k);
+    }
   }
 
   template <class... Args>
@@ -67,6 +94,31 @@ struct range_query_tree : rooted_tree {
   template <class... Args>
   Query_t query_subtree(int u, const Args&... args) {
     return range_ds.query_range(start[u], start[u] + subtree[u] - 1, args...);
+  }
+  template <class... Args>
+  int search_subtree(int u, const Args&... args) {
+    int idx = range_ds.search_left(start[u], start[u] + subtree[u] - 1, args...);
+    return idx < range_ds.lim ? preorder[idx] : -1;
+  }
+
+  template <class... Args>
+  void update_non_subtree(int u, const Args&... args) {
+    range_ds.update_range(0, start[u] - 1, args...);
+    range_ds.update_range(start[u] + subtree[u], subtree[preorder[0]] - 1, args...);
+  }
+  template <class... Args>
+  Query_t query_non_subtree(
+    int u, function<Query_t(Query_t, Query_t)> merge, const Args&... args) {
+    return merge(
+      range_ds.query_range(0, start[u] - 1, args...),
+      range_ds.query_range(start[u] + subtree[u], subtree[preorder[0]] - 1, args...));
+  }
+  template <class... Args>
+  int search_non_subtree(int u, Args... args) {
+    int idx = range_ds.search_left(0, start[u] - 1, args...);
+    if (idx < range_ds.lim) return preorder[idx];
+    idx = range_ds.search_left(start[u] + subtree[u], subtree[preorder[0]] - 1, args...);
+    return idx < range_ds.lim ? preorder[idx] : -1;
   }
 
   template <class... Args>

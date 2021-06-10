@@ -16,21 +16,32 @@
  */
 #pragma once
 
-template <typename T, typename = enable_if_t<is_integral_v<T>>>
+template <typename T>
 struct fenwick_tree {
   int n, logn;
   vector<T> data;
   T& operator [] (int i) { return data[i]; }
   fenwick_tree(int _n): n(_n), logn(31 - __builtin_clz(n)), data(n + 1) {}
+  fenwick_tree(const vector<T>& arr):
+    n((int)arr.size()), logn(31 - __builtin_clz(n)), data(n + 1) {
+    for (int i = 0; i < n; i++) {
+      update(i, arr[i]);
+    }
+  }
+  T query_point(int r) const { return query(r, r); }
+  T query_range(int l, int r) const { return query(l, r); }
   T query(int l, int r) const { return query(r) - query(l - 1); }
   T query(int r) const {
+    if (r < -1 || n <= r) throw invalid_argument("query index out of bounds");
     T res(0);
     for (r += 1; r > 0; r -= r & -r) {
       res += data[r];
     }
     return res;
   }
+  void update_point(int i, const T& v) { update(i, v); }
   void update(int i, const T& v) {
+    if (i < 0 || n < i) throw invalid_argument("update index out of bounds");
     for (i += 1; i <= n; i += i & -i) {
       data[i] += v;
     }
@@ -47,3 +58,4 @@ struct fenwick_tree {
     return res;
   }
 };
+

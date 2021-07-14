@@ -40,6 +40,43 @@ point<T> line_inter(
   return a + cross(c-a, d-c) / cross(b-a, d-c) * (b-a);
 }
 
+template <typename T>
+enable_if_t<is_floating_point_v<T>, T> line_point_dist(
+  const point<T>& a, const point<T>& b, const point<T>& c) {
+  return cross(b - a, c - a) / abs(b - a);
+}
+
+template <typename T>
+enable_if_t<is_floating_point_v<T>, T> segment_point_dist(
+  const point<T>& a, const point<T>& b, const point<T>& c) {
+  if (dot(b - a, c - a) > 0 && dot(a - b, c - b) > 0) {
+    return abs(line_point_dist(a, b, c));
+  } else {
+    return min(abs(a - c), abs(b - c));
+  }
+}
+
+template <typename T>
+enable_if_t<is_floating_point_v<T>, T> segment_closest(
+  const point<T>& a, const point<T>& b, const point<T>& c,
+  const T& eps = 1e-9) {
+  if (dot(b - a, c - a) > 0 && dot(a - b, c - b) > 0) {
+    return abs(cross(b - a, c - a)) < eps ? c : line_inter(a, b, c, c + perp(a - b));
+  } else {
+    return abs(a - c) < abs(b - c) ? a : b;
+  }
+}
+
+template <typename T>
+T signed_area(const vector<point<T>>& v) {
+  int n = (int)v.size();
+  T area = 0;
+  for (int i = n - 1, j = 0; j < n; i = j++) {
+    area += cross(v[i], v[j]);
+  }
+  return area / 2;
+}
+
 #ifndef USE_RATIONAL_POINTS
 template <typename T>
 bool on_segment(

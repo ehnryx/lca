@@ -28,7 +28,8 @@ struct lca_binary_jumping : rooted_tree {
     rooted_tree(move(adj_list), root) {
     build();
   }
-  int lca(int a, int b) {
+
+  int lca(int a, int b) const {
     if (depth[a] < depth[b]) std::swap(a, b);
     for (int j = L - 1; j >= 0; j--) {
       if (depth[a] - (1 << j) >= depth[b]) {
@@ -43,6 +44,9 @@ struct lca_binary_jumping : rooted_tree {
       }
     }
     return parent[a];
+  }
+  int distance(int a, int b) const {
+    return depth[a] + depth[b] - 2 * depth[lca(a, b)];
   }
 
 private:

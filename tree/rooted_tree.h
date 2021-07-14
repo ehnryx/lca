@@ -23,7 +23,7 @@
 struct rooted_tree {
   vector<vector<int>> adj;
   vector<int> parent, depth, subtree, start, preorder, in, out;
-  vector<int>& operator [] (int i) { return adj[i]; }
+  const vector<int>& operator [] (int i) const { return adj[i]; }
   rooted_tree(const vector<vector<int>>& adj_list, int root): adj(adj_list),
     parent(adj.size(), -1), depth(adj.size()), subtree(adj.size()), start(adj.size()),
     in(adj.size()), out(adj.size()) {
@@ -35,6 +35,11 @@ struct rooted_tree {
     in(adj.size()), out(adj.size()) {
     preorder.reserve(adj.size());
     build(root, -1, 0);
+  }
+
+  bool is_ancestor_of(int anc, int v, bool strict = true) const {
+    if (strict) return in[anc] < in[v] && out[anc] > out[v];
+    else return in[anc] <= in[v] && out[anc] >= out[v];
   }
 
 private:

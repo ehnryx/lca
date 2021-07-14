@@ -38,10 +38,8 @@ struct segment_tree {
   vector<Node_t> data;
   Node_t& operator [] (int i) { return data[i]; }
 
-  segment_tree(int n, bool init_build = false): lim(n),
-    length(1 << (lim == 1 ? 0 : 32 - __builtin_clz(lim - 1))), data(2*length) {
-    if (init_build) build();
-  }
+  segment_tree(int n): lim(n),
+    length(1 << (lim == 1 ? 0 : 32 - __builtin_clz(lim - 1))), data(2 * length) {}
   template <class Input_t>
   segment_tree(const vector<Input_t>& a, int offset = 0): lim((int)size(a)),
     length(1 << (lim == 1 ? 0 : 32 - __builtin_clz(lim - 1))), data(2*length) {
@@ -146,6 +144,15 @@ struct segment_tree {
     int mid = (first + last) / 2;
     if (x <= mid) return __query_point(x, 2*i, first, mid, args...);
     else return __query_point(x, 2*i + 1, mid + 1, last, args...);
+  }
+
+  template <class... Args>
+  void update_up(int x, const Args&... args) {
+    static_assert(!push);
+    if (x < 0 || lim <= x) throw invalid_argument("update_up index out of bounds");
+    for (int i = x + length; i > 0; i /= 2) {
+      data[i].put(args...);
+    }
   }
 
   template <class... Args>

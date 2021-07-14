@@ -13,6 +13,7 @@ struct point {
   point() = default;
   point(const T& c): x(c), y(0) {}
   point(const T& _x, const T& _y): x(_x), y(_y) {}
+  point(const complex<T>& v): x(v.real()), y(v.imag()) {}
   friend ostream& operator << (ostream& os, const point& v) {
     return os << '(' << v.x << ',' << v.y << ')';
   }

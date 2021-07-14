@@ -29,10 +29,14 @@ struct lca_rmq : rooted_tree {
     rooted_tree(move(adj_list), root) {
     build();
   }
-  int lca(int a, int b) {
+
+  int lca(int a, int b) const {
     int l = idx[a];
     int r = idx[b];
     return rmq.query(min(l, r), max(l, r) + 1).second;
+  }
+  int distance(int a, int b) const {
+    return depth[a] + depth[b] - 2 * depth[lca(a, b)];
   }
 
 private:

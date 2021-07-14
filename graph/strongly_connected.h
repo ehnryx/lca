@@ -7,7 +7,7 @@
  * MEMBERS
  *  group: the components. group[i] = vector of nodes in the ith component
  *  remap: maps vertex -> index in their component
- *  scc: the component id. low[u] = id of the component to which u belongs
+ *  scc: the component id. scc[u] = id of the component to which u belongs
  *  dag:  the adjacency list for the dag of scc's
  *  indegree: the in-degree of the nodes in the dag
  *  operator[]: alias for scc

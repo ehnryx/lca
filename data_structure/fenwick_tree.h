@@ -32,7 +32,7 @@ struct fenwick_tree {
   T query_range(int l, int r) const { return query(l, r); }
   T query(int l, int r) const { return query(r) - query(l - 1); }
   T query(int r) const {
-    if (r < -1 || n <= r) throw invalid_argument("query index out of bounds");
+    if (r < -1 || n <= r) return 0; //throw invalid_argument("query index out of bounds");
     T res(0);
     for (r += 1; r > 0; r -= r & -r) {
       res += data[r];

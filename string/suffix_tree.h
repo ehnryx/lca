@@ -11,7 +11,7 @@
  *  O(N)
  *  N = |string|
  * STATUS
- *  tested: nadc21/b
+ *  tested: nadc21/b, kattis/jobbdna
  */
 #pragma once
 
@@ -34,9 +34,11 @@ struct suffix_tree {
   };
   vector<suffix_node> nodes;
 
-  suffix_tree(const basic_string<T>& s): t(s) {
-    suffix_array sa(s);
-    int n = (int)size(s);
+  suffix_tree(const basic_string<T>& s): t(s) { build(); }
+  suffix_tree(basic_string<T>&& s): t(move(s)) { build(); }
+  void build() {
+    suffix_array sa(t);
+    int n = (int)size(t);
     nodes.reserve(2 * n);
     nodes.resize(n + 1);
     for (int i = 1, u = n; i <= n; i++) {
@@ -48,13 +50,13 @@ struct suffix_tree {
       int split = sa.height[i] - depth(u);
       if (split < length(u) || u < n) {
         nodes.emplace_back(parent(u), depth(u), nodes[u].left, nodes[u].left + split);
-        nodes.back().emplace_back(nodes[u].left + split == n ? 0 : s[nodes[u].left + split], u);
+        nodes.back().emplace_back(nodes[u].left + split == n ? 0 : t[nodes[u].left + split], u);
         nodes[u].depth += split;
         nodes[u].left += split;
         nodes[u].parent = (int)size(nodes) - 1;
         u = (int)size(nodes) - 1;
         for (auto& edge : nodes[parent(u)]) {
-          if (edge.first == s[nodes[u].left]) {
+          if (edge.first == t[nodes[u].left]) {
             edge.second = u;
           }
         }
@@ -62,7 +64,7 @@ struct suffix_tree {
       // add the remaining suffix as a child
       int suf = sa[i];
       nodes[suf] = suffix_node(u, depth(u) + split, suf + depth(u) + split, n);
-      nodes[u].emplace_back(s[nodes[suf].left], suf);
+      nodes[u].emplace_back(t[nodes[suf].left], suf);
       u = suf;
     }
   }

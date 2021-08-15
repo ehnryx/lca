@@ -34,14 +34,16 @@ struct range_query_tree : rooted_tree {
     rooted_tree(adj_list, root), range_ds((int)adj.size()), top(adj.size()) {
     preorder.clear();
     top[root] = root;
-    build(root, 0);
+    build_hld(root, 0);
   }
   range_query_tree(vector<vector<int>>&& adj_list, int root):
     rooted_tree(move(adj_list), root), range_ds((int)adj.size()), top(adj.size()) {
     preorder.clear();
     top[root] = root;
-    build(root, 0);
+    build_hld(root, 0);
   }
+  void build() { range_ds.build(); }
+  void assign_lengths() { range_ds.assign_lengths(); }
 
   int ancestor(int u, int k) const {
     if (k < 0) throw invalid_argument("tried to find the kth ancestor where k < 0");
@@ -190,7 +192,7 @@ struct range_query_tree : rooted_tree {
   }
 
 private:
-  int build(int u, int idx) {
+  int build_hld(int u, int idx) {
     in[u] = idx++;
     start[u] = (int)preorder.size();
     preorder.push_back(u);
@@ -204,12 +206,12 @@ private:
       }
       // continue heavy chain
       top[adj[u].front()] = top[u];
-      idx = build(adj[u].front(), idx);
+      idx = build_hld(adj[u].front(), idx);
       // start new chain
       for (size_t i = 1; i < adj[u].size(); i++) {
         int v = adj[u][i];
         top[v] = v;
-        idx = build(v, idx);
+        idx = build_hld(v, idx);
       }
     }
     out[u] = idx++;

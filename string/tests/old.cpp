@@ -1,7 +1,11 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+#ifdef HENRYX
 #include "../ukkonen.h"
+#else
+#include "ukkonen.h"
+#endif
 
 #include <ext/pb_ds/assoc_container.hpp>
 #include <ext/pb_ds/tree_policy.hpp>
@@ -13,17 +17,19 @@ constexpr char nl = '\n';
 
 struct to_int {
   static int toi(char c) { return c - 'a' + 1; }
-  static int toc(int i) { return i + 'a' - 1; }
   static const int alpha = 27;
   using T = char;
 };
 
 ordered_set<int> dfs(
+    int slen,
     const vector<vector<pair<int, int>>>& put,
     const ukkonen<to_int>& st, int u, vector<int>& ans) {
   ordered_set<int> cur;
-  for(auto [_, v] : st.nodes[u]) {
-    ordered_set<int> child = dfs(put, st, (int)v, ans);
+  for(int c = 0; c < to_int::alpha; c++) {
+    int v = (int)st[u].to[c];
+    if(v == -1) continue;
+    ordered_set<int> child = dfs(slen, put, st, v, ans);
     if (size(cur) < size(child)) {
       cur.swap(child);
     }
@@ -32,7 +38,7 @@ ordered_set<int> dfs(
     }
   }
   if (st.is_leaf(u)) {
-    cur.insert(st.size() - (st.depth(u) + st.length(u)) + 1);
+    cur.insert(slen - (st.depth(u) + st.length(u)) + 1);
   }
   for (auto [i, it] : put[u]) {
     if (it <= (int)size(cur)) {
@@ -47,6 +53,7 @@ int main() {
 
   string s;
   cin >> s;
+  int n = (int)s.size();
   ukkonen<to_int> st(s);
 
   int m;
@@ -62,7 +69,7 @@ int main() {
   }
 
   vector<int> ans(m, -1);
-  dfs(put, st, st.root(), ans);
+  dfs(n + 1, put, st, st.root(), ans);
   for(int i=0; i<m; i++) {
     cout << ans[i] << nl;
   }

@@ -7,8 +7,8 @@
  *  string or basic_string<int>
  *  remap values to [1,n] if using basic_string<int>. DO NOT use 0
  * OUTPUT
- *  sa = suffix array. sa[0] = n (the sentinel) always
- *  inv = inverse of sa. result is 1-indexed because inv[n] = 0
+ *  sa = suffix array. sa[0] = n (the sentinel) always (inverse of rank)
+ *  rank = rank of suffix in sorted order. result is 1-indexed because rank[n] = 0
  *  height = height of the lcp histogram. height[i] = lcp(sa[i], sa[i-1])
  *  operator[] to access sa
  * TIME
@@ -21,7 +21,7 @@
 
 template <typename T>
 struct suffix_array {
-  vector<int> sa, inv, height;
+  vector<int> sa, rank, height;
   int operator [] (int i) const { return sa[i]; }
 
   suffix_array(const basic_string<T>& s) {
@@ -29,20 +29,20 @@ struct suffix_array {
     vector<int> t(n);
     copy(begin(s), end(s), begin(t));
     sa = build(t, *max_element(begin(t), end(t)) + 1);
-    // generate inverse of sa
-    inv.resize(n);
+    // generate rank of suffix in sorted order
+    rank.resize(n);
     for (int i = 0; i < n; i++) {
-      inv[sa[i]] = i;
+      rank[sa[i]] = i;
     }
     // generate heights of the lcp histogram
     height.resize(n);
     for (int i = 0, h = 0; i < n; i++) {
-      if (inv[i] == 0) continue;
-      int j = sa[inv[i] - 1];
+      if (rank[i] == 0) continue;
+      int j = sa[rank[i] - 1];
       while (i + h < n && j + h < n && t[i + h] == t[j + h]) {
         h++;
       }
-      height[inv[i]] = h;
+      height[rank[i]] = h;
       if (h > 0) {
         h--;
       }

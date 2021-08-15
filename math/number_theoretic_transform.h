@@ -5,7 +5,7 @@
  *  O(NlogN)
  *  N = |array|
  * STATUS
- *  untested
+ *  tested: kattis/kinversions
  */
 #pragma once
 
@@ -53,8 +53,8 @@ void number_theoretic_transform(vector<T>& a, const T& p2_root) {
       for (int j = 0; j < k; j++) {
         if constexpr (is_integral_v<T>) {
           T z = root[j + k] * a[i + j + k] % mod;
-          a[i + j + k] = a[i + j] - z < 0 ? a[i + j] - z + mod : a[i + j] - z;
-          a[i + j] = a[i + j] + z < mod ? a[i + j] + z : a[i + j] + z - mod;
+          a[i + j + k] = (a[i + j] - z < 0 ? a[i + j] - z + mod : a[i + j] - z);
+          a[i + j] = (a[i + j] + z < mod ? a[i + j] + z : a[i + j] + z - mod);
         } else {
           T z = root[j + k] * a[i + j + k];
           a[i + j + k] = a[i + j] - z;
@@ -90,8 +90,8 @@ template <long long mod, typename T>
 vector<T> convolve(vector<T> a, vector<T> b, size_t cut = -1) {
   static_assert(is_same_v<T, long long> || !is_integral_v<T>);
   if (empty(a) || empty(b)) return vector<T>();
-  vector<T> res(size(a) + size(b) - 1, 0);
-  int n = find_ntt_length(size(res));
+  size_t length = size(a) + size(b) - 1;
+  int n = find_ntt_length((int)length);
   T inv;
   if constexpr (is_integral_v<T>) inv = modpow<mod>(n, mod - 2);
   else inv = T(n).inverse();
@@ -115,9 +115,7 @@ vector<T> convolve(vector<T> a, vector<T> b, size_t cut = -1) {
   }
   reverse(begin(a) + 1, end(a));
   number_theoretic_transform<mod>(a, p2_root);
-  if (cut < size(a)) {
-    a.resize(cut);
-  }
+  a.resize(min(length, cut));
   return a;
 }
 

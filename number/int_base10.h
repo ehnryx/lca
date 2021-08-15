@@ -13,8 +13,8 @@
 #include "../math/fast_fourier_transform.h"
 
 struct int_base10 {
-  static constexpr int radix = 1'000'000;
-  static constexpr int radix_length = 6;
+  static constexpr int radix = 10'000;
+  static constexpr int radix_length = 4;
   static constexpr size_t fft_threshold = 144;
   static constexpr size_t small_div_threshold = 100;
   static constexpr size_t large_div_threshold = 144;
@@ -250,7 +250,7 @@ struct int_base10 {
   }
 
   int_base10 fft_multiply(const int_base10& o) const {
-    vector<long long> num = convolve<long long, long double>(digits, o.digits);
+    vector<long long> num = convolve<long long, double>(digits, o.digits);
     vector<int> res(num.size() + 1);
     for (size_t i = 0; i < num.size(); i++) {
       num[i] += res[i];

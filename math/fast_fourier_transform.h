@@ -45,8 +45,10 @@ void fast_fourier_transform(vector<complex<D>>& a) {
   }
 }
 
-template <typename Out_t, typename D = long double, typename T>
-vector<Out_t> convolve(const vector<T>& a, const vector<T>& b, size_t cut = -1) {
+template <typename Prod_t = void, typename D = long double, typename T>
+auto convolve(const vector<T>& a, const vector<T>& b, size_t cut = -1) {
+  static_assert(is_floating_point_v<D>);
+  using Out_t = conditional_t<is_same_v<Prod_t, void>, T, Prod_t>;
   if (empty(a) || empty(b)) return vector<Out_t>();
   vector<Out_t> res(size(a) + size(b) - 1, 0);
   int L = (size(res) == 1 ? 0 : 32 - __builtin_clz((int)size(res) - 1));

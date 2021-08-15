@@ -24,29 +24,44 @@ struct ukkonen {
     int depth; // depth of node, measured in number of chars before node
     size_t length() const { return right - left; }
     suffix_node(): parent(-1), slink(-1), left(-1), right(-1), depth(0) {
-      fill(begin(to), end(to), -1);
+      fill(to.begin(), to.end(), -1);
     }
     bool has_neighbour(int c) const { return to[c] != npos; }
-    size_t get(const typename to_int_f::T& c) const { return to[to_int_f()(c)]; }
+    size_t get(const typename to_int_f::T& c) const { return to[to_int_f::toi(c)]; }
+
+    struct iterator {
+      suffix_node const* ref;
+      int i;
+      iterator(suffix_node const* _ref, int pos): ref(_ref), i(pos) {
+        while (i < to_int_f::alpha && ref->to[i] == (size_t)-1) {
+          i += 1;
+        }
+      }
+      pair<typename to_int_f::T, size_t> operator * () const {
+        return pair(to_int_f::toc(i), ref->to[i]);
+      }
+      iterator& operator ++ () { return *this = iterator(ref, i + 1); }
+      iterator& operator ++ (int) { return *this = iterator(ref, i + 1); }
+      bool operator == (const iterator& o) const { return i == o.i; }
+      bool operator != (const iterator& o) const { return i != o.i; }
+    };
+    iterator begin() const { return iterator(this, 0); }
+    iterator end() const { return iterator(this, to_int_f::alpha); }
   };
 
   template <class to_int_f>
   struct suffix_node<to_int_f, enable_if_t<is_void_v<to_int_f>>> {
     // map
+    size_t parent;
+    size_t slink;
+    size_t left, right;
+    map<int, size_t> to;
+    int depth;
+    size_t length() const { return right - left; }
+    suffix_node(): parent(-1), slink(-1), left(-1), right(-1), depth(0) {}
+    bool has_neighbour(int c) const { return to.count(c); }
+    size_t get(int c) const { return to.at(c); }
   };
-
-  // the root of the suffix tree
-  static constexpr int root() { return 0; }
-  // the depth of the start of a vertex (the number of characters above it)
-  int depth(int u) const { return nodes[u].depth; }
-  // the parent of a vertex
-  int parent(int u) const { return nodes[u].parent; }
-  // the length of the corresponding substring
-  int length(int u) const { return (int)nodes[u].length(); }
-  // whether a vertex is a leaf
-  bool is_leaf(int u) const { return nodes[u].right >= t.size(); }
-  // the nodes in order, use .get(char) to match a character
-  const suffix_node<to_int>& operator [] (int i) const { return nodes.at(i); }
 
   vector<suffix_node<to_int>> nodes;
   size_t cur_node, cur_pos;
@@ -72,8 +87,8 @@ struct ukkonen {
       if (c == 0) throw invalid_argument("0 is reserved for the terminal");
       return (int)c;
     } else {
-      if (to_int()(c) == 0) throw invalid_argument("0 is reserved for the terminal");
-      return to_int()(c);
+      if (to_int::toi(c) == 0) throw invalid_argument("0 is reserved for the terminal");
+      return to_int::toi(c);
     }
   }
 
@@ -188,6 +203,22 @@ struct ukkonen {
     }
   }
 
+  // BEGIN suffix tree functions
+  //  length of the string
+  int size() const { return (int)t.size(); }
+  // the root of the suffix tree
+  static constexpr int root() { return 0; }
+  // the depth of the start of a vertex (the number of characters above it)
+  int depth(int u) const { return nodes[u].depth; }
+  // the parent of a vertex
+  int parent(int u) const { return nodes[u].parent; }
+  // the length of the corresponding substring
+  int length(int u) const { return (int)nodes[u].length(); }
+  // whether a vertex is a leaf
+  bool is_leaf(int u) const { return nodes[u].right >= t.size(); }
+  // the nodes in order, use .get(char) to match a character
+  const suffix_node<to_int>& operator [] (int i) const { return nodes.at(i); }
+
   // return: (node, idx in range[node]) of the past-the-end of the match.
   //         (-1, -1) if not matched
   template <typename T>
@@ -210,5 +241,6 @@ struct ukkonen {
     }
     return pair(u, idx);
   }
+  // END suffix tree functions
 };
 

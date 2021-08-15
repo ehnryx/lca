@@ -1,11 +1,7 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-#ifdef HENRYX
 #include "../suffix_tree.h"
-#else
-#include "suffix_tree.h"
-#endif
 
 #include <ext/pb_ds/assoc_container.hpp>
 #include <ext/pb_ds/tree_policy.hpp>
@@ -29,7 +25,7 @@ ordered_set<int> dfs(
     }
   }
   if (st.is_leaf(u)) {
-    cur.insert(st.root() - (st.depth(u) + st.length(u)) + 1);
+    cur.insert(st.size() - (st.depth(u) + st.length(u)) + 1);
   }
   for (auto [i, it] : put[u]) {
     if (it <= (int)size(cur)) {

@@ -11,8 +11,8 @@ int rmq[L][N];
 
 template <class T>
 int query(const T& sa, int a, int b) {
-  int l = min(sa.inv[a], sa.inv[b]) + 1;
-  int r = max(sa.inv[a], sa.inv[b]);
+  int l = min(sa.rank[a], sa.rank[b]) + 1;
+  int r = max(sa.rank[a], sa.rank[b]);
   int j = 31 - __builtin_clz(r - l + 1);
   return min(rmq[j][l], rmq[j][r-(1<<j)+1]);
 }
@@ -34,7 +34,7 @@ int main() {
   suffix_array sa(s);
 
   for(int i=0; i<n; i++) {
-    rmq[0][sa.inv[i]] = sa.height[sa.inv[i]];
+    rmq[0][sa.rank[i]] = sa.height[sa.rank[i]];
   }
   for(int j=1; j<L; j++) {
     for(int i=0; i+(1<<j)<=n; i++) {

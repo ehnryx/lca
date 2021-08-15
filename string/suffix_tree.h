@@ -36,41 +36,12 @@ struct suffix_tree {
 
   suffix_tree(const basic_string<T>& s): t(s) { build(); }
   suffix_tree(basic_string<T>&& s): t(move(s)) { build(); }
-  void build() {
-    suffix_array sa(t);
-    int n = (int)size(t);
-    nodes.reserve(2 * n);
-    nodes.resize(n + 1);
-    for (int i = 1, u = n; i <= n; i++) {
-      // walk up to the lca
-      while (u != n && sa.height[i] <= depth(u)) {
-        u = parent(u);
-      }
-      // split the node if necessary
-      int split = sa.height[i] - depth(u);
-      if (split < length(u) || u < n) {
-        nodes.emplace_back(parent(u), depth(u), nodes[u].left, nodes[u].left + split);
-        nodes.back().emplace_back(nodes[u].left + split == n ? 0 : t[nodes[u].left + split], u);
-        nodes[u].depth += split;
-        nodes[u].left += split;
-        nodes[u].parent = (int)size(nodes) - 1;
-        u = (int)size(nodes) - 1;
-        for (auto& edge : nodes[parent(u)]) {
-          if (edge.first == t[nodes[u].left]) {
-            edge.second = u;
-          }
-        }
-      }
-      // add the remaining suffix as a child
-      int suf = sa[i];
-      nodes[suf] = suffix_node(u, depth(u) + split, suf + depth(u) + split, n);
-      nodes[u].emplace_back(t[nodes[suf].left], suf);
-      u = suf;
-    }
-  }
 
+  // BEGIN suffix tree functions
+  // length of the string
+  int size() const { return (int)t.size(); }
   // the root of the suffix tree
-  int root() const { return (int)size(t); }
+  int root() const { return (int)t.size(); }
   // the depth of the start of a vertex (the number of characters above it)
   int depth(int u) const { return nodes[u].depth; }
   // the parent of a vertex
@@ -87,7 +58,7 @@ struct suffix_tree {
   pair<int, int> match(const string& s) const {
     int u = root();
     int idx = 0;
-    for (int i = 0; i < (int)size(s); i++) {
+    for (int i = 0; i < (int)s.size(); i++) {
       if (idx == nodes[u].right) {
         u = nodes[u].get(s[i]);
         if (u == -1) {
@@ -102,6 +73,41 @@ struct suffix_tree {
       }
     }
     return pair(u, idx);
+  }
+  // END suffix tree functions
+
+private:
+  void build() {
+    suffix_array sa(t);
+    int n = (int)t.size();
+    nodes.reserve(2 * n);
+    nodes.resize(n + 1);
+    for (int i = 1, u = n; i <= n; i++) {
+      // walk up to the lca
+      while (u != n && sa.height[i] <= depth(u)) {
+        u = parent(u);
+      }
+      // split the node if necessary
+      int split = sa.height[i] - depth(u);
+      if (split < length(u) || u < n) {
+        nodes.emplace_back(parent(u), depth(u), nodes[u].left, nodes[u].left + split);
+        nodes.back().emplace_back(nodes[u].left + split == n ? 0 : t[nodes[u].left + split], u);
+        nodes[u].depth += split;
+        nodes[u].left += split;
+        nodes[u].parent = (int)nodes.size() - 1;
+        u = (int)nodes.size() - 1;
+        for (auto& edge : nodes[parent(u)]) {
+          if (edge.first == t[nodes[u].left]) {
+            edge.second = u;
+          }
+        }
+      }
+      // add the remaining suffix as a child
+      int suf = sa[i];
+      nodes[suf] = suffix_node(u, depth(u) + split, suf + depth(u) + split, n);
+      nodes[u].emplace_back(t[nodes[suf].left], suf);
+      u = suf;
+    }
   }
 };
 

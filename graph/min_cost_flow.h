@@ -1,8 +1,8 @@
 /* Minimum Cost Maximum Flow
  * USAGE
- *  min_cost_flow<T> graph(n); // n = number of vertices
+ *  min_cost_flow<Flow_t, Cost_t> graph(n); // n = number of vertices
  *  graph.add_edge(a, b, cap, cost);
- *  pair<T, T> flow_cost = graph.flow(source, sink);
+ *  pair<Flow_t, Cost_t> flow_cost = graph.flow(source, sink);
  * MEMBERS
  *  add_edge(a, b, cap, cost, bidirectional?);
  *    adds an edge a -> b with cap and cost.
@@ -15,23 +15,25 @@
  */
 #pragma once
 
-template <typename T, bool sparse = true>
+template <typename Flow_t, typename Cost_t, bool sparse = true>
 struct min_cost_flow {
-  static constexpr T inf = numeric_limits<T>::max() / 4;
+  static constexpr Flow_t flow_inf = numeric_limits<Flow_t>::max() / 4;
+  static constexpr Cost_t cost_inf = numeric_limits<Cost_t>::max() / 4;
   struct edge {
     int to, rev;
-    T cap, flow, cost;
-    edge(int t, int r, const T& c, const T& f, const T& d):
+    Flow_t cap, flow;
+    Cost_t cost;
+    edge(int t, int r, const Flow_t& c, const Flow_t& f, const Cost_t& d):
       to(t), rev(r), cap(c), flow(f), cost(d) {}
   };
   vector<vector<edge>> adj;
-  vector<T> pot, dist;
+  vector<Cost_t> pot, dist;
   vector<int> vis, path;
   bool has_negative;
   min_cost_flow(int n):
     adj(n), pot(n), dist(n), vis(n), path(n), has_negative(false) {}
 
-  void add_edge(int a, int b, const T& cap, const T& cost) {
+  void add_edge(int a, int b, const Flow_t& cap, const Cost_t& cost) {
     adj[a].emplace_back(b, (int)size(adj[b]), cap, 0, cost);
     adj[b].emplace_back(a, (int)size(adj[a]) - 1, 0, 0, -cost);
     has_negative |= (cost < 0);
@@ -48,12 +50,12 @@ struct min_cost_flow {
     }
   }
 
-  pair<T, T> augmenting_path(int source, int sink) {
+  pair<Flow_t, Cost_t> augmenting_path(int source, int sink) {
     fill(begin(vis), end(vis), false);
-    fill(begin(dist), end(dist), inf);
+    fill(begin(dist), end(dist), cost_inf);
     dist[source] = 0;
     if constexpr (sparse) {
-      priority_queue<pair<T, int>, vector<pair<T, int>>, greater<>> dijk;
+      priority_queue<pair<Cost_t, int>, vector<pair<Cost_t, int>>, greater<>> dijk;
       dijk.emplace(0, source);
       while (!empty(dijk)) {
         auto [d, u] = dijk.top();
@@ -61,7 +63,8 @@ struct min_cost_flow {
         if (vis[u]) continue;
         vis[u] = true;
         for (const edge& e : adj[u]) {
-          if (e.flow < e.cap && dist[u] + pot[u] - pot[e.to] + e.cost < dist[e.to]) {
+          if (!vis[e.to] && e.flow < e.cap &&
+              dist[u] + pot[u] - pot[e.to] + e.cost < dist[e.to]) {
             dist[e.to] = dist[u] + pot[u] - pot[e.to] + e.cost;
             path[e.to] = e.rev;
             dijk.emplace(dist[e.to], e.to);
@@ -70,7 +73,7 @@ struct min_cost_flow {
       }
     } else { // dense O(V^2 + E) dijkstra instead of O(ElogV)
       while (true) {
-        pair<T, int> best(inf, -1);
+        pair<Cost_t, int> best(cost_inf, -1);
         for (int i = 0; i < (int)adj.size(); i++) {
           if (!vis[i]) {
             best = min(best, pair(dist[i], i));
@@ -80,22 +83,23 @@ struct min_cost_flow {
         int u = best.second;
         vis[u] = true;
         for (const edge& e : adj[u]) {
-          if (e.flow < e.cap && dist[u] + pot[u] - pot[e.to] + e.cost < dist[e.to]) {
+          if (!vis[e.to] && e.flow < e.cap &&
+              dist[u] + pot[u] - pot[e.to] + e.cost < dist[e.to]) {
             dist[e.to] = dist[u] + pot[u] - pot[e.to] + e.cost;
             path[e.to] = e.rev;
           }
         }
       }
     }
-    if (dist[sink] == inf) {
+    if (dist[sink] == cost_inf) {
       return pair(0, 0);
     }
     for (size_t i = 0; i < size(adj); i++) {
-      pot[i] = min(inf, dist[i] + pot[i]);
+      pot[i] = min(cost_inf, dist[i] + pot[i]);
     }
 
-    T df = inf;
-    T dcost = 0;
+    Flow_t df = flow_inf;
+    Cost_t dcost = 0;
     for (int u = sink; u != source; u = adj[u][path[u]].to) {
       const edge& back = adj[u][path[u]];
       const edge& e = adj[back.to][back.rev];
@@ -111,10 +115,10 @@ struct min_cost_flow {
     return pair(df, dcost);
   }
 
-  pair<T, T> flow(int source, int sink) {
+  pair<Flow_t, Cost_t> flow(int source, int sink) {
     if (has_negative) init_potential();
-    T res = 0;
-    T cost = 0;
+    Flow_t res = 0;
+    Cost_t cost = 0;
     auto [df, dcost] = augmenting_path(source, sink);
     while (df) {
       res += df;

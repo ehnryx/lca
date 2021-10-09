@@ -31,4 +31,54 @@ int main() {
       break;
     }
   }
+
+  //splay_tree<node> sad = st;
+  //splay_tree<node> bad(st);
+  //splay_tree<node> ok(move(st));
+  //splay_tree<node> yes = move(st);
+  //splay_tree<node> no(st.root);
+
+  splay_tree<node> good = st.make_copy();
+  for(const auto& [a, b] : good) {
+    cout << a << "  ";
+  }
+  cout << endl;
+  for(const auto& [a, b] : st) {
+    cout << a << "  ";
+  }
+  cout << "\n------" << endl;
+
+  //st.clear();
+  //for(const auto& [a, b] : good) {
+    //cout << a << "  ";
+  //}
+  //cout << endl;
+
+  good.clear();
+  for(const auto& [a, b] : st) {
+    cout << a << "  ";
+  }
+  cout << endl;
+
+  splay_tree<node> allowed = st.dislodge();
+
+  cerr << "st: ";
+  for(const auto& [a, b] : st) {
+    cout << a << "  ";
+  }
+  cout << endl;
+
+  cerr << "other: ";
+  for(const auto& [a, b] : allowed) {
+    cout << a << "  ";
+  }
+  cout << endl;
+
+  auto other = good.dislodge();
+  cerr << "sad: ";
+  for(const auto& [a, b] : other) {
+    cout << a << "  ";
+  }
+  cout << endl;
+
 }

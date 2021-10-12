@@ -9,24 +9,14 @@
  */
 #pragma once
 
-template <class node_t, bool value_updates = false, bool key_updates = false>
+template <class node_t, class derived_t = node_t>
 struct splay_tree {
-  static constexpr bool need_push = value_updates || key_updates;
+  static constexpr bool has_push = node_t::push_and_pull;
+  static constexpr bool has_pull = node_t::push_and_pull;
+  static constexpr node_t* nil = (node_t*)new derived_t();
 
   node_t* root;
   splay_tree(): root(nullptr) {}
-  template <class InputIt>
-  splay_tree(InputIt first, InputIt last, bool from_tuple = false): splay_tree() {
-    if (from_tuple) {
-      while (first != last) {
-        insert(new node_t(make_from_tuple(*first++)));
-      }
-    } else {
-      while (first != last) {
-        insert(new node_t(*first++));
-      }
-    }
-  }
   ~splay_tree() { if (root != nullptr) erase_tree(root); }
   void erase_tree(node_t* x) {
     if (x->left != nullptr) erase_tree(x->left);
@@ -53,7 +43,7 @@ struct splay_tree {
     return splay_tree(make_copy_rec(root));
   }
   node_t* make_copy_rec(node_t* x) const {
-    node_t* cur = new node_t(*x);
+    node_t* cur = (node_t*)new derived_t(*(derived_t*)x);
     if (x->left != nullptr) {
       cur->left = make_copy_rec(x->left);
       cur->left->parent = cur;
@@ -66,9 +56,9 @@ struct splay_tree {
   }
 
   int size() const { return get_size(root); }
-  int rank(node_t* x) { return splay(x) == nullptr ? size() : get_size(x->left); }
   bool empty() const { return root == nullptr; }
-  int get_size(node_t* x) const { return x ? x->size : 0; }
+  int rank(node_t* x) { return splay(x) == nullptr ? size() : get_size(x->left); }
+  int get_size(node_t* x) const { return x == nullptr ? 0 : x->size; }
 
   node_t* splay(node_t* x) {
     if (x == nullptr) return x;
@@ -121,13 +111,13 @@ struct splay_tree {
     bool operator != (const node_t* other) const { return ptr != other; }
   };
   iterator<true> begin() const {
-    return iterator<true>(this, root ? walk_left(root) : root);
+    return iterator<true>(this, root != nullptr ? walk_left(root) : root);
   }
   iterator<true> end() const {
     return iterator<true>(nullptr, nullptr);
   }
   iterator<false> rbegin() const {
-    return iterator<false>(this, root ? walk_right(root) : root);
+    return iterator<false>(this, root != nullptr ? walk_right(root) : root);
   }
   iterator<false> rend() const {
     return iterator<false>(nullptr, nullptr);
@@ -139,45 +129,42 @@ struct splay_tree {
   // binary search tree operations
   //---------------------------------------------------------------------------
 
-  template <typename T>
-  bool contains(const T& key) {
+  template <typename key_t>
+  bool contains(const key_t& key) {
     return find(key) != nullptr;
   }
 
-  template <typename T>
-  int count(const T& key) {
+  template <typename key_t>
+  int count(const key_t& key) {
     return rank(upper_bound(key)) - rank(lower_bound(key));
   }
 
-  template <typename T, class... Args>
-  node_t* insert(const T& key, const Args&... args) {
-    return insert(new node_t(key, args...));
+  template <typename key_t, class... Args>
+  node_t* insert(const key_t& key, const Args&... args) {
+    return insert((node_t*)new derived_t(key, args...));
   }
 
-  template <typename T>
-  void erase(const T& key) {
+  template <typename key_t>
+  void erase(const key_t& key) {
     if (node_t* x = find(key); x != nullptr) {
       erase(x);
     }
   }
 
-  template <typename T, class... Args>
-  node_t* insert_if_none(const T& key, const Args&... args) {
+  template <typename key_t, class... Args>
+  node_t* insert_if_none(const key_t& key, const Args&... args) {
     if (contains(key)) return nullptr;
-    return insert(new node_t(key, args...));
+    return insert((node_t*)new derived_t(key, args...));
   }
 
-  template <typename T>
-  void erase_all(const T& key) {
+  template <typename key_t>
+  void erase_all(const key_t& key) {
     for (node_t* x; (x = find(key)) != nullptr; ) { // should this be next?
       erase(x);
     }
   }
 
   node_t* insert(node_t* x) {
-    if (x->parent || x->left || x->right) {
-      throw invalid_argument("`insert(node_t*)` expects a singleton node");
-    }
     if (node_t* u = upper_bound_path(x->key); u != nullptr) {
       set_child(u, x, x->key < u->key);
     }
@@ -186,14 +173,13 @@ struct splay_tree {
 
   void erase(node_t* x) {
     if (x == nullptr) return;
-    splay(x);
-    if constexpr (need_push) push(x);
+    splay(x); // splay should push x
     set_child(nullptr, x->left, true);
-    if (x->right) {
+    if (x->right != nullptr) {
       set_child(nullptr, x->right, false);
       set_child(splay(walk_left(x->right)), x->left, true);
       pull(root);
-    } else if (x->left) {
+    } else if (x->left != nullptr) {
       splay(x->left);
     } else {
       root = nullptr;
@@ -201,36 +187,42 @@ struct splay_tree {
     delete x;
   }
 
-  template <bool dir> void erase(iterator<dir> it) { erase(it.ptr); }
+  template <bool dir> void erase(iterator<dir> it) {
+    erase(it.ptr);
+  }
 
-  template <typename T>
-  node_t* find(const T& key) {
+  void erase_at(int i) {
+    erase(at(i));
+  }
+
+  template <typename key_t>
+  node_t* find(const key_t& key) {
     node_t* u = lower_bound(key); // lower_bound splays
     if (u == nullptr || u->key != key) return nullptr;
     return u;
   }
 
-  template <typename T>
-  node_t* lower_bound(const T& key) {
+  template <typename key_t>
+  node_t* lower_bound(const key_t& key) {
     node_t* u = lower_bound_path(key);
     if (u == nullptr || key <= u->key) return splay(u);
     return splay(next(u));
   }
 
-  template <typename T>
-  node_t* upper_bound(const T& key) {
+  template <typename key_t>
+  node_t* upper_bound(const key_t& key) {
     node_t* u = upper_bound_path(key);
     if (u == nullptr || key < u->key) return splay(u);
     return splay(next(u));
   }
 
   // goes to a leaf, chooseing left if <= node.key
-  template <typename T>
-  node_t* lower_bound_path(const T& key) const {
+  template <typename key_t>
+  node_t* lower_bound_path(const key_t& key) const {
     if (root == nullptr) return root;
     node_t* u = root;
     while (true) {
-      if constexpr (need_push) push(u);
+      if constexpr (has_push) push(u);
       if (key <= u->key) {
         if (u->left == nullptr) {
           return u;
@@ -246,12 +238,12 @@ struct splay_tree {
   }
 
   // goes to a leaf, chooseing left if < node.key
-  template <typename T>
-  node_t* upper_bound_path(const T& key) const {
+  template <typename key_t>
+  node_t* upper_bound_path(const key_t& key) const {
     if (root == nullptr) return root;
     node_t* u = root;
     while (true) {
-      if constexpr (need_push) push(u);
+      if constexpr (has_push) push(u);
       if (key < u->key) {
         if (u->left == nullptr) {
           return u;
@@ -273,50 +265,44 @@ struct splay_tree {
   node_t* next(node_t* u) const {
     if (u == nullptr) throw invalid_argument("next(nullptr) is not valid");
     if (u->right != nullptr) {
-      if constexpr (need_push) push(u);
+      if constexpr (has_push) push(u);
       return walk_left(u->right);
     }
     while (u != nullptr && !is_left_child(u)) {
       u = u->parent;
-      pull(u);
     }
-    u = u ? u->parent : u;
-    pull(u);
+    u = u != nullptr ? u->parent : u;
     return u;
   }
 
   node_t* prev(node_t* u) const {
     if (u == nullptr) throw invalid_argument("prev(nullptr) is not valid");
     if (u->left != nullptr) {
-      if constexpr (need_push) push(u);
+      if constexpr (has_push) push(u);
       return walk_right(u->left);
     }
     while (u != nullptr && is_left_child(u)) {
       u = u->parent;
-      pull(u);
     }
-    u = u ? u->parent : u;
-    pull(u);
+    u = u != nullptr ? u->parent : u;
     return u;
   }
 
   node_t* walk_left(node_t* u) const {
     assert(u != nullptr);
     while (u->left != nullptr) {
-      if constexpr (need_push) push(u);
+      if constexpr (has_push) push(u);
       u = u->left;
     }
-    if constexpr (need_push) push(u);
     return u;
   }
 
   node_t* walk_right(node_t* u) const {
     assert(u != nullptr);
     while (u->right != nullptr) {
-      if constexpr (need_push) push(u);
+      if constexpr (has_push) push(u);
       u = u->right;
     }
-    if constexpr (need_push) push(u);
     return u;
   }
 
@@ -325,16 +311,20 @@ struct splay_tree {
   //---------------------------------------------------------------------------
 
   template <class... Args>
-  void push_back(const Args&... args) { push_back(new node_t(args...)); }
-  template <class... Args>
-  void push_front(const Args&... args) { push_front(new node_t(args...)); }
-  template <class... Args>
-  void insert_before(int ref, Args&... args) {
-    insert_before(at(ref), new node_t(args...));
+  node_t* push_back(const Args&... args) {
+    return push_back((node_t*)new derived_t(args...));
   }
   template <class... Args>
-  void insert_after(int ref, Args&... args) {
-    insert_after(at(ref), new node_t(args...));
+  node_t* push_front(const Args&... args) {
+    return push_front((node_t*)new derived_t(args...));
+  }
+  template <class... Args>
+  node_t* insert_before(int ref, Args&... args) {
+    return insert_before(at(ref), (node_t*)new derived_t(args...));
+  }
+  template <class... Args>
+  node_t* insert_after(int ref, Args&... args) {
+    return insert_after(at(ref), (node_t*)new derived_t(args...));
   }
   splay_tree split_before(int x) { return split_before(at(x)); }
   splay_tree split_after(int x) { return split_after(at(x)); }
@@ -346,81 +336,83 @@ struct splay_tree {
     if (i < 0 || i >= size()) return nullptr; // do we want to throw?
     node_t* u = root;
     while (true) {
-      if constexpr (need_push) push(u);
+      if constexpr (has_push) push(u);
       if (int ls = get_size(u->left); ls > i) {
         u = u->left;
       } else if (ls < i) {
         u = u->right;
         i -= ls + 1;
       } else {
-        return splay(u);
+        return splay(u); // requires splaying
       }
     }
   }
 
-  void push_back(node_t* x) {
+  node_t* push_back(node_t* x) {
+    if (root == nullptr) return root = x;
     node_t* at = last();
-    if constexpr (need_push) push(at);
+    if constexpr (has_push) push(at);
     set_child(at, x, false);
-    splay(x);
+    return splay(x);
   }
-  void push_front(node_t* x) {
+  node_t* push_front(node_t* x) {
+    if (root == nullptr) return root = x;
     node_t* at = first();
-    if constexpr (need_push) push(at);
+    if constexpr (has_push) push(at);
     set_child(at, x, true);
-    splay(x);
+    return splay(x);
   }
   void pop_back() { erase(last()); }
   void pop_front() { erase(first()); }
 
-  void insert_before(node_t* ref, node_t* x) {
+  node_t* insert_before(node_t* ref, node_t* x) {
     if (splay(ref) == nullptr) {
       return push_back(x);
     }
     if (ref->left == nullptr) {
-      if constexpr (need_push) push(ref);
+      if constexpr (has_push) push(ref);
       set_child(ref, x, true);
     } else {
       ref = prev(ref);
-      if constexpr (need_push) push(ref);
+      if constexpr (has_push) push(ref);
       set_child(ref, x, false);
     }
-    splay(x);
+    return splay(x);
   }
 
-  void insert_after(node_t* ref, node_t* x) {
+  node_t* insert_after(node_t* ref, node_t* x) {
     if (splay(ref) == nullptr) {
       return push_front(x);
     }
     if(ref->right == nullptr) {
-      if constexpr (need_push) push(ref);
+      if constexpr (has_push) push(ref);
       set_child(ref, x, false);
     } else {
       ref = next(ref);
-      if constexpr (need_push) push(ref);
+      if constexpr (has_push) push(ref);
       set_child(ref, x, true);
     }
-    splay(x);
+    return splay(x);
   }
 
   splay_tree split_before(node_t* x) {
     if (splay(x) == nullptr) return dislodge();
-    if constexpr (need_push) push(x);
+    if constexpr (has_push) push(x);
     set_child(nullptr, x->left, true);
-    splay_tree ret(x->left);
+    node_t* ret = x->left;
     x->left = nullptr;
     pull(x);
-    return ret;
+    return splay_tree(ret);
   }
 
   splay_tree split_after(node_t* x) {
     if (splay(x) == nullptr) return dislodge();
-    if constexpr (need_push) push(x);
+    if constexpr (has_push) push(x);
     set_child(nullptr, x->right, true);
-    splay_tree ret(x->right);
+    node_t* ret = x->right;
     x->right = nullptr;
     pull(x);
-    return ret;
+    return splay_tree(ret);
   }
 
   void append(splay_tree& second) {
@@ -428,7 +420,8 @@ struct splay_tree {
     if (root == nullptr) {
       root = second.root;
     } else {
-      push(splay(last()));
+      splay(last());
+      if constexpr (has_push) push(root);
       set_child(root, second.root, false);
       pull(root);
       splay(second.root);
@@ -444,16 +437,16 @@ struct splay_tree {
   void pull(node_t* x) const {
     if (x == nullptr) return;
     x->size = get_size(x->left) + get_size(x->right) + 1;
-    //x->pull(x->left, x->right);
+    if constexpr (has_pull) x->pull();
   }
 
   // lazy update
   void push(node_t* x) const {
     assert(x != nullptr);
-    //x->push(x->left, x->right);
+    x->push();
   }
 
-  template <bool use = need_push, typename = enable_if_t<use>>
+  template <bool use = has_push, typename = enable_if_t<use>>
   node_t* push_down_to(node_t* x) const {
     if (x != nullptr) {
       push_down_to(x->parent);
@@ -479,6 +472,23 @@ struct splay_tree {
     return splay_to(right, left)->left;
   }
 
+  // should the input be checked ?
+  node_t* range(int l, int r) {
+    return range(at(l - 1), at(r + 1));
+  }
+
+  template <class... Args>
+  void update_range(int l, int r, const Args&... args) {
+    node_t* x = range(l, r);
+    x->put(args...);
+    splay(x); // pull to root
+  }
+
+  template <class... Args>
+  auto query_range(int l, int r, const Args&... args) {
+    return range(l, r)->get(args...);
+  }
+
   //---------------------------------------------------------------------------
   // splay / rotate
   //---------------------------------------------------------------------------
@@ -487,7 +497,10 @@ private:
 
   node_t* _splay_rec(node_t* x) {
     assert(x != nullptr); // not null
-    if (x == nullptr || x->parent == nullptr) return x;
+    if (x == nullptr || x->parent == nullptr) {
+      if (has_push && x != nullptr) push(x);
+      return x;
+    }
     _rotate(is_left_child(x) == is_left_child(x->parent) ? x->parent : x);
     _rotate(x);
     return _splay_rec(x);
@@ -502,13 +515,13 @@ private:
     }
     _rotate(is_left_child(x) == is_left_child(x->parent) ? x->parent : x);
     _rotate(x);
-    return _splay_to_rec(x);
+    return _splay_to_rec(x, to);
   }
 
   void _rotate(node_t* x) {
     if (x->parent == nullptr) return;
     node_t* p = x->parent;
-    if constexpr (need_push) {
+    if constexpr (has_push) {
       push(p);
       push(x);
     }
@@ -530,17 +543,25 @@ private:
 
 template <typename key_t, typename value_t, typename = void>
 struct splay_node {
-  using out_t = void;
+  static_assert(!is_void_v<key_t> && !is_void_v<value_t>);
+  static constexpr bool push_and_pull = false;
+  using out_t = pair<const key_t&, const value_t&>; // store as tuple
+  key_t key;
+  value_t value;
   int size;
   splay_node *parent, *left, *right;
-  splay_node(): size(1), parent(nullptr), left(nullptr), right(nullptr) {}
+  splay_node(): key(), value(), size(1), parent(nullptr), left(nullptr), right(nullptr) {}
+  splay_node(const key_t& k, const value_t& v)
+    : key(k), value(v), size(1), parent(nullptr), left(nullptr), right(nullptr) {}
   bool is_left_child() const { return parent == nullptr || this == parent->get_child(true); }
   splay_node* get_child(bool is_left) const { return is_left ? left : right; }
-  out_t get_value() const { return; }
+  bool operator < (const splay_node& other) const { return key < other.key; }
+  out_t get_value() const { return out_t(cref(key), cref(value)); }
 };
 
 template <typename key_t, typename value_t>
 struct splay_node<key_t, value_t, enable_if_t<is_void_v<key_t> && !is_void_v<value_t>>> {
+  static constexpr bool push_and_pull = false;
   using out_t = const value_t&;
   value_t value;
   int size;
@@ -555,6 +576,7 @@ struct splay_node<key_t, value_t, enable_if_t<is_void_v<key_t> && !is_void_v<val
 
 template <typename key_t, typename value_t>
 struct splay_node<key_t, value_t, enable_if_t<!is_void_v<key_t> && is_void_v<value_t>>> {
+  static constexpr bool push_and_pull = false;
   using out_t = const key_t&;
   key_t key;
   int size;
@@ -568,19 +590,73 @@ struct splay_node<key_t, value_t, enable_if_t<!is_void_v<key_t> && is_void_v<val
   out_t get_value() const { return key; }
 };
 
-template <typename key_t, typename value_t>
-struct splay_node<key_t, value_t, enable_if_t<!is_void_v<key_t> && !is_void_v<value_t>>> {
+//-----------------------------------------------------------------------------
+// node structs (supports range updates / queries)
+//-----------------------------------------------------------------------------
+
+template <typename key_t, typename value_t, typename query_t = void, typename = void>
+struct splay_node_range {
+  static_assert(!is_void_v<key_t> && !is_void_v<value_t>);
+  static constexpr bool push_and_pull = true;
   using out_t = pair<const key_t&, const value_t&>; // store as tuple
   key_t key;
   value_t value;
   int size;
-  splay_node *parent, *left, *right;
-  splay_node(): key(), value(), size(1), parent(nullptr), left(nullptr), right(nullptr) {}
-  splay_node(const key_t& k, const value_t& v)
+  splay_node_range *parent, *left, *right;
+  splay_node_range(): key(), value(), size(1), parent(nullptr), left(nullptr), right(nullptr) {}
+  splay_node_range(const key_t& k, const value_t& v)
     : key(k), value(v), size(1), parent(nullptr), left(nullptr), right(nullptr) {}
   bool is_left_child() const { return parent == nullptr || this == parent->get_child(true); }
-  splay_node* get_child(bool is_left) const { return is_left ? left : right; }
-  bool operator < (const splay_node& other) const { return key < other.key; }
+  splay_node_range* get_child(bool is_left) const { return is_left ? left : right; }
+  bool operator < (const splay_node_range& other) const { return key < other.key; }
   out_t get_value() const { return out_t(cref(key), cref(value)); }
+  virtual void put(const any&) = 0;
+  virtual query_t get(const any&) = 0;
+  virtual void push() = 0;
+  virtual void pull() = 0;
+  virtual ~splay_node_range() {}
+};
+
+template <typename key_t, typename value_t, typename query_t>
+struct splay_node_range<key_t, value_t, query_t,
+  enable_if_t<is_void_v<key_t> && !is_void_v<value_t>>> {
+  static constexpr bool push_and_pull = true;
+  using out_t = const value_t&;
+  value_t value;
+  int size;
+  splay_node_range *parent, *left, *right;
+  splay_node_range(): value(), size(1), parent(nullptr), left(nullptr), right(nullptr) {}
+  splay_node_range(const value_t& v)
+    : value(v), size(1), parent(nullptr), left(nullptr), right(nullptr) {}
+  bool is_left_child() const { return parent == nullptr || this == parent->get_child(true); }
+  splay_node_range* get_child(bool is_left) const { return is_left ? left : right; }
+  out_t get_value() const { return value; }
+  virtual void put(int) = 0;
+  virtual query_t get(int) = 0;
+  virtual void push() = 0;
+  virtual void pull() = 0;
+  virtual ~splay_node_range() {}
+};
+
+template <typename key_t, typename value_t, typename query_t>
+struct splay_node_range<key_t, value_t, query_t,
+  enable_if_t<!is_void_v<key_t> && is_void_v<value_t>>> {
+  static constexpr bool push_and_pull = true;
+  using out_t = const key_t&;
+  key_t key;
+  int size;
+  splay_node_range *parent, *left, *right;
+  splay_node_range(): key(), size(1), parent(nullptr), left(nullptr), right(nullptr) {}
+  splay_node_range(const key_t& k):
+    key(k), size(1), parent(nullptr), left(nullptr), right(nullptr) {}
+  bool is_left_child() const { return parent == nullptr || this == parent->get_child(true); }
+  splay_node_range* get_child(bool is_left) const { return is_left ? left : right; }
+  bool operator < (const splay_node_range& other) const { return key < other.key; }
+  out_t get_value() const { return key; }
+  virtual void put(const any&) = 0;
+  virtual query_t get(const any&) = 0;
+  virtual void push() = 0;
+  virtual void pull() = 0;
+  virtual ~splay_node_range() {}
 };
 

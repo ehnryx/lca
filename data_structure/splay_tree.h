@@ -11,26 +11,26 @@
 
 #include "simple_memory_pool.h"
 
-template <class node_t, class derived_t = node_t, int max_size = 0>
+template <class node_t, int max_size = 0>
 struct splay_tree {
   static constexpr bool has_push = node_t::push_and_pull;
   static constexpr bool has_pull = node_t::push_and_pull;
   static node_t* const nil;
 
-  static simple_memory_pool<derived_t, max_size> simple_memory;
+  static simple_memory_pool<node_t, max_size> simple_memory;
   template <class... Args>
   inline node_t* new_node(const Args&... args) const {
     if constexpr (max_size == 0) {
-      return (node_t*)new derived_t(args...);
+      return new node_t(args...);
     } else {
-      return (node_t*)new (simple_memory.allocate()) derived_t(args...);
+      return new (simple_memory.allocate()) node_t(args...);
     }
   }
   inline void del_node(node_t* x) const {
     if constexpr (max_size == 0) {
       delete x;
     } else {
-      simple_memory.deallocate((derived_t*)x);
+      simple_memory.deallocate(x);
     }
   }
 
@@ -63,7 +63,7 @@ struct splay_tree {
     return splay_tree(make_copy_rec(root));
   }
   node_t* make_copy_rec(node_t* x) const {
-    node_t* cur = new_node(*(derived_t*)x);
+    node_t* cur = new_node(*x);
     if (x->left != nil) {
       cur->left = make_copy_rec(x->left);
       cur->left->parent = cur;
@@ -75,11 +75,9 @@ struct splay_tree {
     return cur;
   }
 
-  int size() const { return get_size(root); }
+  int size() const { return root->size; }
   bool empty() const { return root == nil; }
-  int rank(node_t* x) { return splay(x) == nil ? size() : get_size(x->left); }
-  //int get_size(node_t* x) const { return x == nil ? 0 : x->size; }
-  inline int get_size(node_t* x) const { return x->size; }
+  int rank(node_t* x) { return splay(x) == nil ? size() : x->left->size; }
 
   node_t* splay(node_t* x) {
     if (x == nil) return x;
@@ -364,7 +362,7 @@ struct splay_tree {
     node_t* u = root;
     while (true) {
       if constexpr (has_push) push(u);
-      if (int ls = get_size(u->left); ls > i) {
+      if (int ls = u->left->size; ls > i) {
         u = u->left;
       } else if (ls < i) {
         u = u->right;
@@ -463,14 +461,14 @@ struct splay_tree {
   // range accumulate
   void pull(node_t* x) const {
     if (x == nil) return;
-    x->size = get_size(x->left) + get_size(x->right) + 1;
-    if constexpr (has_pull) ((derived_t*)x)->pull();
+    x->size = x->left->size + x->right->size + 1;
+    if constexpr (has_pull) x->pull();
   }
 
   // lazy update
   template <bool use = has_push, typename = enable_if_t<use>>
   void push(node_t* x) const {
-    ((derived_t*)x)->push();
+    x->push();
   }
 
   template <bool use = has_push, typename = enable_if_t<use>>
@@ -507,13 +505,13 @@ struct splay_tree {
   template <class... Args>
   void update_range(int l, int r, const Args&... args) {
     node_t* x = range(l, r);
-    ((derived_t*)x)->put(args...);
+    x->put(args...);
     splay(x); // pull to root
   }
 
   template <class... Args>
   auto query_range(int l, int r, const Args&... args) {
-    return ((derived_t*)range(l, r))->get(args...);
+    return range(l, r)->get(args...);
   }
 
   //---------------------------------------------------------------------------
@@ -623,16 +621,16 @@ struct splay_node_range {
   key_t key;
   value_t value;
   int size;
-  splay_node_range *parent, *left, *right;
+  derived_t *parent, *left, *right;
   splay_node_range(): key(), value(), size(0), parent(nullptr), left(nullptr), right(nullptr) {}
   splay_node_range(const key_t& k, const value_t& v)
     : key(k), value(v), size(1), parent(nil), left(nil), right(nil) {}
   bool is_left_child() const { return parent == nil || this == parent->get_child(true); }
-  splay_node_range* get_child(bool is_left) const { return is_left ? left : right; }
-  bool operator < (const splay_node_range& other) const { return key < other.key; }
+  derived_t* get_child(bool is_left) const { return is_left ? left : right; }
+  bool operator < (const derived_t& other) const { return key < other.key; }
   out_t get_value() const { return out_t(cref(key), cref(value)); }
-  virtual void put(const any&) = 0;
-  virtual query_t get(const any&) = 0;
+  virtual void put(void*) = 0;
+  virtual query_t get(void*) = 0;
   virtual void push() = 0;
   virtual void pull() = 0;
   virtual ~splay_node_range() {}
@@ -644,17 +642,17 @@ struct splay_node_range<derived_t, key_t, value_t, query_t,
   static constexpr bool push_and_pull = true;
   static derived_t* const nil;
   using out_t = const value_t&;
-  splay_node_range *left, *right, *parent;
+  derived_t *left, *right, *parent;
   int size;
   value_t value;
   splay_node_range(): left(nullptr), right(nullptr), parent(nullptr), size(0), value() {}
   splay_node_range(const value_t& v)
     : left(nil), right(nil), parent(nil), size(0), value(v) {}
   bool is_left_child() const { return parent == nil || this == parent->get_child(true); }
-  splay_node_range* get_child(bool is_left) const { return is_left ? left : right; }
+  derived_t* get_child(bool is_left) const { return is_left ? left : right; }
   out_t get_value() const { return value; }
-  virtual void put(int) = 0;
-  virtual query_t get(int) = 0;
+  virtual void put(void*) = 0;
+  virtual query_t get(void*) = 0;
   virtual void push() = 0;
   virtual void pull() = 0;
   virtual ~splay_node_range() {}
@@ -668,16 +666,16 @@ struct splay_node_range<derived_t, key_t, value_t, query_t,
   using out_t = const key_t&;
   key_t key;
   int size;
-  splay_node_range *parent, *left, *right;
+  derived_t *parent, *left, *right;
   splay_node_range(): key(), size(0), parent(nullptr), left(nullptr), right(nullptr) {}
   splay_node_range(const key_t& k):
     key(k), size(1), parent(nil), left(nil), right(nil) {}
   bool is_left_child() const { return parent == nil || this == parent->get_child(true); }
-  splay_node_range* get_child(bool is_left) const { return is_left ? left : right; }
-  bool operator < (const splay_node_range& other) const { return key < other.key; }
+  derived_t* get_child(bool is_left) const { return is_left ? left : right; }
+  bool operator < (const derived_t& other) const { return key < other.key; }
   out_t get_value() const { return key; }
-  virtual void put(const any&) = 0;
-  virtual query_t get(const any&) = 0;
+  virtual void put(void*) = 0;
+  virtual query_t get(void*) = 0;
   virtual void push() = 0;
   virtual void pull() = 0;
   virtual ~splay_node_range() {}
@@ -712,10 +710,10 @@ template <typename derived_t, typename key_t, typename value_t, typename query_t
 derived_t* const splay_node_range<derived_t, key_t, value_t, query_t,
   enable_if_t<!is_void_v<key_t> && is_void_v<value_t>>>::nil = new derived_t();
 
-template <class node_t, class derived_t, int max_size>
-node_t* const splay_tree<node_t, derived_t, max_size>::nil = (node_t*)derived_t::nil;
+template <class node_t, int max_size>
+node_t* const splay_tree<node_t, max_size>::nil = node_t::nil;
 
-template <class node_t, class derived_t, int max_size>
-simple_memory_pool<derived_t, max_size>
-splay_tree<node_t, derived_t, max_size>::simple_memory = simple_memory_pool<derived_t, max_size>();
+template <class node_t, int max_size>
+simple_memory_pool<node_t, max_size>
+splay_tree<node_t, max_size>::simple_memory = simple_memory_pool<node_t, max_size>();
 

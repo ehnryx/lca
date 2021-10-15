@@ -5,7 +5,7 @@
  *  O(logN) per operation amortized
  *  N = |splay tree|
  * STATUS
- *  untested
+ *  somewhat tested
  */
 #pragma once
 
@@ -13,24 +13,36 @@
 
 template <class node_t, int max_size = 0>
 struct splay_tree {
-  static constexpr bool has_push = node_t::push_and_pull;
-  static constexpr bool has_pull = node_t::push_and_pull;
+#define CONTAINS_FUNCTION(function) \
+  template <typename T> \
+  struct _has_##function { \
+    using other = struct { char x[2]; }; \
+    template <typename C> static char test(decltype(&C::function)); \
+    template <typename C> static other test(...); \
+    enum { value = sizeof(test<T>(0)) == sizeof(char) }; \
+  }
+  CONTAINS_FUNCTION(push);
+  CONTAINS_FUNCTION(pull);
+#undef CONTAINS_FUNCTION
+
+  static constexpr bool has_push = _has_push<node_t>::value;
+  static constexpr bool has_pull = _has_pull<node_t>::value;
   static node_t* const nil;
 
-  static simple_memory_pool<node_t, max_size> simple_memory;
+  static simple_memory_pool<node_t, max_size> memory;
   template <class... Args>
   inline node_t* new_node(const Args&... args) const {
     if constexpr (max_size == 0) {
       return new node_t(args...);
     } else {
-      return new (simple_memory.allocate()) node_t(args...);
+      return new (memory.allocate()) node_t(args...);
     }
   }
   inline void del_node(node_t* x) const {
     if constexpr (max_size == 0) {
       delete x;
     } else {
-      simple_memory.deallocate(x);
+      memory.deallocate(x);
     }
   }
 
@@ -555,159 +567,75 @@ private:
 // node structs
 //-----------------------------------------------------------------------------
 
-template <typename key_t, typename value_t, typename = void>
-struct splay_node {
+template <typename derived_t, typename key_t, typename value_t, typename = void>
+struct splay_node_base {
   static_assert(!is_void_v<key_t> && !is_void_v<value_t>);
-  static constexpr bool push_and_pull = false;
-  static splay_node* const nil;
-  using out_t = pair<const key_t&, const value_t&>; // store as tuple
-  key_t key;
-  value_t value;
-  int size;
-  splay_node *parent, *left, *right;
-  splay_node(): key(), value(), size(0), parent(nullptr), left(nullptr), right(nullptr) {}
-  splay_node(const key_t& k, const value_t& v)
-    : key(k), value(v), size(1), parent(nil), left(nil), right(nil) {}
-  bool is_left_child() const { return parent == nil || this == parent->get_child(true); }
-  splay_node* get_child(bool is_left) const { return is_left ? left : right; }
-  bool operator < (const splay_node& other) const { return key < other.key; }
-  out_t get_value() const { return out_t(cref(key), cref(value)); }
-};
-
-template <typename key_t, typename value_t>
-struct splay_node<key_t, value_t, enable_if_t<is_void_v<key_t> && !is_void_v<value_t>>> {
-  static constexpr bool push_and_pull = false;
-  static splay_node* const nil;
-  using out_t = const value_t&;
-  value_t value;
-  int size;
-  splay_node *parent, *left, *right;
-  splay_node(): value(), size(0), parent(nullptr), left(nullptr), right(nullptr) {}
-  splay_node(const value_t& v)
-    : value(v), size(1), parent(nil), left(nil), right(nil) {}
-  bool is_left_child() const { return parent == nil || this == parent->get_child(true); }
-  splay_node* get_child(bool is_left) const { return is_left ? left : right; }
-  out_t get_value() const { return value; }
-};
-
-template <typename key_t, typename value_t>
-struct splay_node<key_t, value_t, enable_if_t<!is_void_v<key_t> && is_void_v<value_t>>> {
-  static constexpr bool push_and_pull = false;
-  static splay_node* const nil;
-  using out_t = const key_t&;
-  key_t key;
-  int size;
-  splay_node *parent, *left, *right;
-  splay_node(): key(), size(0), parent(nullptr), left(nullptr), right(nullptr) {}
-  splay_node(const key_t& k):
-    key(k), size(1), parent(nil), left(nil), right(nil) {}
-  bool is_left_child() const { return parent == nil || this == parent->get_child(true); }
-  splay_node* get_child(bool is_left) const { return is_left ? left : right; }
-  bool operator < (const splay_node& other) const { return key < other.key; }
-  out_t get_value() const { return key; }
-};
-
-//-----------------------------------------------------------------------------
-// node structs (supports range updates / queries)
-//-----------------------------------------------------------------------------
-
-template <typename derived_t, typename key_t, typename value_t,
-  typename query_t = void, typename = void>
-struct splay_node_range {
-  static_assert(!is_void_v<key_t> && !is_void_v<value_t>);
-  static constexpr bool push_and_pull = true;
   static derived_t* const nil;
   using out_t = pair<const key_t&, const value_t&>; // store as tuple
+  derived_t *parent, *left, *right;
+  int size;
   key_t key;
   value_t value;
-  int size;
-  derived_t *parent, *left, *right;
-  splay_node_range(): key(), value(), size(0), parent(nullptr), left(nullptr), right(nullptr) {}
-  splay_node_range(const key_t& k, const value_t& v)
-    : key(k), value(v), size(1), parent(nil), left(nil), right(nil) {}
+  splay_node_base(): parent(nullptr), left(nullptr), right(nullptr), size(0), key(), value() {}
+  splay_node_base(const key_t& k, const value_t& v)
+    : parent(nil), left(nil), right(nil), size(1), key(k), value(v) {}
   bool is_left_child() const { return parent == nil || this == parent->get_child(true); }
   derived_t* get_child(bool is_left) const { return is_left ? left : right; }
   bool operator < (const derived_t& other) const { return key < other.key; }
   out_t get_value() const { return out_t(cref(key), cref(value)); }
-  virtual void put(void*) = 0;
-  virtual query_t get(void*) = 0;
-  virtual void push() = 0;
-  virtual void pull() = 0;
-  virtual ~splay_node_range() {}
 };
 
-template <typename derived_t, typename key_t, typename value_t, typename query_t>
-struct splay_node_range<derived_t, key_t, value_t, query_t,
-  enable_if_t<is_void_v<key_t> && !is_void_v<value_t>>> {
-  static constexpr bool push_and_pull = true;
+template <typename derived_t, typename key_t, typename value_t>
+struct splay_node_base<derived_t, key_t, value_t,
+    enable_if_t<is_void_v<key_t> && !is_void_v<value_t>>> {
   static derived_t* const nil;
   using out_t = const value_t&;
-  derived_t *left, *right, *parent;
+  derived_t *parent, *left, *right;
   int size;
   value_t value;
-  splay_node_range(): left(nullptr), right(nullptr), parent(nullptr), size(0), value() {}
-  splay_node_range(const value_t& v)
-    : left(nil), right(nil), parent(nil), size(0), value(v) {}
+  splay_node_base(): parent(nullptr), left(nullptr), right(nullptr), size(0), value() {}
+  splay_node_base(const value_t& v)
+    : parent(nil), left(nil), right(nil), size(1), value(v) {}
   bool is_left_child() const { return parent == nil || this == parent->get_child(true); }
   derived_t* get_child(bool is_left) const { return is_left ? left : right; }
   out_t get_value() const { return value; }
-  virtual void put(void*) = 0;
-  virtual query_t get(void*) = 0;
-  virtual void push() = 0;
-  virtual void pull() = 0;
-  virtual ~splay_node_range() {}
 };
 
-template <typename derived_t, typename key_t, typename value_t, typename query_t>
-struct splay_node_range<derived_t, key_t, value_t, query_t,
-  enable_if_t<!is_void_v<key_t> && is_void_v<value_t>>> {
-  static constexpr bool push_and_pull = true;
+template <typename derived_t, typename key_t, typename value_t>
+struct splay_node_base<derived_t, key_t, value_t,
+    enable_if_t<!is_void_v<key_t> && is_void_v<value_t>>> {
   static derived_t* const nil;
   using out_t = const key_t&;
-  key_t key;
-  int size;
   derived_t *parent, *left, *right;
-  splay_node_range(): key(), size(0), parent(nullptr), left(nullptr), right(nullptr) {}
-  splay_node_range(const key_t& k):
-    key(k), size(1), parent(nil), left(nil), right(nil) {}
+  int size;
+  key_t key;
+  splay_node_base(): parent(nullptr), left(nullptr), right(nullptr), size(0), key() {}
+  splay_node_base(const key_t& k)
+    : parent(nil), left(nil), right(nil), size(1), key(k) {}
   bool is_left_child() const { return parent == nil || this == parent->get_child(true); }
   derived_t* get_child(bool is_left) const { return is_left ? left : right; }
   bool operator < (const derived_t& other) const { return key < other.key; }
   out_t get_value() const { return key; }
-  virtual void put(void*) = 0;
-  virtual query_t get(void*) = 0;
-  virtual void push() = 0;
-  virtual void pull() = 0;
-  virtual ~splay_node_range() {}
+};
+
+template <typename key_t, typename value_t>
+struct splay_node final : splay_node_base<splay_node<key_t, value_t>, key_t, value_t> {
+  using splay_node_base<splay_node<key_t, value_t>, key_t, value_t>::splay_node_base;
 };
 
 //-----------------------------------------------------------------------------
 // nil initialization
 //-----------------------------------------------------------------------------
 
-template <typename key_t, typename value_t, typename _>
-splay_node<key_t, value_t, _>* const
-splay_node<key_t, value_t, _>::nil = new splay_node();
+template <typename derived_t, typename key_t, typename value_t, typename _>
+derived_t* const splay_node_base<derived_t, key_t, value_t, _>::nil = new derived_t();
 
-template <typename key_t, typename value_t>
-splay_node<key_t, value_t, enable_if_t<is_void_v<key_t> && !is_void_v<value_t>>>* const 
-splay_node<key_t, value_t,
-  enable_if_t<is_void_v<key_t> && !is_void_v<value_t>>>::nil = new splay_node();
-
-template <typename key_t, typename value_t>
-splay_node<key_t, value_t, enable_if_t<!is_void_v<key_t> && is_void_v<value_t>>>* const
-splay_node<key_t, value_t,
-  enable_if_t<!is_void_v<key_t> && is_void_v<value_t>>>::nil = new splay_node();
-
-template <typename derived_t, typename key_t, typename value_t, typename query_t, typename _>
-derived_t* const splay_node_range<derived_t, key_t, value_t, query_t, _>::nil = new derived_t();
-
-template <typename derived_t, typename key_t, typename value_t, typename query_t>
-derived_t* const splay_node_range<derived_t, key_t, value_t, query_t,
+template <typename derived_t, typename key_t, typename value_t>
+derived_t* const splay_node_base<derived_t, key_t, value_t,
   enable_if_t<is_void_v<key_t> && !is_void_v<value_t>>>::nil = new derived_t();
 
-template <typename derived_t, typename key_t, typename value_t, typename query_t>
-derived_t* const splay_node_range<derived_t, key_t, value_t, query_t,
+template <typename derived_t, typename key_t, typename value_t>
+derived_t* const splay_node_base<derived_t, key_t, value_t,
   enable_if_t<!is_void_v<key_t> && is_void_v<value_t>>>::nil = new derived_t();
 
 template <class node_t, int max_size>
@@ -715,5 +643,5 @@ node_t* const splay_tree<node_t, max_size>::nil = node_t::nil;
 
 template <class node_t, int max_size>
 simple_memory_pool<node_t, max_size>
-splay_tree<node_t, max_size>::simple_memory = simple_memory_pool<node_t, max_size>();
+splay_tree<node_t, max_size>::memory = simple_memory_pool<node_t, max_size>();
 

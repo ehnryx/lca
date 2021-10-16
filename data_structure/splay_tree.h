@@ -39,6 +39,13 @@ struct splay_tree {
 
   node_t* root;
   splay_tree(): root(nil) {}
+  splay_tree(int n): root(nil) {
+    for (int i = 0; i < n; i++) {
+      node_t* to_add = new_node();
+      to_add->size = 1;
+      push_back(to_add);
+    }
+  }
   ~splay_tree() { if (root != nil) erase_tree(root); }
   void erase_tree(node_t* x) {
     if (x->left != nil) erase_tree(x->left);
@@ -124,7 +131,7 @@ struct splay_tree {
     iterator(const splay_tree* t, node_t* x): tree_ptr(t), ptr(x) {}
     iterator(const iterator<!forward_it> rev): tree_ptr(rev.tree_ptr), ptr(rev.ptr) {}
     operator node_t* () const { return ptr; }
-    const node_t* operator -> () const { return ptr; }
+    node_t* operator -> () const { return ptr; }
     typename node_t::out_t operator * () const { return ptr->get_value(); }
     iterator& operator ++ () {
       ptr = forward_it ? tree_ptr->next(ptr) : tree_ptr->prev(ptr);
@@ -133,8 +140,10 @@ struct splay_tree {
     iterator& operator ++ (int) { return operator ++ (); }
     iterator& operator -- () { return *this = ++iterator<!forward_it>(*this); }
     iterator& operator -- (int) { return operator -- (); }
-    bool operator == (const iterator& other) const { return ptr == other.ptr; }
-    bool operator != (const iterator& other) const { return ptr != other.ptr; }
+    template <bool dir>
+    bool operator == (const iterator<dir>& other) const { return ptr == other.ptr; }
+    template <bool dir>
+    bool operator != (const iterator<dir>& other) const { return ptr != other.ptr; }
     bool operator == (const node_t* other) const { return ptr == other; }
     bool operator != (const node_t* other) const { return ptr != other; }
   };
@@ -376,6 +385,11 @@ struct splay_tree {
     }
   }
 
+  typename node_t::out_t operator [] (int i)
+      __attribute__((deprecated("splay_tree[i] = dereferencing splay_tree.at(i)"))) {
+    return at(i)->get_value();
+  }
+
   node_t* push_back(node_t* x) {
     if (root == nil) return root = x;
     node_t* at = last();
@@ -571,37 +585,37 @@ struct splay_node_base_common {
 template <typename derived_t, typename key_t, typename value_t, typename = void>
 struct splay_node_base : splay_node_base_common<derived_t> {
   static_assert(!is_void_v<key_t> && !is_void_v<value_t>);
-  using out_t = pair<const key_t&, const value_t&>; // store as tuple
+  using out_t = pair<key_t&, value_t&>; // store as tuple
   key_t key;
   value_t value;
   splay_node_base(): splay_node_base_common<derived_t>(0), key(), value() {}
   splay_node_base(const key_t& k, const value_t& v)
     : splay_node_base_common<derived_t>(1), key(k), value(v) {}
   bool operator < (const derived_t& other) const { return key < other.key; }
-  out_t get_value() const { return out_t(cref(key), cref(value)); }
+  out_t get_value() { return out_t(ref(key), ref(value)); }
 };
 
 template <typename derived_t, typename key_t, typename value_t>
 struct splay_node_base<derived_t, key_t, value_t,
     enable_if_t<is_void_v<key_t> && !is_void_v<value_t>>>
     : splay_node_base_common<derived_t> {
-  using out_t = const value_t&;
+  using out_t = value_t&;
   value_t value;
   splay_node_base(): splay_node_base_common<derived_t>(0), value() {}
   splay_node_base(const value_t& v): splay_node_base_common<derived_t>(1), value(v) {}
-  out_t get_value() const { return value; }
+  out_t get_value() { return value; }
 };
 
 template <typename derived_t, typename key_t, typename value_t>
 struct splay_node_base<derived_t, key_t, value_t,
     enable_if_t<!is_void_v<key_t> && is_void_v<value_t>>>
     : splay_node_base_common<derived_t> {
-  using out_t = const key_t&;
+  using out_t = key_t&;
   key_t key;
   splay_node_base(): splay_node_base_common<derived_t>(0), key() {}
   splay_node_base(const key_t& k): splay_node_base_common<derived_t>(1), key(k) {}
   bool operator < (const derived_t& other) const { return key < other.key; }
-  out_t get_value() const { return key; }
+  out_t get_value() { return key; }
 };
 
 template <typename key_t, typename value_t>

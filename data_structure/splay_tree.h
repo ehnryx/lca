@@ -10,21 +10,12 @@
 #pragma once
 
 #include "simple_memory_pool.h"
+#include "../misc/member_function_checker.h"
 
 template <class node_t, int max_size = 0>
 struct splay_tree {
-#define CONTAINS_FUNCTION(function) \
-  template <typename T> \
-  struct _has_##function { \
-    using other = struct { char x[2]; }; \
-    template <typename C> static char test(decltype(&C::function)); \
-    template <typename C> static other test(...); \
-    enum { value = sizeof(test<T>(0)) == sizeof(char) }; \
-  }
-  CONTAINS_FUNCTION(push);
-  CONTAINS_FUNCTION(pull);
-#undef CONTAINS_FUNCTION
-
+  MEMBER_FUNCTION_CHECKER(push);
+  MEMBER_FUNCTION_CHECKER(pull);
   static constexpr bool has_push = _has_push<node_t>::value;
   static constexpr bool has_pull = _has_pull<node_t>::value;
   static node_t* const nil;
@@ -567,53 +558,48 @@ private:
 // node structs
 //-----------------------------------------------------------------------------
 
-template <typename derived_t, typename key_t, typename value_t, typename = void>
-struct splay_node_base {
-  static_assert(!is_void_v<key_t> && !is_void_v<value_t>);
+template <typename derived_t>
+struct splay_node_base_common {
   static derived_t* const nil;
-  using out_t = pair<const key_t&, const value_t&>; // store as tuple
   derived_t *parent, *left, *right;
   int size;
+  splay_node_base_common(int s): parent(nil), left(nil), right(nil), size(s) {}
+  bool is_left_child() const { return parent == nil || this == parent->left; }
+  derived_t* get_child(bool is_left) const { return is_left ? left : right; }
+};
+
+template <typename derived_t, typename key_t, typename value_t, typename = void>
+struct splay_node_base : splay_node_base_common<derived_t> {
+  static_assert(!is_void_v<key_t> && !is_void_v<value_t>);
+  using out_t = pair<const key_t&, const value_t&>; // store as tuple
   key_t key;
   value_t value;
-  splay_node_base(): parent(nullptr), left(nullptr), right(nullptr), size(0), key(), value() {}
+  splay_node_base(): splay_node_base_common<derived_t>(0), key(), value() {}
   splay_node_base(const key_t& k, const value_t& v)
-    : parent(nil), left(nil), right(nil), size(1), key(k), value(v) {}
-  bool is_left_child() const { return parent == nil || this == parent->get_child(true); }
-  derived_t* get_child(bool is_left) const { return is_left ? left : right; }
+    : splay_node_base_common<derived_t>(1), key(k), value(v) {}
   bool operator < (const derived_t& other) const { return key < other.key; }
   out_t get_value() const { return out_t(cref(key), cref(value)); }
 };
 
 template <typename derived_t, typename key_t, typename value_t>
 struct splay_node_base<derived_t, key_t, value_t,
-    enable_if_t<is_void_v<key_t> && !is_void_v<value_t>>> {
-  static derived_t* const nil;
+    enable_if_t<is_void_v<key_t> && !is_void_v<value_t>>>
+    : splay_node_base_common<derived_t> {
   using out_t = const value_t&;
-  derived_t *parent, *left, *right;
-  int size;
   value_t value;
-  splay_node_base(): parent(nullptr), left(nullptr), right(nullptr), size(0), value() {}
-  splay_node_base(const value_t& v)
-    : parent(nil), left(nil), right(nil), size(1), value(v) {}
-  bool is_left_child() const { return parent == nil || this == parent->get_child(true); }
-  derived_t* get_child(bool is_left) const { return is_left ? left : right; }
+  splay_node_base(): splay_node_base_common<derived_t>(0), value() {}
+  splay_node_base(const value_t& v): splay_node_base_common<derived_t>(1), value(v) {}
   out_t get_value() const { return value; }
 };
 
 template <typename derived_t, typename key_t, typename value_t>
 struct splay_node_base<derived_t, key_t, value_t,
-    enable_if_t<!is_void_v<key_t> && is_void_v<value_t>>> {
-  static derived_t* const nil;
+    enable_if_t<!is_void_v<key_t> && is_void_v<value_t>>>
+    : splay_node_base_common<derived_t> {
   using out_t = const key_t&;
-  derived_t *parent, *left, *right;
-  int size;
   key_t key;
-  splay_node_base(): parent(nullptr), left(nullptr), right(nullptr), size(0), key() {}
-  splay_node_base(const key_t& k)
-    : parent(nil), left(nil), right(nil), size(1), key(k) {}
-  bool is_left_child() const { return parent == nil || this == parent->get_child(true); }
-  derived_t* get_child(bool is_left) const { return is_left ? left : right; }
+  splay_node_base(): splay_node_base_common<derived_t>(0), key() {}
+  splay_node_base(const key_t& k): splay_node_base_common<derived_t>(1), key(k) {}
   bool operator < (const derived_t& other) const { return key < other.key; }
   out_t get_value() const { return key; }
 };
@@ -627,16 +613,8 @@ struct splay_node final : splay_node_base<splay_node<key_t, value_t>, key_t, val
 // nil initialization
 //-----------------------------------------------------------------------------
 
-template <typename derived_t, typename key_t, typename value_t, typename _>
-derived_t* const splay_node_base<derived_t, key_t, value_t, _>::nil = new derived_t();
-
-template <typename derived_t, typename key_t, typename value_t>
-derived_t* const splay_node_base<derived_t, key_t, value_t,
-  enable_if_t<is_void_v<key_t> && !is_void_v<value_t>>>::nil = new derived_t();
-
-template <typename derived_t, typename key_t, typename value_t>
-derived_t* const splay_node_base<derived_t, key_t, value_t,
-  enable_if_t<!is_void_v<key_t> && is_void_v<value_t>>>::nil = new derived_t();
+template <typename derived_t>
+derived_t* const splay_node_base_common<derived_t>::nil = new derived_t();
 
 template <class node_t, int max_size>
 node_t* const splay_tree<node_t, max_size>::nil = node_t::nil;

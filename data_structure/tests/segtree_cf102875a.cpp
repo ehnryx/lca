@@ -28,7 +28,7 @@ struct Node {
     cnt[v % mod] = 1;
   }
 
-  static pair<int,int> default_value() { return pair(0, 1); }
+  //static pair<int,int> default_value() { return pair(0, 1); }
   static pair<int,int> merge(const pair<int,int>& a, const pair<int,int>& b) {
     return pair(add(a.first, b.first, mod), a.second * b.second % mod);
   }

@@ -2,7 +2,7 @@
  * USAGE
  *  segment_tree<Node_t, Query_t> segtree(n); initializes a segtree with >= n leaves
  *  segment_tree<Node_t, Query_t> segtree(vector); initializes a segment tree with given values
- *  template: <Node_t, Query_t, push?, break_conditions?>
+ *  template: <Node_t, Query_t, break_conditions?>
  *  Node_t is a class to be implemented, should have the members:
  *    void put(args...); update at node
  *    Query_t get(args...); gets the return value from node
@@ -32,8 +32,17 @@
  */
 #pragma once
 
-template <class Node_t, typename Query_t, bool push = true, bool break_cond = false>
+#include "../misc/member_function_checker.h"
+
+template <class Node_t, typename Query_t, bool break_cond = false>
 struct segment_tree {
+  MEMBER_FUNCTION_CHECKER(push);
+  MEMBER_FUNCTION_CHECKER(pull);
+  MEMBER_FUNCTION_CHECKER(default_value);
+  static constexpr bool has_push = _has_push<Node_t>::value;
+  static constexpr bool has_pull = _has_pull<Node_t>::value;
+  static constexpr bool has_default_value = _has_default_value<Node_t>::value;
+
   int lim, length;
   vector<Node_t> data;
   Node_t& operator [] (int i) { return data[i]; }
@@ -50,7 +59,7 @@ struct segment_tree {
   }
   void build() {
     for (int i = length - 1; i > 0; i--) {
-      data[i].pull(data[2*i], data[2*i + 1]);
+      if constexpr (has_pull) data[i].pull(data[2*i], data[2*i + 1]);
     }
   }
   void assign_lengths() {
@@ -88,11 +97,11 @@ struct segment_tree {
         return data[i].put(args...);
       }
     }
-    if constexpr (push) data[i].push(data[2*i], data[2*i + 1]);
+    if constexpr (has_push) data[i].push(data[2*i], data[2*i + 1]);
     int mid = (first + last) / 2;
     if(l <= mid) __update(l, r, 2*i, first, mid, args...);
     if(mid < r) __update(l, r, 2*i + 1, mid + 1, last, args...);
-    data[i].pull(data[2*i], data[2*i + 1]);
+    if constexpr (has_pull) data[i].pull(data[2*i], data[2*i + 1]);
   }
 
   template <class... Args>
@@ -101,14 +110,17 @@ struct segment_tree {
   }
   template <class... Args>
   Query_t query(int l, int r, const Args&... args) {
-    if (r < l) return Node_t::default_value();
+    if (r < l) {
+      if constexpr (has_default_value) return Node_t::default_value();
+      else assert(false);
+    }
     if (l < 0 || lim <= r) throw invalid_argument("query range out of bounds");
     return __query(l, r, 1, 0, length - 1, args...);
   }
   template <class... Args>
   Query_t __query(int l, int r, int i, int first, int last, const Args&... args) {
     if (l <= first && last <= r) return data[i].get(args...);
-    if constexpr (push) data[i].push(data[2*i], data[2*i + 1]);
+    if constexpr (has_push) data[i].push(data[2*i], data[2*i + 1]);
     int mid = (first + last) / 2;
     if(r <= mid) return __query(l, r, 2*i, first, mid, args...);
     if(mid < l) return __query(l, r, 2*i + 1, mid + 1, last, args...);
@@ -125,11 +137,11 @@ struct segment_tree {
   template <class... Args>
   void __update_point(int x, int i, int first, int last, const Args&... args) {
     if (first == last) return data[i].put(args...);
-    if constexpr (push) data[i].push(data[2*i], data[2*i + 1]);
+    if constexpr (has_push) data[i].push(data[2*i], data[2*i + 1]);
     int mid = (first + last) / 2;
     if (x <= mid) __update_point(x, 2*i, first, mid, args...);
     else __update_point(x, 2*i + 1, mid + 1, last, args...);
-    data[i].pull(data[2*i], data[2*i + 1]);
+    if constexpr (has_pull) data[i].pull(data[2*i], data[2*i + 1]);
   }
 
   template <class... Args>
@@ -140,7 +152,7 @@ struct segment_tree {
   template <class... Args>
   Query_t __query_point(int x, int i, int first, int last, const Args&... args) {
     if (first == last) return data[i].get(args...);
-    if constexpr (push) data[i].push(data[2*i], data[2*i + 1]);
+    if constexpr (has_push) data[i].push(data[2*i], data[2*i + 1]);
     int mid = (first + last) / 2;
     if (x <= mid) return __query_point(x, 2*i, first, mid, args...);
     else return __query_point(x, 2*i + 1, mid + 1, last, args...);
@@ -148,7 +160,7 @@ struct segment_tree {
 
   template <class... Args>
   void update_up(int x, const Args&... args) {
-    static_assert(!push);
+    static_assert(!has_push);
     if (x < 0 || lim <= x) throw invalid_argument("update_up index out of bounds");
     for (int i = x + length; i > 0; i /= 2) {
       data[i].put(args...);
@@ -163,7 +175,7 @@ struct segment_tree {
   template <class... Args>
   Query_t __query_up(int x, int i, int first, int last, const Args&... args) {
     if (first == last) return data[i].get(args...);
-    if constexpr (push) data[i].push(data[2*i], data[2*i + 1]);
+    if constexpr (has_push) data[i].push(data[2*i], data[2*i + 1]);
     int mid = (first + last) / 2;
     if (x <= mid) {
       return Node_t::merge(data[i].get(args...), __query_up(x, 2*i, first, mid, args...));
@@ -189,7 +201,7 @@ struct segment_tree {
     if (l <= first && last <= r
         && !apply(&Node_t::contains, tuple_cat(tuple(data[i]), args))) return lim;
     if (first == last) return first;
-    if constexpr (push) data[i].push(data[2*i], data[2*i + 1]);
+    if constexpr (has_push) data[i].push(data[2*i], data[2*i + 1]);
     int mid = (first + last) / 2;
     int res = (l <= mid ? __search_left(l, r, 2*i, first, mid, args) : lim);
     if (res == lim && mid < r) res = __search_left(l, r, 2*i + 1, mid + 1, last, args);
@@ -213,7 +225,7 @@ struct segment_tree {
     if (l <= first && last <= r
         && !apply(&Node_t::contains, tuple_cat(tuple(data[i]), args))) return lim;
     if (first == last) return first;
-    if constexpr (push) data[i].push(data[2*i], data[2*i + 1]);
+    if constexpr (has_push) data[i].push(data[2*i], data[2*i + 1]);
     int mid = (first + last) / 2;
     int res = (mid < r ? __search_right(l, r, 2*i + 1, mid + 1, last, args) : lim);
     if (res == lim && l <= mid) res = __search_right(l, r, 2*i, first, mid, args);

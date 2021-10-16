@@ -6,7 +6,7 @@ using namespace std;
 struct Node {
   int value, cnt;
   Node() = default;
-  static Node default_value() { return Node(); }
+  //static Node default_value() { return Node(); }
   static Node merge(const Node& a, const Node& b) { return Node().pull(a, b); }
   Node get() const { return *this; }
   void put(int v) { value = v; cnt = 1; }
@@ -24,7 +24,7 @@ int main() {
 
   int n;
   cin >> n;
-  segment_tree<Node, Node, false> st(n + 1);
+  segment_tree<Node, Node> st(n + 1);
   for(int i=1; i<=n; i++) {
     int a;
     cin >> a;

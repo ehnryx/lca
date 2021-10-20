@@ -14,7 +14,7 @@
 template <class node_t>
 struct link_cut_tree : splay_tree<node_t> {
   using base = splay_tree<node_t>;
-  using base::nil, base::splay, base::set_child, base::walk_left;
+  using base::nil, base::splay, base::set_child, base::walk_left, base::pull;
   vector<node_t> data;
   link_cut_tree(int n): data(n) {
     for (int i = 0; i < n; i++) {
@@ -24,6 +24,9 @@ struct link_cut_tree : splay_tree<node_t> {
   ~link_cut_tree() { base::root = nil; }
   link_cut_tree(const link_cut_tree&) = delete;
   link_cut_tree& operator = (const link_cut_tree&) = delete;
+
+  int size() const { return (int)data.size(); }
+  node_t& operator [] (int i) { return data[i]; }
 
   template <class... Args>
   void init(int i, const Args&... args) {
@@ -43,6 +46,7 @@ struct link_cut_tree : splay_tree<node_t> {
       u->right->push();
       u->right = nil;
     }
+    pull(u);
     return u;
   }
 
@@ -61,6 +65,7 @@ struct link_cut_tree : splay_tree<node_t> {
       assert(v->chain_parent == u);
       v->chain_parent = nil;
     }
+    pull(v);
   }
 
   int lca(int u, int v) {
@@ -92,6 +97,48 @@ struct link_cut_tree : splay_tree<node_t> {
   }
   node_t* parent(node_t* u) {
     return base::prev(access(u));
+  }
+
+  template <class... Args>
+  void update_path_to_root(int u, const Args&... args) {
+    update_path_to_root(&data[u], args...);
+  }
+  template <class... Args>
+  void update_path_to_root(node_t* u, const Args&... args) {
+    access(u)->put(args...);
+    splay(u);
+  }
+
+  template <class... Args>
+  auto query_path_to_root(int u, const Args&... args) {
+    return query_path_to_root(&data[u], args...);
+  }
+  template <class... Args>
+  auto query_path_to_root(node_t* u, const Args&... args) {
+    return access(u)->get(args...);
+  }
+
+  // will reroot
+  template <class... Args>
+  void update_path(int u, int v, const Args&... args) {
+    update_path(&data[u], &data[v], args...);
+  }
+  template <class... Args>
+  void update_path(node_t* u, node_t* v, const Args&... args) {
+    reroot(u);
+    access(v)->put(args...);
+    splay(v);
+  }
+
+  // will reroot
+  template <class... Args>
+  auto query_path(int u, int v, const Args&... args) {
+    return query_path(&data[u], &data[v], args...);
+  }
+  template <class... Args>
+  auto query_path(node_t* u, node_t* v, const Args&... args) {
+    reroot(u);
+    return access(v)->get(args...);
   }
 };
 

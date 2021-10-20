@@ -66,6 +66,10 @@ struct splay_tree {
     return splay_tree(ret);
   }
 
+  friend void swap(splay_tree& a, splay_tree& b) {
+    swap(a.root, b.root);
+  }
+
   splay_tree(const splay_tree&) = delete;
   splay_tree& operator = (const splay_tree&) = delete;
   splay_tree make_copy() const {

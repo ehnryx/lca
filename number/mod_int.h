@@ -20,14 +20,15 @@ struct mod_int {
   static constexpr mod_t mod = mod_value;
   mod_t v;
   mod_int() = default;
-  mod_int(const mod_t& c): v(c) {
+  mod_int(mod_t c): v(c) {
     if (abs(v) >= mod) v %= mod;
     if (v < 0) v += mod;
   }
-  mod_int(const larger_t& c) {
+  mod_int(larger_t c) {
     v = (mod_t) (abs(c) >= mod ? c % mod : c);
     if (v < 0) v += mod;
   }
+  void assign(mod_t c) { v = c; }
   friend istream& operator >> (istream& is, mod_int& num) {
     is >> num.v;
     if (abs(num.v) >= mod) num.v %= mod;
@@ -35,7 +36,7 @@ struct mod_int {
     return is;
   }
   friend ostream& operator << (ostream& os, const mod_int& num) { return os << num.v; }
-  int value() const { return v; }
+  const int& value() const { return v; }
   bool operator == (const mod_int& o) const { return v == o.v; }
   bool operator != (const mod_int& o) const { return v != o.v; }
   mod_int operator + (const mod_int& o) const { return mod_int(*this) += o; }

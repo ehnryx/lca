@@ -2,7 +2,7 @@
  * USAGE
  *  segment_tree<Node_t, Query_t> segtree(n); initializes a segtree with >= n leaves
  *  segment_tree<Node_t, Query_t> segtree(vector); initializes a segment tree with given values
- *  template: <Node_t, Query_t, break_conditions?>
+ *  template: <Node_t, Query_t>
  *  Node_t is a class to be implemented, should have the members:
  *    void put(args...); update at node
  *    Query_t get(args...); gets the return value from node
@@ -14,6 +14,7 @@
  *    bool contains(args&...); does the segment contain the value? update args if not
  *    bool found(args...); does the leaf correspond to the value that we want?
  *    //break conditions
+ *    bool break_condition(args...); whether to break in segtree beats
  *    bool put_condition(args...); whether to update in segtree beats
  * MEMBERS
  *  * All ranges are inclusive
@@ -34,14 +35,18 @@
 
 #include "../misc/member_function_checker.h"
 
-template <class Node_t, typename Query_t, bool break_cond = false>
+template <class Node_t, typename Query_t>
 struct segment_tree {
   MEMBER_FUNCTION_CHECKER(push);
   MEMBER_FUNCTION_CHECKER(pull);
   MEMBER_FUNCTION_CHECKER(default_value);
+  MEMBER_FUNCTION_CHECKER(break_condition);
+  MEMBER_FUNCTION_CHECKER(put_condition);
   static constexpr bool has_push = _has_push<Node_t>::value;
   static constexpr bool has_pull = _has_pull<Node_t>::value;
   static constexpr bool has_default_value = _has_default_value<Node_t>::value;
+  static constexpr bool has_break_condition = _has_break_condition<Node_t>::value;
+  static_assert(!_has_put_condition<Node_t>::value || has_break_condition);
 
   int lim, length;
   vector<Node_t> data;
@@ -83,7 +88,7 @@ struct segment_tree {
   }
   template <class... Args>
   void __update(int l, int r, int i, int first, int last, const Args&... args) {
-    if constexpr (break_cond) {
+    if constexpr (has_break_condition) {
       if (data[i].break_condition(args...)) return;
       if (l <= first && last <= r && data[i].put_condition(args...)) {
         return data[i].put(args...);

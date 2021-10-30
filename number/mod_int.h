@@ -19,7 +19,7 @@ struct mod_int {
   using larger_t = conditional_t < mod_value < 1LL << 31, long long, __int128>;
   static constexpr mod_t mod = mod_value;
   mod_t v;
-  mod_int() = default;
+  mod_int(): v(0) {}
   mod_int(mod_t c): v(c) {
     if (abs(v) >= mod) v %= mod;
     if (v < 0) v += mod;

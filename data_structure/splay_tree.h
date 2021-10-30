@@ -182,7 +182,7 @@ struct splay_tree {
 
   template <typename key_t, class... Args>
   node_t* insert(const key_t& key, const Args&... args) {
-    return insert(new_node(key, args...));
+    return _insert(new_node(key, args...));
   }
 
   template <typename key_t>
@@ -195,7 +195,17 @@ struct splay_tree {
   template <typename key_t, class... Args>
   node_t* insert_if_none(const key_t& key, const Args&... args) {
     if (contains(key)) return nil;
-    return insert(new_node(key, args...));
+    return _insert(new_node(key, args...));
+  }
+
+  template <typename key_t, class... Args>
+  node_t* overwrite(const key_t& key, const Args&... args) {
+    node_t* has = find(key);
+    if (has == nil) return insert(key, args...);
+    if constexpr (sizeof...(args) != 0) {
+      has->value = typename node_t::value_t(args...);
+    }
+    return has;
   }
 
   template <typename key_t>
@@ -205,7 +215,7 @@ struct splay_tree {
     }
   }
 
-  node_t* insert(node_t* x) {
+  node_t* _insert(node_t* x) {
     if (node_t* u = upper_bound_path(x->key); u != nil) {
       set_child(u, x, x->key < u->key);
     }
@@ -361,17 +371,25 @@ struct splay_tree {
   }
   template <class... Args>
   node_t* insert_before(int ref, const Args&... args) {
-    return insert_before(at(ref), new_node(args...));
+    return _insert_before(at(ref), new_node(args...));
   }
   template <class... Args>
   node_t* insert_after(int ref, const Args&... args) {
-    return insert_after(at(ref), new_node(args...));
+    return _insert_after(at(ref), new_node(args...));
   }
   splay_tree split_before(int x) { return split_before(at(x)); }
   splay_tree split_after(int x) { return split_after(at(x)); }
 
   node_t* first() { return root != nil ? splay(walk_left(root)) : root; }
   node_t* last() { return root != nil ? splay(walk_right(root)) : root; }
+  node_t::out_t front() {
+    if (root == nil) throw invalid_argument("calling front() on empty splay tree");
+    return *first();
+  }
+  node_t::out_t back() {
+    if (root == nil) throw invalid_argument("calling back() on empty splay tree");
+    return *last();
+  }
 
   node_t* at(int i) {
     if (i < 0 || i >= size()) return nil; // do we want to throw?
@@ -389,9 +407,18 @@ struct splay_tree {
     }
   }
 
-  typename node_t::out_t operator [] (int i)
-      __attribute__((deprecated("splay_tree[i] = dereferencing splay_tree.at(i)"))) {
+  template <typename T = node_t::key_t>
+  enable_if_t<is_same_v<T, void>, typename node_t::out_t>
+  operator [] (int i) {
     return at(i)->get_value();
+  }
+
+  template <typename key_t>
+  enable_if_t<!is_same_v<key_t, void>, typename node_t::value_t&>
+  operator [] (const key_t& k) {
+    node_t* x = lower_bound(k);
+    if (x != nil && x->key == k) return x->value;
+    return _insert_before(x, new_node(k, typename node_t::value_t()))->value;
   }
 
   node_t* push_back(node_t* x) {
@@ -411,7 +438,7 @@ struct splay_tree {
   void pop_back() { erase(last()); }
   void pop_front() { erase(first()); }
 
-  node_t* insert_before(node_t* ref, node_t* x) {
+  node_t* _insert_before(node_t* ref, node_t* x) {
     if (splay(ref) == nil) {
       return push_back(x);
     }
@@ -426,7 +453,7 @@ struct splay_tree {
     return splay(x);
   }
 
-  node_t* insert_after(node_t* ref, node_t* x) {
+  node_t* _insert_after(node_t* ref, node_t* x) {
     if (splay(ref) == nil) {
       return push_front(x);
     }
@@ -586,9 +613,11 @@ struct splay_node_base_common {
   derived_t* get_child(bool is_left) const { return is_left ? left : right; }
 };
 
-template <typename derived_t, typename key_t, typename value_t, typename = void>
+template <typename derived_t, typename _key_t, typename _value_t, typename = void>
 struct splay_node_base : splay_node_base_common<derived_t> {
-  static_assert(!is_void_v<key_t> && !is_void_v<value_t>);
+  static_assert(!is_void_v<_key_t> && !is_void_v<_value_t>);
+  using key_t = _key_t;
+  using value_t = _value_t;
   using out_t = pair<key_t&, value_t&>; // store as tuple
   key_t key;
   value_t value;
@@ -599,10 +628,12 @@ struct splay_node_base : splay_node_base_common<derived_t> {
   out_t get_value() { return out_t(ref(key), ref(value)); }
 };
 
-template <typename derived_t, typename key_t, typename value_t>
-struct splay_node_base<derived_t, key_t, value_t,
-    enable_if_t<is_void_v<key_t> && !is_void_v<value_t>>>
+template <typename derived_t, typename _key_t, typename _value_t>
+struct splay_node_base<derived_t, _key_t, _value_t,
+    enable_if_t<is_void_v<_key_t> && !is_void_v<_value_t>>>
     : splay_node_base_common<derived_t> {
+  using key_t = _key_t;
+  using value_t = _value_t;
   using out_t = value_t&;
   value_t value;
   splay_node_base(): splay_node_base_common<derived_t>(0), value() {}
@@ -610,10 +641,12 @@ struct splay_node_base<derived_t, key_t, value_t,
   out_t get_value() { return value; }
 };
 
-template <typename derived_t, typename key_t, typename value_t>
-struct splay_node_base<derived_t, key_t, value_t,
-    enable_if_t<!is_void_v<key_t> && is_void_v<value_t>>>
+template <typename derived_t, typename _key_t, typename _value_t>
+struct splay_node_base<derived_t, _key_t, _value_t,
+    enable_if_t<!is_void_v<_key_t> && is_void_v<_value_t>>>
     : splay_node_base_common<derived_t> {
+  using key_t = _key_t;
+  using value_t = _value_t;
   using out_t = key_t&;
   key_t key;
   splay_node_base(): splay_node_base_common<derived_t>(0), key() {}
@@ -622,9 +655,9 @@ struct splay_node_base<derived_t, key_t, value_t,
   out_t get_value() { return key; }
 };
 
-template <typename key_t, typename value_t>
-struct splay_node final : splay_node_base<splay_node<key_t, value_t>, key_t, value_t> {
-  using splay_node_base<splay_node<key_t, value_t>, key_t, value_t>::splay_node_base;
+template <typename _key_t, typename _value_t>
+struct splay_node final : splay_node_base<splay_node<_key_t, _value_t>, _key_t, _value_t> {
+  using splay_node_base<splay_node<_key_t, _value_t>, _key_t, _value_t>::splay_node_base;
 };
 
 //-----------------------------------------------------------------------------

@@ -20,13 +20,13 @@ for arg; do
 done
 
 echo "compiling headers"
-g++ -Wall -Wextra -Wshadow -Wfatal-errors -Wpedantic -Wconversion \
-  -D HENRYX -std=c++17 $temp.cpp -o $temp && rm $temp
+g++-11 -Wall -Wextra -Wshadow -Wfatal-errors -Wpedantic -Wconversion \
+  -D HENRYX -std=c++20 $temp.cpp -o $temp && rm $temp
 rm $temp.cpp
 
 for f in ${cpp_files[@]}; do
   printf "\ncompiling $f\n"
-  g++ -Wall -Wextra -Wshadow -Wfatal-errors -Wpedantic -Wconversion \
-    -D HENRYX -std=c++17 $f -o $temp && rm $temp
+  g++-11 -Wall -Wextra -Wshadow -Wfatal-errors -Wpedantic -Wconversion \
+    -D HENRYX -std=c++20 $f -o $temp && rm $temp
 done
 

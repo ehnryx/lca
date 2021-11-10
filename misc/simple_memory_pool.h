@@ -1,4 +1,4 @@
-/* Simple Memory Pool
+/* Simple (non-static) Memory Pool
  * USAGE
  *  pray
  * TIME
@@ -8,14 +8,13 @@
  */
 #pragma once
 
-template <class T, int N>
+template <class T>
 struct simple_memory_pool {
-  array<T, N> memory;
-  array<int, N> available;
+  vector<T> memory;
+  vector<int> available;
   int pid;
-  simple_memory_pool() {
+  simple_memory_pool(int n): memory(n), available(n), pid(n) {
     iota(begin(available), end(available), 0);
-    pid = N;
   }
   T* allocate() {
     return &memory[available[--pid]];

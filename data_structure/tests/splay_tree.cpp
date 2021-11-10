@@ -8,7 +8,7 @@ const char nl = '\n';
 using node = splay_node<int, int>;
 
 int main() {
-  splay_tree<node> st;
+  splay_tree<node, 200> st;
 
   for(int i=0; ; i++) {
     cout << "SET:" << nl;
@@ -22,7 +22,7 @@ int main() {
     if (t == '+') {
       int n;
       cin >> n;
-      st.insert(new node(n, 0));
+      st.insert(n, 0);
     } else if (t == '-') {
       int n;
       cin >> n;
@@ -38,7 +38,8 @@ int main() {
   //splay_tree<node> yes = move(st);
   //splay_tree<node> no(st.root);
 
-  splay_tree<node> good = st.make_copy();
+  splay_tree<node> good;
+  st.copy_to(good);
   for(const auto& [a, b] : good) {
     cout << a << "  ";
   }
@@ -60,7 +61,7 @@ int main() {
   }
   cout << endl;
 
-  splay_tree<node> allowed = st.dislodge();
+  splay_tree<node, 200> allowed = st.dislodge();
 
   cerr << "st: ";
   for(const auto& [a, b] : st) {

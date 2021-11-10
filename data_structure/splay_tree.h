@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#include "simple_memory_pool.h"
+#include "../misc/static_memory_pool.h"
 #include "../misc/member_function_checker.h"
 
 template <class node_t, int max_size = 0>
@@ -20,7 +20,7 @@ struct splay_tree {
   static constexpr bool has_pull = _has_pull<node_t>::value;
   static node_t* const nil;
 
-  static simple_memory_pool<node_t, max_size> memory;
+  static static_memory_pool<node_t, max_size> memory;
   template <class... Args>
   inline node_t* new_node(const Args&... args) const {
     if constexpr (max_size == 0) {
@@ -43,7 +43,7 @@ struct splay_tree {
     for (int i = 0; i < n; i++) {
       node_t* to_add = new_node();
       to_add->size = 1;
-      push_back(to_add);
+      _push_back(to_add);
     }
   }
   ~splay_tree() { if (root != nil) erase_tree(root); }
@@ -72,18 +72,20 @@ struct splay_tree {
 
   splay_tree(const splay_tree&) = delete;
   splay_tree& operator = (const splay_tree&) = delete;
-  splay_tree make_copy() const {
-    if (root == nil) return splay_tree(nil);
-    return splay_tree(make_copy_rec(root));
+  template <int other_size>
+  void copy_to(splay_tree<node_t, other_size>& other) const {
+    if (root == nil) other.root = nil;
+    else other.root = copy_to_rec(other, root);
   }
-  node_t* make_copy_rec(node_t* x) const {
-    node_t* cur = new_node(*x);
+  template <int other_size>
+  node_t* copy_to_rec(splay_tree<node_t, other_size>& other, node_t* x) const {
+    node_t* cur = other.new_node(*x);
     if (x->left != nil) {
-      cur->left = make_copy_rec(x->left);
+      cur->left = copy_to_rec(other, x->left);
       cur->left->parent = cur;
     }
     if (x->right != nil) {
-      cur->right = make_copy_rec(x->right);
+      cur->right = copy_to_rec(other, x->right);
       cur->right->parent = cur;
     }
     return cur;
@@ -98,7 +100,7 @@ struct splay_tree {
     if constexpr (has_push) push_down_to(x);
     _splay_rec(x);
     pull(x);
-    return root = x;
+    return root = x; // x has no lazy
   }
 
   node_t* splay_to(node_t* x, node_t* to) {
@@ -107,7 +109,7 @@ struct splay_tree {
     if constexpr (has_push) push_down_to(x);
     _splay_to_rec(x, to);
     pull(x);
-    return x;
+    return x; // x has no lazy
   }
 
   void set_child(node_t* parent, node_t* child, bool left) {
@@ -125,7 +127,6 @@ struct splay_tree {
 
   //---------------------------------------------------------------------------
   // iterators
-  //---------------------------------------------------------------------------
 
   template <bool forward_it>
   struct iterator {
@@ -168,7 +169,6 @@ struct splay_tree {
 
   //---------------------------------------------------------------------------
   // binary search tree operations
-  //---------------------------------------------------------------------------
 
   template <typename key_t>
   bool contains(const key_t& key) {
@@ -253,6 +253,42 @@ struct splay_tree {
     return u;
   }
 
+  // Contains: returns true if subtree contanis a valid node
+  // Check:    returns true if the node is valid
+  template <class Contains, class Check>
+  node_t* find_first_after(node_t* x, Contains has, Check valid) {
+    node_t* u = splay(x) == nil ? root : x->right;
+    if (u == nil || !has(u)) return nil;
+    while (true) {
+      if constexpr (has_push) push(u);
+      if (u->left != nil && has(u->left)) {
+        u = u->left;
+      } else if(valid(u)) {
+        return splay(u);
+      } else if(u->right != nil) {
+        u = u->right;
+      }
+    }
+  }
+
+  // Contains: returns true if subtree contanis a valid node
+  // Check:    returns true if the node is valid
+  template <class Contains, class Check>
+  node_t* find_first_before(node_t* x, Contains has, Check valid) {
+    node_t* u = splay(x) == nil ? root : x->left;
+    if (u == nil || !has(u)) return nil;
+    while (true) {
+      if constexpr (has_push) push(u);
+      if (u->right != nil && has(u->right)) {
+        u = u->right;
+      } else if(valid(u)) {
+        return splay(u);
+      } else {
+        u = u->left;
+      }
+    }
+  }
+
   template <typename key_t>
   node_t* lower_bound(const key_t& key) {
     node_t* u = lower_bound_path(key);
@@ -311,7 +347,9 @@ struct splay_tree {
 
   //---------------------------------------------------------------------------
   // next / previous
-  //---------------------------------------------------------------------------
+
+  node_t* splay_next(node_t* u) { return splay(next(u)); }
+  node_t* splay_prev(node_t* u) { return splay(prev(u)); }
 
   node_t* next(node_t* u) const {
     if (u == nil) throw invalid_argument("next(nil) is not valid");
@@ -359,15 +397,14 @@ struct splay_tree {
 
   //---------------------------------------------------------------------------
   // rope operations
-  //---------------------------------------------------------------------------
 
   template <class... Args>
   node_t* push_back(const Args&... args) {
-    return push_back(new_node(args...));
+    return _push_back(new_node(args...));
   }
   template <class... Args>
   node_t* push_front(const Args&... args) {
-    return push_front(new_node(args...));
+    return _push_front(new_node(args...));
   }
   template <class... Args>
   node_t* insert_before(int ref, const Args&... args) {
@@ -382,11 +419,11 @@ struct splay_tree {
 
   node_t* first() { return root != nil ? splay(walk_left(root)) : root; }
   node_t* last() { return root != nil ? splay(walk_right(root)) : root; }
-  node_t::out_t front() {
+  typename node_t::out_t front() {
     if (root == nil) throw invalid_argument("calling front() on empty splay tree");
     return *first();
   }
-  node_t::out_t back() {
+  typename node_t::out_t back() {
     if (root == nil) throw invalid_argument("calling back() on empty splay tree");
     return *last();
   }
@@ -407,28 +444,27 @@ struct splay_tree {
     }
   }
 
-  template <typename T = node_t::key_t>
-  enable_if_t<is_same_v<T, void>, typename node_t::out_t>
-  operator [] (int i) {
+  template <typename T = typename node_t::key_t, typename = enable_if_t<is_void_v<T>>>
+  typename node_t::out_t operator [] (int i) {
     return at(i)->get_value();
   }
 
-  template <typename key_t>
-  enable_if_t<!is_same_v<key_t, void>, typename node_t::value_t&>
-  operator [] (const key_t& k) {
+  template <typename key_t, typename value_t = typename node_t::value_t,
+    typename = enable_if_t<!is_void_v<key_t> && !is_void_v<value_t>>>
+  value_t& operator [] (const key_t& k) {
     node_t* x = lower_bound(k);
     if (x != nil && x->key == k) return x->value;
     return _insert_before(x, new_node(k, typename node_t::value_t()))->value;
   }
 
-  node_t* push_back(node_t* x) {
+  node_t* _push_back(node_t* x) {
     if (root == nil) return root = x;
     node_t* at = last();
     if constexpr (has_push) push(at);
     set_child(at, x, false);
     return splay(x);
   }
-  node_t* push_front(node_t* x) {
+  node_t* _push_front(node_t* x) {
     if (root == nil) return root = x;
     node_t* at = first();
     if constexpr (has_push) push(at);
@@ -440,7 +476,7 @@ struct splay_tree {
 
   node_t* _insert_before(node_t* ref, node_t* x) {
     if (splay(ref) == nil) {
-      return push_back(x);
+      return _push_back(x);
     }
     if (ref->left == nil) {
       if constexpr (has_push) push(ref);
@@ -455,7 +491,7 @@ struct splay_tree {
 
   node_t* _insert_after(node_t* ref, node_t* x) {
     if (splay(ref) == nil) {
-      return push_front(x);
+      return _push_front(x);
     }
     if(ref->right == nil) {
       if constexpr (has_push) push(ref);
@@ -504,7 +540,6 @@ struct splay_tree {
 
   //---------------------------------------------------------------------------
   // push / pull
-  //---------------------------------------------------------------------------
 
   // range accumulate
   void pull(node_t* x) const {
@@ -530,7 +565,6 @@ struct splay_tree {
 
   //---------------------------------------------------------------------------
   // range update / query
-  //---------------------------------------------------------------------------
 
   // ranges are exclusive
   node_t* range(node_t* left, node_t* right) {
@@ -550,21 +584,20 @@ struct splay_tree {
     return range(at(l - 1), at(r + 1));
   }
 
-  template <class... Args>
-  void update_range(int l, int r, const Args&... args) {
+  template <typename index_t, class... Args>
+  void update_range(index_t l, index_t r, const Args&... args) {
     node_t* x = range(l, r);
     x->put(args...);
     splay(x); // pull to root
   }
 
-  template <class... Args>
-  auto query_range(int l, int r, const Args&... args) {
+  template <typename index_t, class... Args>
+  auto query_range(index_t l, index_t r, const Args&... args) {
     return range(l, r)->get(args...);
   }
 
   //---------------------------------------------------------------------------
   // splay / rotate
-  //---------------------------------------------------------------------------
 
 private:
 
@@ -600,8 +633,7 @@ private:
 };
 
 //-----------------------------------------------------------------------------
-// node structs
-//-----------------------------------------------------------------------------
+// node structs and initializtion
 
 template <typename derived_t>
 struct splay_node_base_common {
@@ -611,11 +643,15 @@ struct splay_node_base_common {
   splay_node_base_common(int s): parent(nil), left(nil), right(nil), size(s) {}
   bool is_left_child() const { return parent == nil || this == parent->left; }
   derived_t* get_child(bool is_left) const { return is_left ? left : right; }
+  static derived_t* _get_nil() {
+    static derived_t _nil{};
+    _nil.size = 0;
+    return &_nil;
+  }
 };
 
 template <typename derived_t, typename _key_t, typename _value_t, typename = void>
 struct splay_node_base : splay_node_base_common<derived_t> {
-  static_assert(!is_void_v<_key_t> && !is_void_v<_value_t>);
   using key_t = _key_t;
   using value_t = _value_t;
   using out_t = pair<key_t&, value_t&>; // store as tuple
@@ -655,22 +691,30 @@ struct splay_node_base<derived_t, _key_t, _value_t,
   out_t get_value() { return key; }
 };
 
+template <typename derived_t, typename _key_t, typename _value_t>
+struct splay_node_base<derived_t, _key_t, _value_t,
+    enable_if_t<is_void_v<_key_t> && is_void_v<_value_t>>>
+    : splay_node_base_common<derived_t> {
+  using key_t = _key_t;
+  using value_t = _value_t;
+  using out_t = void;
+  splay_node_base(): splay_node_base_common<derived_t>(1) {}
+  out_t get_value() { return; }
+};
+
 template <typename _key_t, typename _value_t>
 struct splay_node final : splay_node_base<splay_node<_key_t, _value_t>, _key_t, _value_t> {
   using splay_node_base<splay_node<_key_t, _value_t>, _key_t, _value_t>::splay_node_base;
 };
 
-//-----------------------------------------------------------------------------
-// nil initialization
-//-----------------------------------------------------------------------------
-
 template <typename derived_t>
-derived_t* const splay_node_base_common<derived_t>::nil = new derived_t();
+//derived_t* const splay_node_base_common<derived_t>::nil = new derived_t();
+derived_t* const splay_node_base_common<derived_t>::nil = derived_t::_get_nil();
 
 template <class node_t, int max_size>
 node_t* const splay_tree<node_t, max_size>::nil = node_t::nil;
 
 template <class node_t, int max_size>
-simple_memory_pool<node_t, max_size>
-splay_tree<node_t, max_size>::memory = simple_memory_pool<node_t, max_size>();
+static_memory_pool<node_t, max_size>
+splay_tree<node_t, max_size>::memory = static_memory_pool<node_t, max_size>();
 

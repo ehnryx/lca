@@ -17,7 +17,7 @@ struct link_cut_tree : splay_tree<node_t> {
   using base::nil, base::splay, base::set_child, base::walk_left, base::pull;
   using base::prev, base::next; // shadow std::
   vector<node_t> data;
-  link_cut_tree(int n): data(n) {
+  link_cut_tree(int n): base(), data(n) {
     for (int i = 0; i < n; i++) {
       data[i].size = 1;
     }

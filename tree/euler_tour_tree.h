@@ -18,20 +18,17 @@ struct euler_tour_tree : splay_tree<node_t> {
   using base::nil, base::splay, base::set_child, base::pull;
   using base::walk_left, base::walk_right, base::rank;
 
-  struct Edge {
-    int u, v;
-    auto operator <=> (const Edge& o) const {
-      return tie(u, v) <=> tie(o.u, o.v);
-    }
-  };
-
+  using edge_node_t = splay_node<int, node_t*>;
   simple_memory_pool<node_t> memory;
+  simple_memory_pool<edge_node_t> edge_memory;
   vector<node_t*> ref_node;
-  vector<map<int, node_t*>> edges;
+  vector<splay_tree_shared_memory<edge_node_t>> edges;
   node_t dummy;
-  euler_tour_tree(int n): memory(3 * n), ref_node(n), edges(n), dummy(*nil) {
+  euler_tour_tree(int n): base(), memory(3 * n), edge_memory(2 * n),
+    ref_node(n), edges(n), dummy(*nil) {
     for (int i = 0; i < n; i++) {
       ref_node[i] = new_ett_node(true);
+      edges[i].shared_memory = &edge_memory;
     }
   }
   ~euler_tour_tree() { base::root = nil; }
@@ -94,10 +91,10 @@ struct euler_tour_tree : splay_tree<node_t> {
 
   void cut(int u_id, int v_id) {
     auto e_uv = edges[u_id].find(v_id);
-    if (e_uv == edges[u_id].end()) return; // edge does not exist
+    if (e_uv == edges[u_id].nil) return; // edge does not exist
     auto e_vu = edges[v_id].find(u_id);
-    node_t* a = e_uv->second;
-    node_t* b = e_vu->second;
+    node_t* a = e_uv->value;
+    node_t* b = e_vu->value;
     edges[u_id].erase(e_uv);
     edges[v_id].erase(e_vu);
     if (rank(b) < rank(a)) {

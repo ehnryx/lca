@@ -10,6 +10,7 @@
 #pragma once
 
 #include "../misc/static_memory_pool.h"
+#include "../misc/simple_memory_pool.h"
 #include "../misc/member_function_checker.h"
 
 template <class node_t, int max_size = 0>
@@ -18,28 +19,37 @@ struct splay_tree {
   MEMBER_FUNCTION_CHECKER(pull);
   static constexpr bool has_push = _has_push<node_t>::value;
   static constexpr bool has_pull = _has_pull<node_t>::value;
+  static constexpr int mem_size = max(0, max_size);
   static node_t* const nil;
 
-  static static_memory_pool<node_t, max_size> memory;
+  static static_memory_pool<node_t, mem_size> memory;
+  simple_memory_pool<node_t>* shared_memory;
+
   template <class... Args>
-  inline node_t* new_node(const Args&... args) const {
+  inline node_t* new_node(const Args&... args) {
     if constexpr (max_size == 0) {
       return new node_t(args...);
+    } else if constexpr (max_size == -1) {
+      return new (shared_memory->allocate()) node_t(args...);
     } else {
       return new (memory.allocate()) node_t(args...);
     }
   }
-  inline void del_node(node_t* x) const {
+  inline void del_node(node_t* x) {
     if constexpr (max_size == 0) {
       delete x;
+    } else if constexpr (max_size == -1) {
+      shared_memory->deallocate(x);
     } else {
       memory.deallocate(x);
     }
   }
 
   node_t* root;
-  splay_tree(): root(nil) {}
-  splay_tree(int n): root(nil) {
+  splay_tree(simple_memory_pool<node_t>* mem = nullptr):
+    shared_memory(mem), root(nil) {}
+  splay_tree(int n, simple_memory_pool<node_t>* mem = nullptr):
+    shared_memory(mem), root(nil) {
     for (int i = 0; i < n; i++) {
       node_t* to_add = new_node();
       to_add->size = 1;
@@ -72,6 +82,7 @@ struct splay_tree {
 
   splay_tree(const splay_tree&) = delete;
   splay_tree& operator = (const splay_tree&) = delete;
+
   template <int other_size>
   void copy_to(splay_tree<node_t, other_size>& other) const {
     if (root == nil) other.root = nil;
@@ -708,13 +719,16 @@ struct splay_node final : splay_node_base<splay_node<_key_t, _value_t>, _key_t, 
 };
 
 template <typename derived_t>
-//derived_t* const splay_node_base_common<derived_t>::nil = new derived_t();
 derived_t* const splay_node_base_common<derived_t>::nil = derived_t::_get_nil();
 
 template <class node_t, int max_size>
 node_t* const splay_tree<node_t, max_size>::nil = node_t::nil;
 
 template <class node_t, int max_size>
-static_memory_pool<node_t, max_size>
-splay_tree<node_t, max_size>::memory = static_memory_pool<node_t, max_size>();
+static_memory_pool<node_t, splay_tree<node_t, max_size>::mem_size>
+splay_tree<node_t, max_size>::memory =
+  static_memory_pool<node_t, splay_tree<node_t, max_size>::mem_size>();
+
+template <class node_t>
+struct splay_tree_shared_memory : splay_tree<node_t, -1> {};
 

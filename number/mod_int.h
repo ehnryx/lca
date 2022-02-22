@@ -6,7 +6,7 @@
  * NOTES
  *  division `operator/` is not recommended
  * STATUS
- *  somewhat tested: spoj/RECPWSUM
+ *  tested: spoj/RECPWSUM, kattis/dimensionalanalysis
  */
 #pragma once
 
@@ -35,7 +35,13 @@ struct mod_int {
     if (num.v < 0) num.v += mod;
     return is;
   }
-  friend ostream& operator << (ostream& os, const mod_int& num) { return os << num.v; }
+  friend ostream& operator << (ostream& os, const mod_int& num) {
+#ifndef PRINT_NEGATIVES
+    return os << num.v;
+#else
+    return os << (2*num.v <= mod ? num.v : num.v - mod);
+#endif
+  }
   const int& value() const { return v; }
   bool operator == (const mod_int& o) const { return v == o.v; }
   bool operator != (const mod_int& o) const { return v != o.v; }

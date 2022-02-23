@@ -94,15 +94,12 @@ struct splay_tree : splay_tree_memory_base<node_t, max_size> {
   }
 
   splay_tree(splay_tree&& o): memory_base(move(o)), root(o.root) {
-    cerr << "calling move constructor" << endl;
     o.root = nil;
   }
   splay_tree(const splay_tree& o): memory_base(o), root(node_t::_get_nil()) {
-    cerr << "calling copy constructor" << endl;
     o.copy_to(*this);
   }
   splay_tree& operator = (const splay_tree& o) {
-    cerr << "assignment operator" << endl;
     root = nil;
     o.copy_to(*this);
     return *this;

@@ -21,13 +21,15 @@ struct euler_tour_tree : splay_tree<node_t> {
   using edge_node_t = splay_node<int, node_t*>;
   simple_memory_pool<node_t> memory;
   simple_memory_pool<edge_node_t> edge_memory;
-  vector<node_t*> ref_node;
+  vector<node_t> data;
   vector<splay_tree_shared_memory<edge_node_t>> edges;
   node_t dummy;
-  euler_tour_tree(int n): base(), memory(3 * n), edge_memory(2 * n),
-    ref_node(n), edges(n), dummy(*nil) {
+  euler_tour_tree(int n): base(), memory(2 * n), edge_memory(2 * n),
+    data(n), edges(n), dummy(*nil) {
     for (int i = 0; i < n; i++) {
-      ref_node[i] = new_ett_node(true);
+      data[i] = node_t();
+      data[i].set_ref(true);
+      data[i].size = 1;
       edges[i].shared_memory = &edge_memory;
     }
   }
@@ -35,30 +37,47 @@ struct euler_tour_tree : splay_tree<node_t> {
   euler_tour_tree(const euler_tour_tree&) = delete;
   euler_tour_tree& operator = (const euler_tour_tree&) = delete;
 
-  node_t* new_ett_node(bool ref) {
+  node_t* new_ett_node() {
     node_t* x = new (memory.allocate()) node_t();
-    x->set_ref(ref);
+    x->set_ref(false);
     x->size = 1;
     return x;
   }
 
   int size() const { return (int)edges.size(); }
-  int size(int i) { return splay(ref_node[i])->ref_cnt(); }
-  node_t& operator [] (int i) { return *ref_node[i]; }
-  node_t* ptr(int i) { return ref_node[i]; }
+  int size(int i) { return splay(&data[i])->ref_cnt(); }
+  node_t& operator [] (int i) { return data[i]; }
+  node_t* ptr(int i) { return &data[i]; }
 
   template <class... Args>
-  void init(int i, const Args&... args) {
-    new (ref_node[i]) node_t(args...);
-    ref_node[i]->set_ref(true);
+  void init(int i, Args&&... args) {
+    data[i] = node_t(forward<Args>(args)...);
+    data[i].set_ref(true);
   }
 
   node_t* splay(int u) {
-    return splay(ref_node[u]);
+    return splay(&data[u]);
+  }
+
+  int find_root(int u) {
+    return (int)(find_root(&data[u]) - &data[0]);
+  }
+  node_t* find_root(node_t* u) {
+    return splay(walk_left(splay(u)));
+  }
+
+  bool is_connected(int u, int v) {
+    return find_root(u) == find_root(v); // is this slow ?
+  }
+
+  node_t* next_ref(node_t* u) {
+    return base::find_first_after(u,
+      [](node_t* x) -> bool { return x->ref_cnt() > 0; },
+      [](node_t* x) -> bool { return x->ref(); });
   }
 
   void reroot(int u) {
-    _reroot(ref_node[u]);
+    _reroot(&data[u]);
   }
   node_t* _reroot(node_t* u) {
     if (splay(u)->left == nil) return u; // nothing to do
@@ -74,16 +93,16 @@ struct euler_tour_tree : splay_tree<node_t> {
   }
 
   void link(int u_id, int v_id) {
-    node_t* u = _reroot(ref_node[u_id]);
-    node_t* v = _reroot(ref_node[v_id]);
+    node_t* u = _reroot(&data[u_id]);
+    node_t* v = _reroot(&data[v_id]);
     // insert u_id to front of v
-    node_t* add_u = new_ett_node(false);
+    node_t* add_u = new_ett_node();
     set_child(add_u, u, true);
     set_child(add_u, v, false);
     pull(add_u);
     edges[u_id][v_id] = add_u;
     // append v_id to end of v
-    node_t* add_v = new_ett_node(false);
+    node_t* add_v = new_ett_node();
     set_child(add_v, add_u, true);
     pull(add_v);
     edges[v_id][u_id] = add_v;
@@ -120,12 +139,12 @@ struct euler_tour_tree : splay_tree<node_t> {
 
   template <class... Args>
   void update_all(int x, const Args&... args) {
-    splay(ref_node[x])->put(args...);
+    splay(&data[x])->put(args...);
   }
 
   template <class... Args>
   auto query_all(int x, const Args&... args) {
-    return splay(ref_node[x])->get(args...);
+    return splay(&data[x])->get(args...);
   }
 
   template <class... Args>
@@ -157,20 +176,35 @@ struct euler_tour_tree : splay_tree<node_t> {
   }
 };
 
-template <typename derived_t, typename value_t>
-struct euler_tour_node : splay_node_base<derived_t, void, value_t> {
-  using base = splay_node_base<derived_t, void, value_t>;
-  using base::nil, base::left, base::right;
+struct euler_tour_node_ref {
   int _ref;
-  euler_tour_node(): base(), _ref(0) {}
-  euler_tour_node(const value_t& v): base(v), _ref(0) {}
+  euler_tour_node_ref(): _ref(0) {}
   void set_ref(bool r) { _ref = r ? 0b11 : 0; }
   bool ref() const { return _ref & 1; }
   int ref_cnt() const { return _ref >> 1; }
+};
+
+template <typename derived_t, typename value_t, typename = void>
+struct euler_tour_node : splay_node_base<derived_t, void, value_t>, euler_tour_node_ref {
+  using base = splay_node_base<derived_t, void, value_t>;
+  euler_tour_node(): base(), euler_tour_node_ref() {}
+  euler_tour_node(const value_t& v): base(v), euler_tour_node_ref() {}
   void pull() {
     static constexpr int mask = ~(int)1;
     _ref = (_ref & 1) + ((_ref & 1) << 1)
-        + (left->_ref & mask) + (right->_ref & mask);
+        + (base::left->_ref & mask) + (base::right->_ref & mask);
+  }
+};
+
+template <typename derived_t, typename value_t>
+struct euler_tour_node<derived_t, value_t, enable_if_t<is_void_v<value_t>>>
+  : splay_node_base<derived_t, void, value_t>, euler_tour_node_ref {
+  using base = splay_node_base<derived_t, void, value_t>;
+  euler_tour_node(): base(), euler_tour_node_ref() {}
+  void pull() {
+    static constexpr int mask = ~(int)1;
+    _ref = (_ref & 1) + ((_ref & 1) << 1)
+        + (base::left->_ref & mask) + (base::right->_ref & mask);
   }
 };
 

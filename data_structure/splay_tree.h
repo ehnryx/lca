@@ -13,8 +13,19 @@
 #include "../misc/simple_memory_pool.h"
 #include "../misc/member_function_checker.h"
 
+template <class node_t, int max_size, typename = void>
+struct splay_tree_memory_base {
+  splay_tree_memory_base(simple_memory_pool<node_t>*) {}
+};
+
+template <class node_t, int max_size>
+struct splay_tree_memory_base<node_t, max_size, enable_if_t<max_size == -1>> {
+  simple_memory_pool<node_t>* shared_memory;
+  splay_tree_memory_base(simple_memory_pool<node_t>* shm): shared_memory(shm) {}
+};
+
 template <class node_t, int max_size = 0>
-struct splay_tree {
+struct splay_tree : splay_tree_memory_base<node_t, max_size> {
   MEMBER_FUNCTION_CHECKER(push);
   MEMBER_FUNCTION_CHECKER(pull);
   static constexpr bool has_push = _has_push<node_t>::value;
@@ -23,68 +34,83 @@ struct splay_tree {
   static node_t* const nil;
 
   static static_memory_pool<node_t, mem_size> memory;
-  simple_memory_pool<node_t>* shared_memory;
+  using memory_base = splay_tree_memory_base<node_t, max_size>;
 
   template <class... Args>
-  inline node_t* new_node(const Args&... args) {
+  inline node_t* new_node(Args&&... args) {
     if constexpr (max_size == 0) {
-      return new node_t(args...);
+      return new node_t(forward<Args>(args)...);
     } else if constexpr (max_size == -1) {
-      return new (shared_memory->allocate()) node_t(args...);
+      return new (memory_base::shared_memory->allocate()) node_t(forward<Args>(args)...);
     } else {
-      return new (memory.allocate()) node_t(args...);
+      return new (memory.allocate()) node_t(forward<Args>(args)...);
     }
   }
   inline void del_node(node_t* x) {
     if constexpr (max_size == 0) {
       delete x;
     } else if constexpr (max_size == -1) {
-      shared_memory->deallocate(x);
+      memory_base::shared_memory->deallocate(x);
     } else {
       memory.deallocate(x);
     }
   }
 
   node_t* root;
-  splay_tree(simple_memory_pool<node_t>* mem = nullptr):
-    shared_memory(mem), root(nil) {}
-  splay_tree(int n, simple_memory_pool<node_t>* mem = nullptr):
-    shared_memory(mem), root(nil) {
+  splay_tree(simple_memory_pool<node_t>* shm = nullptr):
+    memory_base(shm), root(node_t::_get_nil()) {}
+  splay_tree(int n, simple_memory_pool<node_t>* shm = nullptr):
+    memory_base(shm), root(node_t::_get_nil()) {
     for (int i = 0; i < n; i++) {
       node_t* to_add = new_node();
       to_add->size = 1;
       _push_back(to_add);
     }
   }
-  ~splay_tree() { if (root != nil) erase_tree(root); }
+  ~splay_tree() { erase_tree(root); }
   void erase_tree(node_t* x) {
-    if (x->left != nil) erase_tree(x->left);
-    if (x->right != nil) erase_tree(x->right);
+    if (x == nil) return;
+    erase_tree(x->left);
+    erase_tree(x->right);
     del_node(x);
   }
 
   void clear() {
-    if (root != nil) {
-      erase_tree(root);
-      root = nil;
-    }
+    erase_tree(root);
+    root = nil;
   }
 
   splay_tree dislodge() {
+    return splay_tree(move(*this));
+    /*
     node_t* ret = root;
     root = nil;
     return splay_tree(ret);
+    */
   }
 
   friend void swap(splay_tree& a, splay_tree& b) {
     swap(a.root, b.root);
   }
 
-  splay_tree(const splay_tree&) = delete;
-  splay_tree& operator = (const splay_tree&) = delete;
+  splay_tree(splay_tree&& o): memory_base(move(o)), root(o.root) {
+    cerr << "calling move constructor" << endl;
+    o.root = nil;
+  }
+  splay_tree(const splay_tree& o): memory_base(o), root(node_t::_get_nil()) {
+    cerr << "calling copy constructor" << endl;
+    o.copy_to(*this);
+  }
+  splay_tree& operator = (const splay_tree& o) {
+    cerr << "assignment operator" << endl;
+    root = nil;
+    o.copy_to(*this);
+    return *this;
+  }
 
   template <int other_size>
   void copy_to(splay_tree<node_t, other_size>& other) const {
+    other.erase_tree(other.root);
     if (root == nil) other.root = nil;
     else other.root = copy_to_rec(other, root);
   }
@@ -192,8 +218,8 @@ struct splay_tree {
   }
 
   template <typename key_t, class... Args>
-  node_t* insert(const key_t& key, const Args&... args) {
-    return _insert(new_node(key, args...));
+  node_t* insert(const key_t& key, Args&&... args) {
+    return _insert(new_node(key, forward<Args>(args)...));
   }
 
   template <typename key_t>
@@ -204,17 +230,17 @@ struct splay_tree {
   }
 
   template <typename key_t, class... Args>
-  node_t* insert_if_none(const key_t& key, const Args&... args) {
+  node_t* insert_if_none(const key_t& key, Args&&... args) {
     if (contains(key)) return nil;
-    return _insert(new_node(key, args...));
+    return _insert(new_node(key, forward<Args>(args)...));
   }
 
   template <typename key_t, class... Args>
-  node_t* overwrite(const key_t& key, const Args&... args) {
+  node_t* overwrite(const key_t& key, Args&&... args) {
     node_t* has = find(key);
-    if (has == nil) return insert(key, args...);
+    if (has == nil) return insert(key, forward<Args>(args)...);
     if constexpr (sizeof...(args) != 0) {
-      has->value = typename node_t::value_t(args...);
+      has->value = typename node_t::value_t(forward<Args>(args)...);
     }
     return has;
   }
@@ -410,20 +436,20 @@ struct splay_tree {
   // rope operations
 
   template <class... Args>
-  node_t* push_back(const Args&... args) {
-    return _push_back(new_node(args...));
+  node_t* push_back(Args&&... args) {
+    return _push_back(new_node(forward<Args>(args)...));
   }
   template <class... Args>
-  node_t* push_front(const Args&... args) {
-    return _push_front(new_node(args...));
+  node_t* push_front(Args&&... args) {
+    return _push_front(new_node(forward<Args>(args)...));
   }
   template <class... Args>
-  node_t* insert_before(int ref, const Args&... args) {
-    return _insert_before(at(ref), new_node(args...));
+  node_t* insert_before(int ref, Args&&... args) {
+    return _insert_before(at(ref), new_node(forward<Args>(args)...));
   }
   template <class... Args>
-  node_t* insert_after(int ref, const Args&... args) {
-    return _insert_after(at(ref), new_node(args...));
+  node_t* insert_after(int ref, Args&&... args) {
+    return _insert_after(at(ref), new_node(forward<Args>(args)...));
   }
   splay_tree split_before(int x) { return split_before(at(x)); }
   splay_tree split_after(int x) { return split_after(at(x)); }
@@ -656,7 +682,10 @@ struct splay_node_base_common {
   derived_t* get_child(bool is_left) const { return is_left ? left : right; }
   static derived_t* _get_nil() {
     static derived_t _nil{};
-    _nil.size = 0;
+    for (static bool once = true; once; once = false) {
+      _nil.parent = _nil.left = _nil.right = &_nil;
+      _nil.size = 0;
+    }
     return &_nil;
   }
 };
@@ -730,5 +759,5 @@ splay_tree<node_t, max_size>::memory =
   static_memory_pool<node_t, splay_tree<node_t, max_size>::mem_size>();
 
 template <class node_t>
-struct splay_tree_shared_memory : splay_tree<node_t, -1> {};
+using splay_tree_shared_memory = splay_tree<node_t, -1>;
 

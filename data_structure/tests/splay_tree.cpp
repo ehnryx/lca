@@ -69,15 +69,22 @@ int main() {
   }
   cout << endl;
 
-  cerr << "other: ";
+  cerr << "allow: ";
   for(const auto& [a, b] : allowed) {
     cout << a << "  ";
   }
   cout << endl;
 
-  auto other = good.dislodge();
+  auto other = move(good);
   cerr << "sad: ";
   for(const auto& [a, b] : other) {
+    cout << a << "  ";
+  }
+  cout << endl;
+
+  splay_tree<node, 200> other2 = allowed;
+  cerr << "other2: ";
+  for(const auto& [a, b] : other2) {
     cout << a << "  ";
   }
   cout << endl;

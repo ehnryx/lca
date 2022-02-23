@@ -12,12 +12,17 @@ template <typename T>
 struct matrix : vector<vector<T>> {
   using vector<vector<T>>::data, vector<vector<T>>::at;
   using vector<vector<T>>::size, vector<vector<T>>::empty;
+
+  vector<bool> is_free;
+  vector<T> ans;
+  int n, m;
+
   matrix(): vector<vector<T>>() {}
-  matrix(int n, int m): vector<vector<T>>(n, vector<T>(m)) {}
+  matrix(int _n, int _m): vector<vector<T>>(_n, vector<T>(_m)) {}
   matrix(const vector<vector<T>>& v): vector<vector<T>>(v) {
     check_dimensions();
   }
-  matrix(vector<vector<T>>&& v): vector<vector<T>>(forward(v)) {
+  matrix(vector<vector<T>>&& v): vector<vector<T>>(move(v)) {
     check_dimensions();
   }
   void check_dimensions() {
@@ -31,8 +36,9 @@ struct matrix : vector<vector<T>> {
   // returns rank
   int rref() {
     if (empty()) return 0;
-    int n = (int)size();
-    int m = (int)at(0).size();
+    check_dimensions();
+    n = (int)size();
+    m = (int)at(0).size();
     int rank = 0;
     for (int j = 0; j < m; j++) {
       int pivot = -1;
@@ -52,9 +58,36 @@ struct matrix : vector<vector<T>> {
         for (int k = j; k < m; k++) {
           data()[i][k] -= data()[rank][k] * mul;
         }
-        assert(data()[i][j] == 0);
+        if (data()[i][j] != 0) {
+          throw runtime_error("could not zero out value with pivot");
+        }
       }
       rank++;
+    }
+    return rank;
+  }
+
+  int solve() {
+    if (empty()) return 0;
+    int rank = rref();
+    is_free.resize(m - 1, true);
+    ans.resize(m - 1);
+    for (int i = 0; i < rank; i++) {
+      int pivot = -1;
+      for (int j = 0; j < m; j++) {
+        if (data()[i][j] != 0) {
+          pivot = j;
+          break;
+        }
+      }
+      if (pivot == m - 1) {
+        return -1;  // could not solve!!
+      }
+      if (pivot == -1) {
+        throw runtime_error("could not find pivot");
+      }
+      ans[pivot] = data()[i].back() / data()[i][pivot];
+      is_free[pivot] = false;
     }
     return rank;
   }

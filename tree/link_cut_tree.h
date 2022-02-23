@@ -15,7 +15,7 @@ template <class node_t>
 struct link_cut_tree : splay_tree<node_t> {
   using base = splay_tree<node_t>;
   using base::nil, base::splay, base::set_child, base::walk_left, base::pull;
-  using base::prev, base::next; // shadow std::
+  using base::splay_prev, base::splay_next;
   vector<node_t> data;
   link_cut_tree(int n): base(), data(n) {
     for (int i = 0; i < n; i++) {
@@ -23,16 +23,38 @@ struct link_cut_tree : splay_tree<node_t> {
     }
   }
   ~link_cut_tree() { base::root = nil; }
-  link_cut_tree(const link_cut_tree&) = delete;
+  link_cut_tree(const link_cut_tree& o): base() {
+    o.copy_to(*this);
+  }
   link_cut_tree& operator = (const link_cut_tree&) = delete;
+
+  void copy_to(link_cut_tree& other) const {
+    other.data = data;
+    for (size_t i = 0; i < data.size(); i++) {
+      if (data[i].parent != nil) {
+        other.data[i].parent = &other.data[data[i].parent - &data[0]];
+      }
+      if (data[i].left != nil) {
+        other.data[i].left = &other.data[data[i].left - &data[0]];
+      }
+      if (data[i].right != nil) {
+        other.data[i].right = &other.data[data[i].right - &data[0]];
+      }
+      if (data[i].chain_parent != nil) {
+        other.data[i].chain_parent = &other.data[data[i].chain_parent - &data[0]];
+      }
+    }
+  }
 
   int size() const { return (int)data.size(); }
   node_t& operator [] (int i) { return data[i]; }
 
   template <class... Args>
-  void init(int i, const Args&... args) {
-    new (&data[i]) node_t(args...);
+  void init(int i, Args&&... args) {
+    new (&data[i]) node_t(forward<Args>(args)...);
   }
+
+  node_t* splay(int u) { return splay(&data[u]); }
 
   node_t* access(int u) { return access(&data[u]); }
   node_t* access(node_t* u) {
@@ -59,7 +81,7 @@ struct link_cut_tree : splay_tree<node_t> {
   void cut(int u, int v) { return cut(&data[u], &data[v]); }
   void cut(node_t* u, node_t* v) {
     access(u);
-    if (node_t* w = splay(prev(u)); w == v) {
+    if (node_t* w = splay_prev(u); w == v) {
       w->right = u->parent = nil;
       u->chain_parent = nil; // disconnect u
       pull(w);
@@ -96,7 +118,7 @@ struct link_cut_tree : splay_tree<node_t> {
     return x == nil ? -1 : (int)(x - &data[0]);
   }
   node_t* parent(node_t* u) {
-    return prev(access(u));
+    return splay_prev(access(u));
   }
 
   int step_down_towards(int r, int u) {
@@ -104,7 +126,7 @@ struct link_cut_tree : splay_tree<node_t> {
   }
   node_t* step_down_towards(node_t* r, node_t* u) {
     access(u);
-    return splay(next(r));
+    return splay_next(r);
   }
 
   template <class... Args>

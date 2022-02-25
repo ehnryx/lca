@@ -10,19 +10,27 @@
 #pragma once
 
 #include "../data_structure/splay_tree.h"
+#include "../misc/fake_memory_pool.h"
 #include "../misc/simple_memory_pool.h"
 
-template <class node_t>
+template <class node_t, bool use_memory_pool = true>
 struct euler_tour_tree : splay_tree<node_t> {
   using base = splay_tree<node_t>;
   using base::nil, base::splay, base::set_child, base::pull;
   using base::walk_left, base::walk_right, base::rank;
 
   using edge_node_t = splay_node<int, node_t*>;
-  simple_memory_pool<node_t> memory;
-  simple_memory_pool<edge_node_t> edge_memory;
+  using node_memory_t = conditional_t<use_memory_pool,
+        simple_memory_pool<node_t>, fake_memory_pool<node_t>>;
+  using edge_node_memory_t = conditional_t<use_memory_pool,
+        simple_memory_pool<edge_node_t>, fake_memory_pool<edge_node_t>>;
+  using edge_set_t = conditional_t<use_memory_pool,
+        splay_tree_shared_memory<edge_node_t>, splay_tree<edge_node_t>>;
+
+  node_memory_t memory;
+  edge_node_memory_t edge_memory;
   vector<node_t> data;
-  vector<splay_tree_shared_memory<edge_node_t>> edges;
+  vector<edge_set_t> edges;
   node_t dummy;
   euler_tour_tree(int n): base(), memory(2 * n), edge_memory(2 * n),
     data(n), edges(n), dummy(*nil) {
@@ -30,7 +38,9 @@ struct euler_tour_tree : splay_tree<node_t> {
       data[i] = node_t();
       data[i].set_ref(true);
       data[i].size = 1;
-      edges[i].shared_memory = &edge_memory;
+      if constexpr (use_memory_pool) {
+        edges[i].shared_memory = &edge_memory;
+      }
     }
   }
   ~euler_tour_tree() { base::root = nil; }

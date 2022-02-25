@@ -256,9 +256,10 @@ struct splay_tree : splay_tree_memory_base<node_t, max_size> {
     return splay(x);
   }
 
-  void erase(node_t* x) {
-    if (x == nil) return;
+  node_t* erase(node_t* x) {
+    if (x == nil) return nil;
     splay(x); // splay should push x
+    bool rightmost = (x->right == nil);
     set_child(nil, x->left, true);
     if (x->right != nil) {
       set_child(nil, x->right, false);
@@ -270,6 +271,7 @@ struct splay_tree : splay_tree_memory_base<node_t, max_size> {
       root = nil;
     }
     del_node(x);
+    return rightmost ? nil : root;
   }
 
   template <bool dir> void erase(iterator<dir> it) {

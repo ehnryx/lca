@@ -125,6 +125,7 @@ struct is_graph_checker<G<T>> {
   static constexpr bool is_graph_list = is_same_v<G<T>, graph_list<T>>;
   static constexpr bool is_graph_matrix = is_same_v<G<T>, graph_matrix<T>>;
   static constexpr bool value = is_graph_list || is_graph_matrix;
+  using weight_t = T;
 };
 template <typename G>
 constexpr bool is_graph_v = is_graph_checker<G>::value;
@@ -132,6 +133,8 @@ template <typename G>
 constexpr bool is_graph_list_v = is_graph_checker<G>::is_graph_list;
 template <typename G>
 constexpr bool is_graph_matrix_v = is_graph_checker<G>::is_graph_matrix;
+template <typename G>
+using get_graph_weight_t = is_graph_checker<G>::weight_t;
 
 template <template <typename> typename graph_t, typename T,
          enable_if_t<is_graph_v<graph_t<T>>, bool> = true>

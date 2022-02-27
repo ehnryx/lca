@@ -1,50 +1,54 @@
-/* Dijkstra
+/* BFS
  * USAGE
- *  auto dist = dijkstra(graph, source);
- * INPUT
- *  graph:  adjacency list of a non-negatively weighted directed graph
- *    graph[i] is a vector of pairs (v, cost of edge i -> v)
- *  source: the vertex from which to run Dijkstra
+ *  dijkstra bfs(graph, source, inf);
  * OUTPUT
- *  dist[i] = distance from source to i
- *  dist[i] = -1 if it is impossible to reach i from source
+ *  distance from source `get_dists()`, bfs tree `get_parents()`
+ *  dist = inf means unreachable
  * TIME
- *  O(V + ElogV)
+ *  O(V + ElogE) maybe
  *  V = #vertices, E = #edges
  * STATUS
- *  tested: kattis/shortestpath1
+ *  untested: cf/20c
  */
 #pragma once
 
-template <typename T, class G>
-vector<T> dijkstra(const G& graph, int source) {
-  vector<T> dist(graph.size(), -1);
-  struct Node {
-    int to;
-    T cost;
-    Node(int a, const T& b): to(a), cost(b) {}
-    bool operator < (const Node& o) const {
-      return o.cost < this->cost;
-    }
-  };
-  priority_queue<Node> todo;
-  todo.emplace(source, 0);
-  dist[source] = 0;
-  vector<bool> vis(graph.size());
-  while (!todo.empty()) {
-    // get u and the distance to u from the queue
-    auto [u, du] = todo.top();
-    todo.pop();
-    if (vis[u]) continue;
-    vis[u] = true;
-    for (auto [v, cost] : graph[u]) {
-      // follow the edge u -> v if we get a shorter distance
-      if (dist[v] == -1 || du + cost < dist[v]) {
-        dist[v] = du + cost;
-        todo.emplace(v, dist[v]);
+template <typename graph_t>
+struct dijkstra {
+  using weight_t = get_graph_weight_t<graph_t>;
+  vector<weight_t> dist;
+  vector<int> parent;
+  dijkstra(const graph_t& graph, int source, weight_t inf):
+    dist(graph.size(), inf), parent(graph.size(), -1) {
+    priority_queue<Item> to_visit;
+    to_visit.emplace(source, weight_t());
+    dist[source] = weight_t();
+    // parent[source] = source;
+    while (!to_visit.empty()) {
+      auto [u, d] = to_visit.top();
+      to_visit.pop();
+      if (d != dist[u]) continue;
+      for (const auto& [v, c] : graph[u]) {
+        if (dist[v] != inf && dist[v] <= d + c) continue;
+        dist[v] = d + c;
+        parent[v] = u;
+        to_visit.emplace(v, dist[v]);
       }
     }
   }
-  return dist;
-}
+  const vector<weight_t>& get_dists() const { return dist; }
+  const vector<int>& get_parents() const { return parent; }
+  vector<int> get_path(int to) const {
+    vector<int> path;
+    for ( ; to != -1; to = parent[to]) {
+      path.push_back(to);
+    }
+    reverse(path.begin(), path.end());
+    return path;
+  }
+  struct Item {
+    int u;
+    weight_t d;
+    bool operator < (const Item& o) const { return d > o.d; }
+  };
+};
 

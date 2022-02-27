@@ -45,5 +45,13 @@ struct breadth_first {
   }
   const vector<int>& get_dists() const { return dist; }
   const vector<int>& get_parents() const { return parent; }
+  vector<int> get_path(int to) const {
+    vector<int> path;
+    for ( ; to != -1; to = parent[to]) {
+      path.push_back(to);
+    }
+    reverse(path.begin(), path.end());
+    return path;
+  }
 };
 

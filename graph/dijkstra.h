@@ -1,6 +1,7 @@
 /* BFS
  * USAGE
  *  dijkstra bfs(graph, source, inf);
+ *  assumes weighted graph
  * OUTPUT
  *  distance from source `get_dists()`, bfs tree `get_parents()`
  *  dist = inf means unreachable
@@ -12,6 +13,7 @@
  */
 #pragma once
 
+#include "graph.h"
 #include "graph_traversal.h"
 
 template <typename graph_t>

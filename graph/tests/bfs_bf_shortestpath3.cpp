@@ -1,13 +1,8 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-#ifdef HENRYX
 #include "../bellman_ford.h"
-#include "../bfs.h"
-#else
-#include "bellman_ford.h"
-#include "bfs.h"
-#endif
+#include "../breadth_first.h"
 
 //using ll = long long;
 constexpr char nl = '\n';
@@ -16,16 +11,19 @@ int main() {
   cin.tie(0)->sync_with_stdio(0);
 
   for (int n, m, q, s; cin >> n >> m >> q >> s && n; ) {
-    vector<tuple<int, int, int>> edges;
-    vector<vector<int>> rev_graph(n);
+    graph_list<int> graph(n);
+    graph_list<void> rev_graph(n);
     for (int i = 0; i < m; i++) {
       int a, b, c;
       cin >> a >> b >> c;
-      edges.emplace_back(a, b, c);
-      rev_graph[b].push_back(a);
+      graph.add_edge(a, b, c);
+      rev_graph.add_edge(b, a);
     }
     const int inf = n * 2000 + 7;
-    auto [dist, neg_cycle] = bellman_ford(edges, n, s, inf, true);
+    bellman_ford bf(graph, s, inf, true);
+    auto negative = bf.get_negatives();
+    auto dist = bf.get_dists();
+    /*auto [dist, neg_cycle] = bellman_ford(edges, n, s, inf, true);
     vector<bool> negative(n);
     if (neg_cycle) {
       for (auto [a, b, c] : edges) {
@@ -33,16 +31,17 @@ int main() {
           negative[b] = true;
         }
       }
-    }
+    }*/
     for (int i = 0; i < q; i++) {
       int v;
       cin >> v;
-      auto rev_dist = bfs(rev_graph, v);
+      breadth_first bfs(rev_graph, v);
+      auto rev_dist = bfs.get_dists();
       bool neg = false;
       for (int j = 0; j < n; j++) {
         if (rev_dist[j] != -1 && negative[j]) {
           neg = true;
-          assert(neg_cycle);
+          assert(bf.has_negative_cycle());
           break;
         }
       }

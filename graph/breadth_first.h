@@ -13,9 +13,10 @@
 #pragma once
 
 #include "../data_structure/circular_buffer.h"
+#include "graph_traversal.h"
 
 template <typename graph_t>
-struct breadth_first {
+struct breadth_first : graph_traversal {
   vector<int> dist, parent;
   breadth_first(const graph_t& graph, int source):
     dist(graph.size(), -1), parent(graph.size(), -1) {
@@ -44,14 +45,6 @@ struct breadth_first {
     }
   }
   const vector<int>& get_dists() const { return dist; }
-  const vector<int>& get_parents() const { return parent; }
-  vector<int> get_path(int to) const {
-    vector<int> path;
-    for ( ; to != -1; to = parent[to]) {
-      path.push_back(to);
-    }
-    reverse(path.begin(), path.end());
-    return path;
-  }
+  const vector<int>& get_parents() const override { return parent; }
 };
 

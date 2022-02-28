@@ -12,8 +12,10 @@
  */
 #pragma once
 
+#include "graph_traversal.h"
+
 template <typename graph_t>
-struct dijkstra {
+struct dijkstra : graph_traversal {
   using weight_t = get_graph_weight_t<graph_t>;
   vector<weight_t> dist;
   vector<int> parent;
@@ -36,15 +38,7 @@ struct dijkstra {
     }
   }
   const vector<weight_t>& get_dists() const { return dist; }
-  const vector<int>& get_parents() const { return parent; }
-  vector<int> get_path(int to) const {
-    vector<int> path;
-    for ( ; to != -1; to = parent[to]) {
-      path.push_back(to);
-    }
-    reverse(path.begin(), path.end());
-    return path;
-  }
+  const vector<int>& get_parents() const override { return parent; }
   struct Item {
     int u;
     weight_t d;

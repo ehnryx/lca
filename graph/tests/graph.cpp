@@ -32,5 +32,15 @@ int main() {
   cerr << "unweighted_matrix" << endl << unweighted_matrix << endl;
   cerr << "weighted_matrix" << endl << weighted_matrix << endl;
 
+  cerr << "-------------------------------------------" << endl;
+  cerr << "edges (unweigted_list):" << endl;
+  for(auto [a, b] : unweighted_list.get_edges()) cerr << a << " " << b << endl;
+  cerr << "edges (weigted_list):" << endl;
+  for(auto [a, b, c] : weighted_list.get_edges()) cerr << a << " " << b << " " << c << endl;
+  cerr << "edges (unweigted_matrix):" << endl;
+  for(auto [a, b] : unweighted_matrix.get_edges()) cerr << a << " " << b << endl;
+  cerr << "edges (weigted_matrix):" << endl;
+  for(auto [a, b, c] : weighted_matrix.get_edges()) cerr << a << " " << b << " " << c << endl;
+
   return 0;
 }

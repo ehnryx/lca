@@ -7,6 +7,8 @@
  */
 #pragma once
 
+#include "graph_views.h"
+
 // AJDACENCY LIST
 
 template <typename weight_t>  // weighted
@@ -20,6 +22,9 @@ struct graph_list {
   }
   const vector<pair<int, weight_t>>& operator [] (int u) const {
     return adj[u];
+  }
+  list_edge_list_view<weight_t> get_edges() const {
+    return list_edge_list_view(this);
   }
 };
 
@@ -35,57 +40,12 @@ struct graph_list<void> {
   const vector<int>& operator [] (int u) const {
     return adj[u];
   }
+  list_edge_list_view<void> get_edges() const {
+    return list_edge_list_view(this);
+  }
 };
 
 // AJDACENCY MATRIX
-
-template <typename> struct graph_matrix;
-
-template <typename weight_t>
-class adj_list_view {
-  static constexpr bool _weighted = graph_matrix<weight_t>::weighted;
-  const graph_matrix<weight_t>* _graph;
-  int _from;
-  struct iterator {
-    using out_t = conditional_t<_weighted, pair<int, weight_t>, int>;
-    const graph_matrix<weight_t>* graph;
-    int from, to;
-    iterator(): graph(nullptr), from(-1), to(-1) {}
-    iterator(const graph_matrix<weight_t>* g, int f, int t): graph(g), from(f), to(t) {}
-    out_t operator * () const {
-      if constexpr (_weighted) {
-        return pair(to, graph->adj[from][to]);
-      } else {
-        return to;
-      }
-    }
-    iterator& operator ++ () {
-      while (++to < (int)graph->adj[from].size()) {
-        if constexpr (_weighted) {
-          if (graph->adj[from][to] != graph->inf) {
-            break;
-          }
-        } else {
-          if (graph->adj[from][to]) {
-            break;
-          }
-        }
-      }
-      return *this;
-    }
-    bool operator == (const iterator& o) const { return to == o.to; }
-    bool operator != (const iterator& o) const { return to != o.to; }
-  };
-public:
-  adj_list_view(const graph_matrix<weight_t>* g, int u):
-    _graph(g), _from(u) {}
-  iterator begin() const {
-    return ++iterator(_graph, _from, -1);
-  }
-  iterator end() const {
-    return iterator(_graph, _from, (int)_graph->adj[_from].size());
-  }
-};
 
 template <typename weight_t>  // weighted
 struct graph_matrix {
@@ -98,8 +58,11 @@ struct graph_matrix {
   void add_edge(int a, int b, weight_t c) {
     adj[a][b] = c;
   }
-  adj_list_view<weight_t> operator [] (int u) const {
-    return adj_list_view(this, u);
+  matrix_adj_list_view<weight_t> operator [] (int u) const {
+    return matrix_adj_list_view(this, u);
+  }
+  matrix_edge_list_view<weight_t> get_edges() const {
+    return matrix_edge_list_view(this);
   }
 };
 
@@ -112,8 +75,11 @@ struct graph_matrix<void> {
   void add_edge(int a, int b) {
     adj[a][b] = true;
   }
-  adj_list_view<void> operator [] (int u) const {
-    return adj_list_view(this, u);
+  matrix_adj_list_view<void> operator [] (int u) const {
+    return matrix_adj_list_view(this, u);
+  }
+  matrix_edge_list_view<void> get_edges() const {
+    return matrix_edge_list_view(this);
   }
 };
 
@@ -154,3 +120,4 @@ ostream& operator << (ostream& os, const graph_t<T>& g) {
   }
   return os;
 }
+

@@ -6,7 +6,7 @@
  * TIME
  *  O(cubic)
  * STATUS
- *  untested
+ *  tested: dmoj/tle17c7p5
  */
 #pragma once
 
@@ -86,9 +86,7 @@ struct hungarian {
           int s = inv[add];
           in_s[s] = true;
           for (int j = 0; j < m; j++) {
-            if (slack[j] != 0) {
-              slack[j] = min(slack[j], left[s] + right[j] - weight[s][j]);
-            }
+            slack[j] = min(slack[j], left[s] + right[j] - weight[s][j]);
           }
         }
 

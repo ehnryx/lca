@@ -2,6 +2,12 @@
 using namespace std;
 
 #include "../hungarian.h"
+#include "../../number/float_with_eps.h"
+
+// using Float = float_with_eps<long double, 1e-11L>;
+// doesn't work ???
+
+using Float = long double;
 
 int main() {
   cin.tie(0)->sync_with_stdio(0);
@@ -20,7 +26,7 @@ int main() {
     b.emplace_back(x, y);
   }
 
-  hungarian<long double> graph(n, n);
+  hungarian<Float> graph(n, n);
   static constexpr long double big = 1e5;
   for (int i = 0; i < n; i++) {
     for (int j = 0; j < n; j++) {
@@ -29,7 +35,7 @@ int main() {
   }
 
   vector<int> res;
-  cerr << "weight: " << n * 1e5 - graph.run() << '\n';
+  cerr << "weight: " << Float(n) * 1e5 - graph.run() << '\n';
   for(int i=0; i<n; i++) {
     cout << i + 1 << " " << graph.match[i] + 1 << '\n';
   }

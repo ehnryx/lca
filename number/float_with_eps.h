@@ -10,8 +10,8 @@ template <typename T, T eps>
 struct float_with_eps {
   T v;
   float_with_eps() = default;
-  float_with_eps(const T& _v): v(_v) {}
   template <typename U> float_with_eps(const U& _v): v(_v) {}
+  T to_float() const { return v; }
   float_with_eps& operator += (const float_with_eps& o) { v += o.v; return *this; }
   float_with_eps& operator -= (const float_with_eps& o) { v -= o.v; return *this; }
   float_with_eps& operator *= (const float_with_eps& o) { v *= o.v; return *this; }

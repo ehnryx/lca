@@ -5,7 +5,7 @@
  * TIME
  *  O(|s|)
  * STATUS
- *  untested
+ *  untested: kattis/stringmatching
  */
 #pragma once
 

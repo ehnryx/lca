@@ -4,7 +4,7 @@
  *  2*i     = x_i is true
  *  2*i + 1 = x_i is false
  *  sat.or_clause(a, b); // adds the clause a OR b is true
- *  vector<bool> sat.solve(); // empty means unsolvable
+ *  bool yes = sat.solve();
  *  sat[i] = whether x_i is true
  * TIME
  *  O(N + M)

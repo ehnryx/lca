@@ -1,9 +1,9 @@
-/* BFS
+/* DFS
  * USAGE
- *  breadth_first bfs(graph, source);
+ *  depth_first bfs(graph, source);
  * OUTPUT
- *  distance from source `get_dists()`, bfs tree `get_parents()`
- *  dist = -1 means unreachable
+ *  distance from source `get_dists()`, dfs tree `get_parents()`
+ *  parent = -1 means unreachable
  * TIME
  *  O(V + E) maybe
  *  V = #vertices, E = #edges
@@ -16,35 +16,30 @@
 #include "graph_traversal.h"
 
 template <typename graph_t>
-struct breadth_first : graph_traversal {
-  vector<int> dist, parent;
-  breadth_first(const graph_t& graph, int source):
-    dist(graph.size(), -1), parent(graph.size(), -1) {
+struct depth_first : graph_traversal {
+  vector<int> parent;
+  depth_first(const graph_t& graph, int source): parent(graph.size(), -1) {
     circular_buffer<int> to_visit(graph.size());
     to_visit.push_back(source);
-    dist[source] = 0;
     parent[source] = source;
     while (!to_visit.empty()) {
-      int u = to_visit.front();
-      to_visit.pop_front();
+      int u = to_visit.back();
+      to_visit.pop_back();
       if constexpr (graph_t::weighted) {
         for (const auto& [v, _] : graph[u]) {
-          if (dist[v] != -1) continue;
-          dist[v] = dist[u] + 1;
+          if (parent[v] != -1) continue;
           parent[v] = u;
           to_visit.push_back(v);
         }
       } else {
         for (int v : graph[u]) {
-          if (dist[v] != -1) continue;
-          dist[v] = dist[u] + 1;
+          if (parent[v] != -1) continue;
           parent[v] = u;
           to_visit.push_back(v);
         }
       }
     }
   }
-  const vector<int>& get_dists() const { return dist; }
   const vector<int>& get_parents() const override { return parent; }
 };
 

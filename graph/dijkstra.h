@@ -26,7 +26,7 @@ struct dijkstra : graph_traversal {
     priority_queue<Item> to_visit;
     to_visit.emplace(source, weight_t());
     dist[source] = weight_t();
-    // parent[source] = source;
+    parent[source] = source;
     while (!to_visit.empty()) {
       auto [u, d] = to_visit.top();
       to_visit.pop();

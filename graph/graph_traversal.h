@@ -11,8 +11,10 @@ struct graph_traversal {
   virtual const vector<int>& get_parents() const = 0;
   vector<int> get_path(int to) const {
     vector<int> path;
-    for ( ; to != -1; to = get_parents()[to]) {
+    while (true) {
       path.push_back(to);
+      if (to == get_parents()[to]) break;
+      to = get_parents()[to];
     }
     reverse(path.begin(), path.end());
     return path;

@@ -35,6 +35,7 @@ struct bellman_ford : graph_traversal {
     dist(graph.size(), inf), parent(graph.size(), -1),
     in_neg(graph.size(), false), has_neg(false) {
     dist[source] = 0;
+    parent[source] = source;
     auto edge_view = graph.get_edges();
     for (int i = 1; i < graph.size(); i++) {
       for (auto [a, b, cost] : edge_view) {

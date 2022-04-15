@@ -70,6 +70,7 @@ class list_edge_list_view {
     bool operator == (const iterator& o) const {
       return to == o.to && from == o.from;
     }
+    bool operator != (const iterator& o) const { return !operator == (o); } // c++17
   };
 public:
   list_edge_list_view(const graph_list<weight_t>* g): _graph(g) {}
@@ -114,6 +115,7 @@ class matrix_adj_list_view {
     bool operator == (const iterator& o) const {
       return to == o.to;
     }
+    bool operator != (const iterator& o) const { return !operator == (o); } // c++17
   };
 public:
   matrix_adj_list_view(const graph_matrix<weight_t>* g, int u):
@@ -163,6 +165,7 @@ class matrix_edge_list_view {
     bool operator == (const iterator& o) const {
       return to == o.to && from == o.from;
     }
+    bool operator != (const iterator& o) const { return !operator == (o); } // c++17
   };
 public:
   matrix_edge_list_view(const graph_matrix<weight_t>* g): _graph(g) {}

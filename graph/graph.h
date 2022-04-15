@@ -18,10 +18,13 @@ template <typename weight_t>  // weighted
 struct graph_list {
   static constexpr bool weighted = true;
   std::vector<std::vector<graph_adj<weight_t>>> adj;
-  graph_list(int n): adj(n) {}
+  std::vector<int> in_degree, out_degree;
+  graph_list(int n): adj(n), in_degree(n), out_degree(n) {}
   int size() const { return (int)adj.size(); }
   void add_edge(int a, int b, weight_t c) {
     adj[a].emplace_back(b, c);
+    in_degree[b]++;
+    out_degree[a]++;
   }
   const std::vector<graph_adj<weight_t>>& operator [] (int u) const {
     return adj[u];
@@ -35,10 +38,13 @@ template <>  // unweighted
 struct graph_list<void> {
   static constexpr bool weighted = false;
   std::vector<std::vector<int>> adj;
-  graph_list(int n): adj(n) {}
+  std::vector<int> in_degree, out_degree;
+  graph_list(int n): adj(n), in_degree(n), out_degree(n) {}
   int size() const { return (int)adj.size(); }
   void add_edge(int a, int b) {
     adj[a].emplace_back(b);
+    in_degree[b]++;
+    out_degree[a]++;
   }
   const std::vector<int>& operator [] (int u) const {
     return adj[u];
@@ -54,12 +60,15 @@ template <typename weight_t>  // weighted
 struct graph_matrix {
   static constexpr bool weighted = true;
   std::vector<std::vector<weight_t>> adj;
+  std::vector<int> in_degree, out_degree;
   weight_t inf;
   graph_matrix(int n, weight_t _inf):
-    adj(n, std::vector<weight_t>(n, _inf)), inf(_inf) {}
+    adj(n, std::vector<weight_t>(n, _inf)), in_degree(n), out_degree(n), inf(_inf) {}
   int size() const { return (int)adj.size(); }
   void add_edge(int a, int b, weight_t c) {
     adj[a][b] = c;
+    in_degree[b]++;
+    out_degree[a]++;
   }
   matrix_adj_list_view<weight_t> operator [] (int u) const {
     return matrix_adj_list_view(this, u);
@@ -73,10 +82,14 @@ template <>  // unweighted
 struct graph_matrix<void> {
   static constexpr bool weighted = false;
   std::vector<std::vector<bool>> adj;
-  graph_matrix(int n): adj(n, std::vector<bool>(n)) {}
+  std::vector<int> in_degree, out_degree;
+  graph_matrix(int n):
+    adj(n, std::vector<bool>(n)), in_degree(n), out_degree(n) {}
   int size() const { return (int)adj.size(); }
   void add_edge(int a, int b) {
     adj[a][b] = true;
+    in_degree[b]++;
+    out_degree[a]++;
   }
   matrix_adj_list_view<void> operator [] (int u) const {
     return matrix_adj_list_view(this, u);
@@ -103,7 +116,7 @@ constexpr bool is_graph_list_v = is_graph_checker<G>::is_graph_list;
 template <typename G>
 constexpr bool is_graph_matrix_v = is_graph_checker<G>::is_graph_matrix;
 template <typename G>
-using get_graph_weight_t = is_graph_checker<G>::weight_t;
+using get_graph_weight_t = typename is_graph_checker<G>::weight_t;
 
 template <template <typename> typename graph_t, typename T,
          std::enable_if_t<is_graph_v<graph_t<T>>, bool> = true>

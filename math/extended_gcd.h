@@ -7,10 +7,12 @@
  */
 #pragma once
 
+#include <utility>
+
 template <typename T>
-tuple<T, T, T> extended_gcd(T a, T b) {
-  if (b == 0) return tuple(a, 1, 0);
+std::tuple<T, T, T> extended_gcd(T a, T b) {
+  if (b == 0) return std::tuple(a, 1, 0);
   auto [g, y, x] = extended_gcd(b, a % b);
-  return tuple(g, x, y - x * (a / b));
+  return std::tuple(g, x, y - x * (a / b));
 }
 

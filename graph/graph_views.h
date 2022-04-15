@@ -1,31 +1,60 @@
 /* Graph (???)
  * USAGE
- *  graph_list<edge_t> graph(n); // n = number of vertices
+ *  graph_list<graph_edge<weight_t>> graph(n); // n = number of vertices
  *  graph.add_edge(a, b, weight);
  * STATUS
  *  untested
  */
 #pragma once
 
+#include <type_traits>
+#include <utility>
+
 template <typename> struct graph_list;
 template <typename> struct graph_matrix;
 
 template <typename weight_t>
+struct graph_adj {
+  int to;
+  weight_t weight;
+  graph_adj(int v, weight_t w): to(v), weight(w) {}
+};
+
+template <>
+struct graph_adj<void> {
+  int to;
+  graph_adj(int v): to(v) {}
+  operator int() const { return to; }
+};
+
+template <typename weight_t>
+struct graph_edge {
+  int from, to;
+  weight_t weight;
+  graph_edge(int u, int v, weight_t w): from(u), to(v), weight(w) {}
+  graph_edge(int u, graph_adj<weight_t> adj): from(u), to(adj.to), weight(adj.weight) {}
+};
+
+template <>
+struct graph_edge<void> {
+  int from, to;
+  graph_edge(int u, int v): from(u), to(v) {}
+  operator std::pair<int, int>() const { return std::pair(from, to); }
+};
+
+static_assert(sizeof(graph_edge<void>) == sizeof(std::pair<int, int>));
+static_assert(sizeof(graph_adj<void>) == sizeof(int));
+
+template <typename weight_t>
 class list_edge_list_view {
-  static constexpr bool _weighted = graph_list<weight_t>::weighted;
   const graph_list<weight_t>* _graph;
   struct iterator {
-    using out_t = conditional_t<_weighted, tuple<int, int, weight_t>, pair<int, int>>;
     const graph_list<weight_t>* graph;
     int from, to;
     iterator(): graph(nullptr), from(-1), to(-1) {}
     iterator(const graph_list<weight_t>* g, int f, int t): graph(g), from(f), to(t) {}
-    out_t operator * () const {
-      if constexpr (_weighted) {
-        return tuple(from, graph->adj[from][to].first, graph->adj[from][to].second);
-      } else {
-        return pair(from, graph->adj[from][to]);
-      }
+    graph_edge<weight_t> operator * () const {
+      return graph_edge<weight_t>(from, graph->adj[from][to]);
     }
     iterator& operator ++ () {
       while (from < (int)graph->adj.size()) {
@@ -54,30 +83,28 @@ public:
 
 template <typename weight_t>
 class matrix_adj_list_view {
-  static constexpr bool _weighted = graph_matrix<weight_t>::weighted;
   const graph_matrix<weight_t>* _graph;
   int _from;
   struct iterator {
-    using out_t = conditional_t<_weighted, pair<int, weight_t>, int>;
     const graph_matrix<weight_t>* graph;
     int from, to;
     iterator(): graph(nullptr), from(-1), to(-1) {}
     iterator(const graph_matrix<weight_t>* g, int f, int t): graph(g), from(f), to(t) {}
-    out_t operator * () const {
-      if constexpr (_weighted) {
-        return pair(to, graph->adj[from][to]);
+    graph_adj<weight_t> operator * () const {
+      if constexpr (std::is_void_v<weight_t>) {
+        return graph_adj<weight_t>(to);
       } else {
-        return to;
+        return graph_adj<weight_t>(to, graph->adj[from][to]);
       }
     }
     iterator& operator ++ () {
       while (++to < (int)graph->adj[from].size()) {
-        if constexpr (_weighted) {
-          if (graph->adj[from][to] != graph->inf) {
+        if constexpr (std::is_void_v<weight_t>) {
+          if (graph->adj[from][to]) {
             break;
           }
         } else {
-          if (graph->adj[from][to]) {
+          if (graph->adj[from][to] != graph->inf) {
             break;
           }
         }
@@ -101,19 +128,17 @@ public:
 
 template <typename weight_t>
 class matrix_edge_list_view {
-  static constexpr bool _weighted = graph_matrix<weight_t>::weighted;
   const graph_matrix<weight_t>* _graph;
   struct iterator {
-    using out_t = conditional_t<_weighted, tuple<int, int, weight_t>, pair<int, int>>;
     const graph_matrix<weight_t>* graph;
     int from, to;
     iterator(): graph(nullptr), from(-1), to(-1) {}
     iterator(const graph_matrix<weight_t>* g, int f, int t): graph(g), from(f), to(t) {}
-    out_t operator * () const {
-      if constexpr (_weighted) {
-        return tuple(from, to, graph->adj[from][to]);
+    graph_edge<weight_t> operator * () const {
+      if constexpr (std::is_void_v<weight_t>) {
+        return graph_edge<weight_t>(from, to);
       } else {
-        return pair(from, to);
+        return graph_edge<weight_t>(from, to, graph->adj[from][to]);
       }
     }
     iterator& operator ++ () {
@@ -123,12 +148,12 @@ class matrix_edge_list_view {
           from++;
           continue;
         }
-        if constexpr (_weighted) {
-          if (graph->adj[from][to] != graph->inf) {
+        if constexpr (std::is_void_v<weight_t>) {
+          if (graph->adj[from][to]) {
             break;
           }
         } else {
-          if (graph->adj[from][to]) {
+          if (graph->adj[from][to] != graph->inf) {
             break;
           }
         }

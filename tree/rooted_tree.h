@@ -20,22 +20,28 @@
  */
 #pragma once
 
+#include <vector>
+
 struct rooted_tree {
-  vector<vector<int>> adj;
-  vector<int> parent, depth, subtree, start, preorder, in, out;
-  const vector<int>& operator [] (int i) const { return adj[i]; }
-  rooted_tree(const vector<vector<int>>& adj_list, int root): adj(adj_list),
-    parent(adj.size(), -1), depth(adj.size()), subtree(adj.size()), start(adj.size()),
-    in(adj.size()), out(adj.size()) {
-    preorder.reserve(adj.size());
+  std::vector<std::vector<int>> adj;
+  std::vector<int> parent, depth, subtree, start, preorder, in, out;
+  int root;
+
+  rooted_tree(const std::vector<std::vector<int>>& adj_list, int r): adj(adj_list),
+    parent(size(), -1), depth(size()), subtree(size()), start(size()),
+    in(size()), out(size()), root(r) {
+    preorder.reserve(size());
     build(root, -1, 0);
   }
-  rooted_tree(vector<vector<int>>&& adj_list, int root): adj(move(adj_list)),
-    parent(adj.size(), -1), depth(adj.size()), subtree(adj.size()), start(adj.size()),
-    in(adj.size()), out(adj.size()) {
-    preorder.reserve(adj.size());
+  rooted_tree(std::vector<std::vector<int>>&& adj_list, int r): adj(move(adj_list)),
+    parent(size(), -1), depth(size()), subtree(size()), start(size()),
+    in(size()), out(size()), root(r) {
+    preorder.reserve(size());
     build(root, -1, 0);
   }
+
+  const std::vector<int>& operator [] (int i) const { return adj[i]; }
+  size_t size() const { return adj.size(); }
 
   bool is_ancestor_of(int anc, int v, bool strict = true) const {
     if (strict) return in[anc] < in[v] && out[anc] > out[v];
@@ -51,7 +57,7 @@ private:
     subtree[u] = 1;
     if (par != -1) {
       depth[u] = depth[par] + 1;
-      vector<int>::iterator it = find(adj[u].begin(), adj[u].end(), par);
+      std::vector<int>::iterator it = find(adj[u].begin(), adj[u].end(), par);
       if (it != adj[u].end()) {
         adj[u].erase(it);
       }

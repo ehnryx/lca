@@ -9,18 +9,21 @@
 
 #include "graph_views.h"
 
+#include <ostream>
+#include <vector>
+
 // AJDACENCY LIST
 
 template <typename weight_t>  // weighted
 struct graph_list {
   static constexpr bool weighted = true;
-  vector<vector<pair<int, weight_t>>> adj;
+  std::vector<std::vector<graph_adj<weight_t>>> adj;
   graph_list(int n): adj(n) {}
   int size() const { return (int)adj.size(); }
   void add_edge(int a, int b, weight_t c) {
     adj[a].emplace_back(b, c);
   }
-  const vector<pair<int, weight_t>>& operator [] (int u) const {
+  const std::vector<graph_adj<weight_t>>& operator [] (int u) const {
     return adj[u];
   }
   list_edge_list_view<weight_t> get_edges() const {
@@ -31,13 +34,13 @@ struct graph_list {
 template <>  // unweighted
 struct graph_list<void> {
   static constexpr bool weighted = false;
-  vector<vector<int>> adj;
+  std::vector<std::vector<int>> adj;
   graph_list(int n): adj(n) {}
   int size() const { return (int)adj.size(); }
   void add_edge(int a, int b) {
     adj[a].emplace_back(b);
   }
-  const vector<int>& operator [] (int u) const {
+  const std::vector<int>& operator [] (int u) const {
     return adj[u];
   }
   list_edge_list_view<void> get_edges() const {
@@ -50,10 +53,10 @@ struct graph_list<void> {
 template <typename weight_t>  // weighted
 struct graph_matrix {
   static constexpr bool weighted = true;
-  vector<vector<weight_t>> adj;
+  std::vector<std::vector<weight_t>> adj;
   weight_t inf;
   graph_matrix(int n, weight_t _inf):
-    adj(n, vector<weight_t>(n, _inf)), inf(_inf) {}
+    adj(n, std::vector<weight_t>(n, _inf)), inf(_inf) {}
   int size() const { return (int)adj.size(); }
   void add_edge(int a, int b, weight_t c) {
     adj[a][b] = c;
@@ -69,8 +72,8 @@ struct graph_matrix {
 template <>  // unweighted
 struct graph_matrix<void> {
   static constexpr bool weighted = false;
-  vector<vector<bool>> adj;
-  graph_matrix(int n): adj(n, vector<bool>(n)) {}
+  std::vector<std::vector<bool>> adj;
+  graph_matrix(int n): adj(n, std::vector<bool>(n)) {}
   int size() const { return (int)adj.size(); }
   void add_edge(int a, int b) {
     adj[a][b] = true;
@@ -88,8 +91,8 @@ struct graph_matrix<void> {
 template <typename G> struct is_graph_checker {};
 template <template <typename> typename G, typename T>
 struct is_graph_checker<G<T>> {
-  static constexpr bool is_graph_list = is_same_v<G<T>, graph_list<T>>;
-  static constexpr bool is_graph_matrix = is_same_v<G<T>, graph_matrix<T>>;
+  static constexpr bool is_graph_list = std::is_same_v<G<T>, graph_list<T>>;
+  static constexpr bool is_graph_matrix = std::is_same_v<G<T>, graph_matrix<T>>;
   static constexpr bool value = is_graph_list || is_graph_matrix;
   using weight_t = T;
 };
@@ -103,11 +106,11 @@ template <typename G>
 using get_graph_weight_t = is_graph_checker<G>::weight_t;
 
 template <template <typename> typename graph_t, typename T,
-         enable_if_t<is_graph_v<graph_t<T>>, bool> = true>
-ostream& operator << (ostream& os, const graph_t<T>& g) {
+         std::enable_if_t<is_graph_v<graph_t<T>>, bool> = true>
+std::ostream& operator << (std::ostream& os, const graph_t<T>& g) {
   for (int u = 0; u < g.size(); u++) {
     os << u << " -> [";
-    if constexpr (is_void_v<T>) {
+    if constexpr (std::is_void_v<T>) {
       for (int v : g[u]) {
         os << " " << v << ", ";
       }

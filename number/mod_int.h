@@ -11,12 +11,16 @@
 #pragma once
 
 #include "../math/extended_gcd.h"
+#include <iostream>
 
 template <long long mod_value, bool is_prime = true>
 struct mod_int {
   static_assert(mod_value > 0);
-  using mod_t = conditional_t < mod_value < 1LL << 31, int, long long>;
-  using larger_t = conditional_t < mod_value < 1LL << 31, long long, __int128>;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic" // ISO C++ __int128
+  using mod_t = std::conditional_t < mod_value < 1LL << 31, int, long long>;
+  using larger_t = std::conditional_t < mod_value < 1LL << 31, long long, __int128>;
+#pragma GCC diagnostic pop
   static constexpr mod_t mod = mod_value;
   mod_t v;
   mod_int(): v(0) {}
@@ -29,17 +33,17 @@ struct mod_int {
     if (v < 0) v += mod;
   }
   void assign(mod_t c) { v = c; }
-  friend istream& operator >> (istream& is, mod_int& num) {
+  friend std::istream& operator >> (std::istream& is, mod_int& num) {
     is >> num.v;
     if (abs(num.v) >= mod) num.v %= mod;
     if (num.v < 0) num.v += mod;
     return is;
   }
-  friend ostream& operator << (ostream& os, const mod_int& num) {
+  friend std::ostream& operator << (std::ostream& os, const mod_int& num) {
     return os << num.v;
   }
   const mod_t& value() const { return v; }
-  const mod_t& legible_value() const { return 2*num.v <= mod ? num.v : num.v - mod; }
+  const mod_t& legible_value() const { return 2*v <= mod ? v : v - mod; }
   bool operator == (const mod_int& o) const { return v == o.v; }
   bool operator != (const mod_int& o) const { return v != o.v; }
   mod_int operator + (const mod_int& o) const { return mod_int(*this) += o; }
@@ -71,7 +75,9 @@ struct mod_int {
   mod_int pow(long long exponent) const {
     if (exponent == 0) return mod_int(1);
     if (v == 0) {
-      if (exponent < 0) throw invalid_argument("raising zero to a negative power");
+      if (exponent < 0) {
+        throw std::invalid_argument("raising zero to a negative power");
+      }
       return mod_int(0);
     }
     if constexpr (is_prime) {
@@ -94,8 +100,10 @@ struct mod_int {
   }
   mod_int inverse() const {
     auto [g, x, y] = extended_gcd(mod, v);
-    if (g != 1) throw invalid_argument("taking the inverse of a non-coprime number");
-    assert(operator*(mod_int(y)) == 1);
+    if (g != 1) {
+      throw std::invalid_argument("taking the inverse of a non-coprime number");
+    }
+    assert(operator * (mod_int(y)) == 1);
     return mod_int(y < 0 ? y + mod : y);
   }
 };

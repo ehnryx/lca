@@ -1,11 +1,8 @@
 #!/bin/bash
 
 temp="temp_unused_filename"
-echo "#include <bits/stdc++.h>
-using namespace std;
-using ll = long long;
-using ld = long double;
-const ld EPS = 1e-9; // for geometry
+echo "//#include <bits/stdc++.h>
+//using namespace std;
 int main() {}" > $temp.cpp
 
 echo "test compile"

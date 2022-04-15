@@ -4,8 +4,8 @@
  * MEMBERS
  *  void push_back(T);
  *  void push_front(T);
- *  T pop_back();
- *  T pop_front();
+ *  void pop_back();
+ *  void pop_front();
  *  T front();
  *  T back();
  * TIME
@@ -66,7 +66,7 @@ struct circular_buffer_data_N final : circular_buffer_data<T> {
     return data[fp];
   }
   const T& back() const override {
-    return bp ? data[bp] : data[capacity() - 1];
+    return bp ? data[bp - 1] : data[capacity() - 1];
   }
   bool empty() const override {
     return fp == bp;

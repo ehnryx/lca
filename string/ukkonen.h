@@ -10,62 +10,69 @@
  */
 #pragma once
 
+#include <array>
+#include <map>
+#include <stdexcept>
+#include <string>
+#include <vector>
+
+template <typename to_int>
+struct suffix_node {
+  static constexpr size_t npos = -1;
+  // array
+  size_t parent;
+  size_t slink; // suffix link from end of range
+  size_t left, right; // substring range
+  std::array<size_t, to_int::size> to; // children
+  int depth; // depth of node, measured in number of chars before node
+  size_t length() const { return right - left; }
+  suffix_node(): parent(-1), slink(-1), left(-1), right(-1), depth(0) {
+    fill(to.begin(), to.end(), -1);
+  }
+  bool has_neighbour(int c) const { return to[c] != npos; }
+  template <typename T>
+  size_t get(const T& c) const { return to[to_int::toi(c)]; }
+
+  struct iterator {
+    suffix_node const* ref;
+    int i;
+    iterator(suffix_node const* _ref, int pos): ref(_ref), i(pos) {
+      while (i < to_int::size && ref->to[i] == (size_t)-1) {
+        i += 1;
+      }
+    }
+    auto operator * () const { return pair(to_int::toc(i), ref->to[i]); }
+    iterator& operator ++ () { return *this = iterator(ref, i + 1); }
+    iterator& operator ++ (int) { return *this = iterator(ref, i + 1); }
+    bool operator == (const iterator& o) const { return i == o.i; }
+    bool operator != (const iterator& o) const { return i != o.i; }
+  };
+  iterator begin() const { return iterator(this, 0); }
+  iterator end() const { return iterator(this, to_int::size); }
+};
+
+template <>
+struct suffix_node<void> {
+  static constexpr size_t npos = -1;
+  // map
+  size_t parent;
+  size_t slink;
+  size_t left, right;
+  std::map<int, size_t> to;
+  int depth;
+  size_t length() const { return right - left; }
+  suffix_node(): parent(-1), slink(-1), left(-1), right(-1), depth(0) {}
+  bool has_neighbour(int c) const { return to.count(c); }
+  size_t get(int c) const { return to.at(c); }
+};
+
 template <class to_int = void>
 struct ukkonen {
-  static constexpr size_t npos = -1;
+  static constexpr size_t npos = suffix_node<to_int>::npos;
 
-  template <class to_int_f, typename = void>
-  struct suffix_node {
-    // array
-    size_t parent;
-    size_t slink; // suffix link from end of range
-    size_t left, right; // substring range
-    array<size_t, to_int_f::alpha> to; // children
-    int depth; // depth of node, measured in number of chars before node
-    size_t length() const { return right - left; }
-    suffix_node(): parent(-1), slink(-1), left(-1), right(-1), depth(0) {
-      fill(to.begin(), to.end(), -1);
-    }
-    bool has_neighbour(int c) const { return to[c] != npos; }
-    size_t get(const typename to_int_f::T& c) const { return to[to_int_f::toi(c)]; }
-
-    struct iterator {
-      suffix_node const* ref;
-      int i;
-      iterator(suffix_node const* _ref, int pos): ref(_ref), i(pos) {
-        while (i < to_int_f::alpha && ref->to[i] == (size_t)-1) {
-          i += 1;
-        }
-      }
-      pair<typename to_int_f::T, size_t> operator * () const {
-        return pair(to_int_f::toc(i), ref->to[i]);
-      }
-      iterator& operator ++ () { return *this = iterator(ref, i + 1); }
-      iterator& operator ++ (int) { return *this = iterator(ref, i + 1); }
-      bool operator == (const iterator& o) const { return i == o.i; }
-      bool operator != (const iterator& o) const { return i != o.i; }
-    };
-    iterator begin() const { return iterator(this, 0); }
-    iterator end() const { return iterator(this, to_int_f::alpha); }
-  };
-
-  template <class to_int_f>
-  struct suffix_node<to_int_f, enable_if_t<is_void_v<to_int_f>>> {
-    // map
-    size_t parent;
-    size_t slink;
-    size_t left, right;
-    map<int, size_t> to;
-    int depth;
-    size_t length() const { return right - left; }
-    suffix_node(): parent(-1), slink(-1), left(-1), right(-1), depth(0) {}
-    bool has_neighbour(int c) const { return to.count(c); }
-    size_t get(int c) const { return to.at(c); }
-  };
-
-  vector<suffix_node<to_int>> nodes;
+  std::vector<suffix_node<to_int>> nodes;
   size_t cur_node, cur_pos;
-  basic_string<int> t;
+  std::basic_string<int> t;
 
   ukkonen(size_t reserve_length = 0): nodes(1), cur_node(0), cur_pos(0) {
     nodes[0].left = nodes[0].right = 0; // root is 0
@@ -73,7 +80,8 @@ struct ukkonen {
     t.reserve(reserve_length);
   }
 
-  ukkonen(const string& s): ukkonen(s.size() + 1) {
+  template <typename T>
+  ukkonen(const std::basic_string<T>& s): ukkonen(s.size() + 1) {
     for (size_t i = 0; i < s.size(); i++) {
       ukk_add(convert(s[i]), i);
     }
@@ -83,17 +91,17 @@ struct ukkonen {
 
   template <typename T>
   int convert(T c) const {
-    if constexpr (is_void_v<to_int>) {
-      if (c == 0) throw invalid_argument("0 is reserved for the terminal");
+    if constexpr (std::is_void_v<to_int>) {
+      if (c == 0) throw std::invalid_argument("0 is reserved for the terminal");
       return (int)c;
     } else {
-      if (to_int::toi(c) == 0) throw invalid_argument("0 is reserved for the terminal");
-      return to_int::toi(c);
+      int converted = to_int::toi(c);
+      if (converted == 0) throw std::invalid_argument("0 is reserved for the terminal");
+      return converted;
     }
   }
 
-
-  pair<size_t, size_t> get_next_pos(size_t idx, size_t pos) {
+  std::pair<size_t, size_t> get_next_pos(size_t idx, size_t pos) {
     /*/ quick check
     if (pos == nodes[idx].right && nodes[idx].slink != npos) {
       return pair(nodes[idx].slink, nodes[nodes[idx].slink].right);
@@ -117,7 +125,7 @@ struct ukkonen {
         len -= nodes[new_idx].length();
       }
     }
-    return pair(new_idx, new_pos);
+    return std::pair(new_idx, new_pos);
   }
 
   void ukk_add(int c, size_t index) {
@@ -131,7 +139,7 @@ struct ukkonen {
           break; // single-char branch means that this phase is done
         }
         // just go to the next position
-        tie(cur_node, cur_pos) = get_next_pos(cur_node, cur_pos);
+        std::tie(cur_node, cur_pos) = get_next_pos(cur_node, cur_pos);
         continue;
       }
 
@@ -184,7 +192,7 @@ struct ukkonen {
         break;
       }
       // walk to the next position
-      tie(cur_node, cur_pos) = get_next_pos(cur_node, cur_pos);
+      std::tie(cur_node, cur_pos) = get_next_pos(cur_node, cur_pos);
     }
 
     // increment cur_pos
@@ -222,24 +230,24 @@ struct ukkonen {
   // return: (node, idx in range[node]) of the past-the-end of the match.
   //         (-1, -1) if not matched
   template <typename T>
-  pair<int, int> match(const basic_string<T>& s) const {
+  std::pair<int, int> match(const std::basic_string<T>& s) const {
     int u = root();
     int idx = 0;
     for (size_t i = 0; i < s.size(); i++) {
       if (idx == (int)nodes[u].right) {
         u = (int)nodes[u].get(s[i]);
         if (u == -1) {
-          return pair(-1, -1);
+          return std::pair(-1, -1);
         }
         idx = (int)nodes[u].left;
       }
       if (convert(s[i]) == t[idx]) {
         idx++;
       } else {
-        return pair(-1, -1);
+        return std::pair(-1, -1);
       }
     }
-    return pair(u, idx);
+    return std::pair(u, idx);
   }
   // END suffix tree functions
 };

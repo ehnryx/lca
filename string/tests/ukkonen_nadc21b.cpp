@@ -3,6 +3,8 @@ using namespace std;
 
 #include "../ukkonen.h"
 
+// submit to https://open.kattis.com/problems/anothersubstringqueryproblem
+
 #include <ext/pb_ds/assoc_container.hpp>
 #include <ext/pb_ds/tree_policy.hpp>
 using namespace __gnu_pbds;
@@ -14,8 +16,8 @@ constexpr char nl = '\n';
 struct to_int {
   static int toi(char c) { return c - 'a' + 1; }
   static int toc(int i) { return i + 'a' - 1; }
-  static const int alpha = 27;
-  using T = char;
+  static const int size = 27;
+  // using T = char;
 };
 
 ordered_set<int> dfs(

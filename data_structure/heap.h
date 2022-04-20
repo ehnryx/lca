@@ -14,9 +14,12 @@
  */
 #pragma once
 
-template <typename T, class Compare = less<>>
+#include <vector>
+#include <limits>
+
+template <typename T, class Compare = std::less<>>
 struct heap {
-  vector<T> data;
+  std::vector<T> data;
 
   heap(int n = 0) {
     data.reserve(n);
@@ -25,7 +28,7 @@ struct heap {
   heap(InputIt first, InputIt last): data(first, last) {
     heapify(0);
   }
-  heap(const vector<T>& v): heap(v.begin(), v.end()) {}
+  heap(const std::vector<T>& v): heap(v.begin(), v.end()) {}
 
   void push(const T& v) {
     data.push_back(v);
@@ -59,10 +62,10 @@ struct heap {
     _push_down(i);
   }
 
-  vector<T> ordered(size_t limit = numeric_limits<size_t>::max()) const {
+  std::vector<T> ordered(size_t limit = std::numeric_limits<size_t>::max()) const {
     if (empty()) return {};
-    vector<T> res;
-    heap<pair<T, size_t>> bfs;
+    std::vector<T> res;
+    heap<std::pair<T, size_t>> bfs;
     bfs.emplace(data.front(), 0);
     while (!bfs.empty()) {
       auto [value, index] = bfs.top();

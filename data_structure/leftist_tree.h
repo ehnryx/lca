@@ -51,7 +51,7 @@ struct leftist_node_lazy {
   }
 };
 
-template <typename T, typename node_t = leftist_node<T>, class Compare = less<>>
+template <typename T, typename node_t = leftist_node<T>, class Compare = std::less<>>
 struct leftist_tree {
   MEMBER_FUNCTION_CHECKER(push);
   static constexpr bool has_push = _has_push<node_t>::value;
@@ -89,7 +89,7 @@ struct leftist_tree {
     return a;
   }
   template <typename U, bool can_push = has_push>
-  enable_if_t<can_push> lazy_add(U val) {
+  std::enable_if_t<can_push> lazy_add(U val) {
     if (root != nullptr) {
       root->put(val);
     }

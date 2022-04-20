@@ -13,6 +13,8 @@
  */
 #pragma once
 
+#include <set>
+
 template <typename T>
 struct dynamic_hull_line {
   T m, b;
@@ -23,18 +25,17 @@ struct dynamic_hull_line {
 };
 
 template <typename T>
-struct dynamic_hull : multiset<dynamic_hull_line<T>, less<>> {
-  using base = multiset<dynamic_hull_line<T>, less<>>;
-  using base_it = typename multiset<dynamic_hull_line<T>, less<>>::iterator;
-  static constexpr T inf = numeric_limits<T>::has_infinity ?
-    numeric_limits<T>::infinity() : numeric_limits<T>::max();
-  template <typename U = T>
-  static enable_if_t<is_floating_point_v<U>, T> div(const T& a, const T& b) {
-    return a / b;
-  }
-  template <typename U = T>
-  static enable_if_t<!is_floating_point_v<U>, T> div(const T& a, const T& b) {
-    return a / b - ((a ^ b) < 0 && a % b != 0);
+struct dynamic_hull : std::multiset<dynamic_hull_line<T>, std::less<>> {
+  using base = std::multiset<dynamic_hull_line<T>, std::less<>>;
+  using base_it = typename base::iterator;
+  static constexpr T inf = std::numeric_limits<T>::has_infinity ?
+    std::numeric_limits<T>::infinity() : std::numeric_limits<T>::max();
+  static T div(const T& a, const T& b) {
+    if constexpr (std::is_floating_point_v<T>) {
+      return a / b;
+    } else {
+      return a / b - ((a ^ b) < 0 && a % b != 0);
+    }
   }
   T intersect(base_it it, base_it jt) {
     if (jt == base::end()) return inf;

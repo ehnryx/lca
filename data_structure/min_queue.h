@@ -15,7 +15,7 @@
 
 #include "min_stack.h"
 
-template <typename T, class Compare = less<>>
+template <typename T, class Compare = std::less<>>
 struct min_queue {
   min_stack<T, Compare> in, out;
   min_queue() = default;

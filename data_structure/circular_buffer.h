@@ -15,6 +15,9 @@
  */
 #pragma once
 
+#include <array>
+#include <stdexcept>
+
 template <typename T>
 struct circular_buffer_data {
   static constexpr int max_size_N = 29;
@@ -35,7 +38,7 @@ struct circular_buffer_data {
 template <typename T, int N>
 struct circular_buffer_data_N final : circular_buffer_data<T> {
   static constexpr int length = 1 << N;
-  array<T, length> data;
+  std::array<T, length> data;
   int fp, bp;  // [inclusive, exclusive)
   circular_buffer_data_N(): fp(0), bp(0) {}
   template <int M>
@@ -81,7 +84,7 @@ struct circular_buffer_data_N final : circular_buffer_data<T> {
     if constexpr (N < circular_buffer_data<T>::max_size_N) {
       return new circular_buffer_data_N<T, N + 1>(*this);
     } else {
-      throw runtime_error("can't increase circular buffer size");
+      throw std::runtime_error("can't increase circular buffer size");
     }
   }
   int capacity() const override {
@@ -91,7 +94,7 @@ struct circular_buffer_data_N final : circular_buffer_data<T> {
 
 template <typename T>
 circular_buffer_data<T>* make_circular_buffer_data(int n) {
-  switch ((int)bit_width((unsigned)n)) {
+  switch (n ? 32 - __builtin_clz(n) : 0) {
     case 0://return new circular_buffer_data_N<T, 0>();
     case 1://return new circular_buffer_data_N<T, 1>();
     case 2:  return new circular_buffer_data_N<T, 2>();
@@ -122,7 +125,8 @@ circular_buffer_data<T>* make_circular_buffer_data(int n) {
     case 27: return new circular_buffer_data_N<T, 27>();
     case 28: return new circular_buffer_data_N<T, 28>();
     case 29: return new circular_buffer_data_N<T, 29>();
-    default: throw invalid_argument("can't allocate circular buffer of size " + to_string(n));
+    default: throw std::invalid_argument(
+                 "can't allocate circular buffer of size " + std::to_string(n));
   }
 }
 

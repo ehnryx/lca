@@ -26,18 +26,20 @@
 
 #include "rooted_tree.h"
 
+#include <functional>
+
 template <class DS, typename Query_t>
 struct range_query_tree : rooted_tree {
   DS range_ds;
-  vector<int> top; // top of heavy chains
-  range_query_tree(const vector<vector<int>>& adj_list, int root):
-    rooted_tree(adj_list, root), range_ds((int)adj.size()), top(adj.size()) {
+  std::vector<int> top; // top of heavy chains
+  range_query_tree(const std::vector<std::vector<int>>& adj_list, int r):
+    rooted_tree(adj_list, r), range_ds((int)adj.size()), top(adj.size()) {
     preorder.clear();
     top[root] = root;
     build_hld(root, 0);
   }
-  range_query_tree(vector<vector<int>>&& adj_list, int root):
-    rooted_tree(move(adj_list), root), range_ds((int)adj.size()), top(adj.size()) {
+  range_query_tree(std::vector<std::vector<int>>&& adj_list, int r):
+    rooted_tree(move(adj_list), r), range_ds((int)adj.size()), top(adj.size()) {
     preorder.clear();
     top[root] = root;
     build_hld(root, 0);
@@ -46,7 +48,7 @@ struct range_query_tree : rooted_tree {
   void assign_lengths() { range_ds.assign_lengths(); }
 
   int ancestor(int u, int k) const {
-    if (k < 0) throw invalid_argument("tried to find the kth ancestor where k < 0");
+    if (k < 0) throw std::invalid_argument("tried to find the kth ancestor where k < 0");
     if (k > depth[u]) return -1;
     while (true) {
       int len = depth[u] - depth[top[u]] + 1;
@@ -59,7 +61,7 @@ struct range_query_tree : rooted_tree {
   }
   int lca(int u, int v) const {
     while (top[u] != top[v]) {
-      if (depth[top[u]] < depth[top[v]]) swap(u, v);
+      if (depth[top[u]] < depth[top[v]]) std::swap(u, v);
       u = parent[top[u]];
     }
     return depth[u] < depth[v] ? u : v;
@@ -110,7 +112,7 @@ struct range_query_tree : rooted_tree {
   }
   template <class... Args>
   Query_t query_non_subtree(
-    int u, function<Query_t(Query_t, Query_t)> merge, const Args&... args) {
+    int u, std::function<Query_t(Query_t, Query_t)> merge, const Args&... args) {
     return merge(
       range_ds.query_range(0, start[u] - 1, args...),
       range_ds.query_range(start[u] + subtree[u], subtree[preorder[0]] - 1, args...));
@@ -126,12 +128,12 @@ struct range_query_tree : rooted_tree {
   template <class... Args>
   int update_path(int u, int v, bool include_lca, const Args&... args) {
     while (top[u] != top[v]) {
-      if (depth[top[u]] < depth[top[v]]) swap(u, v);
+      if (depth[top[u]] < depth[top[v]]) std::swap(u, v);
       range_ds.update_range(start[top[u]], start[u], args...);
       u = parent[top[u]];
     }
     if (include_lca || u != v) {
-      if (depth[u] < depth[v]) swap(u, v);
+      if (depth[u] < depth[v]) std::swap(u, v);
       range_ds.update_range(start[v] + !include_lca, start[u], args...);
     }
     return v; // return the lowest common ancestor
@@ -140,12 +142,12 @@ struct range_query_tree : rooted_tree {
   Query_t query_path(int u, int v, bool include_lca, Query_t res,
                      const Combine& merge, const Args&... args) {
     while (top[u] != top[v]) {
-      if (depth[top[u]] < depth[top[v]]) swap(u, v);
+      if (depth[top[u]] < depth[top[v]]) std::swap(u, v);
       res = merge(res, range_ds.query_range(start[top[u]], start[u], args...));
       u = parent[top[u]];
     }
     if (include_lca || u != v) {
-      if (depth[u] < depth[v]) swap(u, v);
+      if (depth[u] < depth[v]) std::swap(u, v);
       res = merge(res, range_ds.query_range(start[v] + !include_lca, start[u], args...));
     }
     return res;
@@ -154,10 +156,10 @@ struct range_query_tree : rooted_tree {
   template <class... Args>
   int search_path(int u, int v, bool include_lca, Args... args) {
     bool rev = false;
-    vector<pair<int, int>> down;
+    std::vector<std::pair<int, int>> down;
     while (top[u] != top[v]) {
       if (depth[top[u]] < depth[top[v]]) {
-        swap(u, v);
+        std::swap(u, v);
         rev ^= 1;
       }
       int left = start[top[u]];
@@ -172,7 +174,7 @@ struct range_query_tree : rooted_tree {
     }
     if (include_lca || u != v) {
       if (depth[u] < depth[v]) {
-        swap(u, v);
+        std::swap(u, v);
         rev ^= 1;
       }
       int left = start[v] + !include_lca;
@@ -197,12 +199,12 @@ private:
     start[u] = (int)preorder.size();
     preorder.push_back(u);
     if (!adj[u].empty()) {
-      pair<int, size_t> big;
+      std::pair<int, size_t> big;
       for (size_t i = 0; i < adj[u].size(); i++) {
-        big = max(big, pair(subtree[adj[u][i]], i));
+        big = std::max(big, std::pair(subtree[adj[u][i]], i));
       }
       if (big.second > 0) {
-        swap(adj[u][0], adj[u][big.second]);
+        std::swap(adj[u][0], adj[u][big.second]);
       }
       // continue heavy chain
       top[adj[u].front()] = top[u];

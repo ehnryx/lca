@@ -18,9 +18,9 @@
 
 template <typename T>
 struct prefix_sum {
-  vector<T> data;
+  std::vector<T> data;
   T operator [] (int i) const { return i < 0 ? 0 : data.at(i); }
-  prefix_sum(const vector<T>& arr): data(arr) {
+  prefix_sum(const std::vector<T>& arr): data(arr) {
     partial_sum(begin(data), end(data), begin(data));
   }
   T query(int l, int r) const { return operator [] (r) - operator [] (l - 1); }

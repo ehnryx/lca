@@ -8,10 +8,12 @@
  */
 #pragma once
 
+#include <array>
+
 template <class T, int N>
 struct static_memory_pool {
-  array<T, N> memory;
-  array<int, N> available;
+  std::array<T, N> memory;
+  std::array<int, N> available;
   int pid;
   static_memory_pool(): pid(N) {
     iota(begin(available), end(available), 0);

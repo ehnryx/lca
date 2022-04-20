@@ -8,13 +8,16 @@
  */
 #pragma once
 
+#include <numeric>
+#include <vector>
+
 template <class T>
 struct simple_memory_pool {
-  vector<T> memory;
-  vector<int> available;
+  std::vector<T> memory;
+  std::vector<int> available;
   int pid;
   simple_memory_pool(int n): memory(n), available(n), pid(n) {
-    iota(begin(available), end(available), 0);
+    std::iota(begin(available), end(available), 0);
   }
   T* allocate() {
     return &memory[available[--pid]];

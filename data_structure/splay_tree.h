@@ -19,7 +19,7 @@ struct splay_tree_memory_base {
 };
 
 template <class node_t, int max_size>
-struct splay_tree_memory_base<node_t, max_size, enable_if_t<max_size == -1>> {
+struct splay_tree_memory_base<node_t, max_size, std::enable_if_t<max_size == -1>> {
   simple_memory_pool<node_t>* shared_memory;
   splay_tree_memory_base(simple_memory_pool<node_t>* shm): shared_memory(shm) {}
 };
@@ -30,7 +30,7 @@ struct splay_tree : splay_tree_memory_base<node_t, max_size> {
   MEMBER_FUNCTION_CHECKER(pull);
   static constexpr bool has_push = _has_push<node_t>::value;
   static constexpr bool has_pull = _has_pull<node_t>::value;
-  static constexpr int mem_size = max(0, max_size);
+  static constexpr int mem_size = std::max(0, max_size);
   static node_t* const nil;
 
   static static_memory_pool<node_t, mem_size> memory;
@@ -388,7 +388,7 @@ struct splay_tree : splay_tree_memory_base<node_t, max_size> {
   node_t* splay_prev(node_t* u) { return splay(prev(u)); }
 
   node_t* next(node_t* u) const {
-    if (u == nil) throw invalid_argument("next(nil) is not valid");
+    if (u == nil) throw std::invalid_argument("next(nil) is not valid");
     if (u->right != nil) {
       if constexpr (has_push) push(u);
       return walk_left(u->right);
@@ -401,7 +401,7 @@ struct splay_tree : splay_tree_memory_base<node_t, max_size> {
   }
 
   node_t* prev(node_t* u) const {
-    if (u == nil) throw invalid_argument("prev(nil) is not valid");
+    if (u == nil) throw std::invalid_argument("prev(nil) is not valid");
     if (u->left != nil) {
       if constexpr (has_push) push(u);
       return walk_right(u->left);
@@ -456,11 +456,11 @@ struct splay_tree : splay_tree_memory_base<node_t, max_size> {
   node_t* first() { return root != nil ? splay(walk_left(root)) : root; }
   node_t* last() { return root != nil ? splay(walk_right(root)) : root; }
   typename node_t::out_t front() {
-    if (root == nil) throw invalid_argument("calling front() on empty splay tree");
+    if (root == nil) throw std::invalid_argument("calling front() on empty splay tree");
     return *first();
   }
   typename node_t::out_t back() {
-    if (root == nil) throw invalid_argument("calling back() on empty splay tree");
+    if (root == nil) throw std::invalid_argument("calling back() on empty splay tree");
     return *last();
   }
 
@@ -480,13 +480,13 @@ struct splay_tree : splay_tree_memory_base<node_t, max_size> {
     }
   }
 
-  template <typename T = typename node_t::key_t, typename = enable_if_t<is_void_v<T>>>
+  template <typename T = typename node_t::key_t, typename = std::enable_if_t<std::is_void_v<T>>>
   typename node_t::out_t operator [] (int i) {
     return at(i)->get_value();
   }
 
   template <typename key_t, typename value_t = typename node_t::value_t,
-    typename = enable_if_t<!is_void_v<key_t> && !is_void_v<value_t>>>
+    typename = std::enable_if_t<!std::is_void_v<key_t> && !std::is_void_v<value_t>>>
   value_t& operator [] (const key_t& k) {
     node_t* x = lower_bound(k);
     if (x != nil && x->key == k) return x->value;
@@ -585,12 +585,12 @@ struct splay_tree : splay_tree_memory_base<node_t, max_size> {
   }
 
   // lazy update
-  template <bool use = has_push, typename = enable_if_t<use>>
+  template <bool use = has_push, typename = std::enable_if_t<use>>
   void push(node_t* x) const {
     x->push();
   }
 
-  template <bool use = has_push, typename = enable_if_t<use>>
+  template <bool use = has_push, typename = std::enable_if_t<use>>
   node_t* push_down_to(node_t* x) const {
     if (x != nil) {
       push_down_to(x->parent);
@@ -693,7 +693,7 @@ template <typename derived_t, typename _key_t, typename _value_t, typename = voi
 struct splay_node_base : splay_node_base_common<derived_t> {
   using key_t = _key_t;
   using value_t = _value_t;
-  using out_t = pair<key_t&, value_t&>; // store as tuple
+  using out_t = std::pair<key_t&, value_t&>; // store as tuple
   key_t key;
   value_t value;
   splay_node_base(): splay_node_base_common<derived_t>(0), key(), value() {}
@@ -705,7 +705,7 @@ struct splay_node_base : splay_node_base_common<derived_t> {
 
 template <typename derived_t, typename _key_t, typename _value_t>
 struct splay_node_base<derived_t, _key_t, _value_t,
-    enable_if_t<is_void_v<_key_t> && !is_void_v<_value_t>>>
+    std::enable_if_t<std::is_void_v<_key_t> && !std::is_void_v<_value_t>>>
     : splay_node_base_common<derived_t> {
   using key_t = _key_t;
   using value_t = _value_t;
@@ -718,7 +718,7 @@ struct splay_node_base<derived_t, _key_t, _value_t,
 
 template <typename derived_t, typename _key_t, typename _value_t>
 struct splay_node_base<derived_t, _key_t, _value_t,
-    enable_if_t<!is_void_v<_key_t> && is_void_v<_value_t>>>
+    std::enable_if_t<!std::is_void_v<_key_t> && std::is_void_v<_value_t>>>
     : splay_node_base_common<derived_t> {
   using key_t = _key_t;
   using value_t = _value_t;
@@ -732,7 +732,7 @@ struct splay_node_base<derived_t, _key_t, _value_t,
 
 template <typename derived_t, typename _key_t, typename _value_t>
 struct splay_node_base<derived_t, _key_t, _value_t,
-    enable_if_t<is_void_v<_key_t> && is_void_v<_value_t>>>
+    std::enable_if_t<std::is_void_v<_key_t> && std::is_void_v<_value_t>>>
     : splay_node_base_common<derived_t> {
   using key_t = _key_t;
   using value_t = _value_t;

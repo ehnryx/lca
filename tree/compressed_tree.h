@@ -13,16 +13,21 @@
 
 #include "lca_binary_jumping.h"
 
-struct compressed_tree {
-  vector<int> vertices;
-  vector<bool> given;
-  map<int, int> remap;
-  vector<vector<pair<int, int>>> adj;
-  vector<pair<int, int>> parent;
+#include <map>
+#include <stdexcept>
 
-  compressed_tree(const lca_binary_jumping& tree, const vector<int>& verts) {
-    if (verts.empty()) throw invalid_argument("vertices of compressed tree must not be empty");
-    vector<pair<int, int>> order;
+struct compressed_tree {
+  std::vector<int> vertices;
+  std::vector<bool> given;
+  std::map<int, int> remap;
+  std::vector<std::vector<std::pair<int, int>>> adj;
+  std::vector<std::pair<int, int>> parent;
+
+  compressed_tree(const lca_binary_jumping& tree, const std::vector<int>& verts) {
+    if (verts.empty()) {
+      throw std::invalid_argument("vertices of compressed tree must not be empty");
+    }
+    std::vector<std::pair<int, int>> order;
     for (int v : verts) {
       order.emplace_back(tree.in[v], v);
     }
@@ -37,14 +42,14 @@ struct compressed_tree {
     vertices.resize(n);
     adj.resize(n);
     parent.resize(n);
-    parent[0] = pair(-1, 0);
+    parent[0] = std::pair(-1, 0);
     for (int i = 0; i < n; i++) {
       vertices[i] = order[i].second;
       remap[vertices[i]] = i;
       if (i > 0) {
         int lca = tree.lca(vertices[i], vertices[i - 1]);
         int dist = tree.distance(vertices[i], lca);
-        parent[i] = pair(remap[lca], dist);
+        parent[i] = std::pair(remap[lca], dist);
         adj[parent[i].first].emplace_back(i, dist);
       }
     }
@@ -54,7 +59,7 @@ struct compressed_tree {
     }
   }
 
-  const vector<pair<int, int>>& operator [] (int i) const { return adj[i]; }
+  const std::vector<std::pair<int, int>>& operator [] (int i) const { return adj[i]; }
   int size() const { return (int)adj.size(); }
 };
 

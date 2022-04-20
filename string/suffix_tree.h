@@ -19,23 +19,23 @@
 
 template <typename T>
 struct suffix_tree {
-  basic_string<T> t;
+  std::basic_string<T> t;
   // suffix_node ranges are [inclusive, exclusive)
-  struct suffix_node : vector<pair<T, int>> {
+  struct suffix_node : std::vector<std::pair<T, int>> {
     int parent, depth, left, right;
     suffix_node() = default;
     suffix_node(int p, int d, int l, int r): parent(p), depth(d), left(l), right(r) {}
     int get(const T& c) const {
       auto res = find_if(
-          vector<pair<T, int>>::begin(), vector<pair<T, int>>::end(),
-          [=](const pair<T, int>& v) { return v.first == c; });
-      return res == vector<pair<T, int>>::end() ? -1 : res->second;
+          std::vector<std::pair<T, int>>::begin(), std::vector<std::pair<T, int>>::end(),
+          [=](const std::pair<T, int>& v) { return v.first == c; });
+      return res == std::vector<std::pair<T, int>>::end() ? -1 : res->second;
     }
   };
-  vector<suffix_node> nodes;
+  std::vector<suffix_node> nodes;
 
-  suffix_tree(const basic_string<T>& s): t(s) { build(); }
-  suffix_tree(basic_string<T>&& s): t(move(s)) { build(); }
+  suffix_tree(const std::basic_string<T>& s): t(s) { build(); }
+  suffix_tree(std::basic_string<T>&& s): t(move(s)) { build(); }
 
   // BEGIN suffix tree functions
   // length of the string
@@ -55,24 +55,24 @@ struct suffix_tree {
 
   // return: (node, idx in range[node]) of the past-the-end of the match.
   //         (-1, -1) if not matched
-  pair<int, int> match(const string& s) const {
+  std::pair<int, int> match(const std::string& s) const {
     int u = root();
     int idx = 0;
     for (int i = 0; i < (int)s.size(); i++) {
       if (idx == nodes[u].right) {
         u = nodes[u].get(s[i]);
         if (u == -1) {
-          return pair(-1, -1);
+          return std::pair(-1, -1);
         }
         idx = nodes[u].left;
       }
       if (s[i] == t[idx]) {
         idx++;
       } else {
-        return pair(-1, -1);
+        return std::pair(-1, -1);
       }
     }
-    return pair(u, idx);
+    return std::pair(u, idx);
   }
   // END suffix tree functions
 

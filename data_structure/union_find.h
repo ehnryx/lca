@@ -15,9 +15,12 @@
  */
 #pragma once
 
+#include <tuple>
+#include <vector>
+
 template <bool by_weight = false, bool persistent = false, typename = void>
 struct union_find {
-  vector<int> dsu, size;
+  std::vector<int> dsu, size;
   union_find(int n): dsu(n, -1), size(n, 1) {}
   int operator [] (int i) { return find(i); }
   int find(int i) {
@@ -29,30 +32,30 @@ struct union_find {
     to = find(to);
     if (from == to) return false;
     if constexpr (by_weight) {
-      if (size[from] > size[to]) swap(from, to);
+      if (size[from] > size[to]) std::swap(from, to);
     }
     dsu[from] = to;
     size[to] += size[from];
     return true;
   }
   template <bool can_reroot = !by_weight>
-  enable_if_t<can_reroot> reroot(int root) {
+  std::enable_if_t<can_reroot> reroot(int root) {
     dsu[find(root)] = root;
     dsu[root] = -1;
   }
   template <bool can_reroot = !by_weight>
-  enable_if_t<can_reroot> reroot(int old, int root) {
-    if (dsu[old] != -1) [[unlikely]] throw invalid_argument("dsu[old root] != -1");
+  std::enable_if_t<can_reroot> reroot(int old, int root) {
+    if (dsu[old] != -1) [[unlikely]] throw std::invalid_argument("dsu[old root] != -1");
     dsu[old] = root;
     dsu[root] = -1;
   }
 };
 
 template <bool by_weight, bool persistent>
-struct union_find<by_weight, persistent, enable_if_t<persistent>> {
+struct union_find<by_weight, persistent, std::enable_if_t<persistent>> {
   static_assert(by_weight);  // needs to be by weight if persistent
-  vector<int> dsu, size;
-  vector<tuple<int, int, int, int>> memo;
+  std::vector<int> dsu, size;
+  std::vector<std::tuple<int, int, int, int>> memo;
   union_find(int n): dsu(n, -1), size(n, 1) {}
   int operator [] (int i) { return find(i); }
   int find(int i) {
@@ -64,7 +67,7 @@ struct union_find<by_weight, persistent, enable_if_t<persistent>> {
     from = find(from);
     to = find(to);
     if (from == to) return false;
-    if (size[from] > size[to]) swap(from, to);
+    if (size[from] > size[to]) std::swap(from, to);
     if (temporary) {
       memo.emplace_back(from, dsu[from], to, size[to]);
     }

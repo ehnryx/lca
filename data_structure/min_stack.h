@@ -13,17 +13,20 @@
  */
 #pragma once
 
-template <typename T, class Compare = less<>>
-struct min_stack : vector<pair<T, T>> {
+template <typename T, class Compare = std::less<>>
+struct min_stack {
+  struct stack_item {
+    T value, min;
+  };
+  std::vector<stack_item> stk;
   min_stack() = default;
-  min_stack(int n) { vector<pair<T, T>>::reserve(n); }
-  T min() const { return vector<pair<T, T>>::back().second; }
-  T top() const { return vector<pair<T, T>>::back().first; }
-  void pop() { vector<pair<T, T>>::pop_back(); }
+  min_stack(int n) { stk.reserve(n); }
+  T min() const { return stk.back().min; }
+  T top() const { return stk.back().value; }
+  void pop() { stk.pop_back(); }
   void push(const T& v) {
-    vector<pair<T, T>>::emplace_back(v,
-        vector<pair<T, T>>::empty() ? v :
-        std::min(v, vector<pair<T, T>>::back().second, Compare()));
+    stk.emplace_back(v,
+        stk.empty() ? v : std::min(v, stk.back().min, Compare()));
   }
 };
 

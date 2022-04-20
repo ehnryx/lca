@@ -12,18 +12,20 @@
  */
 #pragma once
 
-template <typename T, class Compare = less<>>
+#include <vector>
+
+template <typename T, class Compare = std::less<>>
 struct range_minimum_query {
-  vector<vector<T>> rmq;
+  std::vector<std::vector<T>> rmq;
   range_minimum_query() = default;
-  range_minimum_query(const vector<T>& arr) {
+  range_minimum_query(const std::vector<T>& arr) {
     int n = (int)arr.size();
     int L = 32 - __builtin_clz(n);
     rmq.resize(L);
     rmq.front() = arr;
     build(n, L);
   }
-  range_minimum_query(vector<T>&& arr) {
+  range_minimum_query(std::vector<T>&& arr) {
     int n = (int)arr.size();
     int L = 32 - __builtin_clz(n);
     rmq.resize(L);
@@ -31,9 +33,9 @@ struct range_minimum_query {
     build(n, L);
   }
   T query(int l, int r) const {
-    if (l >= r) throw invalid_argument("The range is empty, ie. l >= r");
+    if (l >= r) throw std::invalid_argument("The range is empty, ie. l >= r");
     int j = 31 - __builtin_clz(r - l);
-    return min(rmq[j][l], rmq[j][r - (1<<j)], Compare());
+    return std::min(rmq[j][l], rmq[j][r - (1<<j)], Compare());
   }
 
 private:
@@ -41,7 +43,7 @@ private:
     for (int j = 1; j < L; j++) {
       rmq[j].resize(n - (1 << j) + 1);
       for (int i = 0; i + (1 << j) <= n; i++) {
-        rmq[j][i] = min(rmq[j-1][i], rmq[j-1][i + (1<<(j-1))], Compare());
+        rmq[j][i] = std::min(rmq[j-1][i], rmq[j-1][i + (1<<(j-1))], Compare());
       }
     }
   }

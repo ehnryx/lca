@@ -35,6 +35,10 @@
 
 #include "../misc/member_function_checker.h"
 
+#include <cassert>
+#include <tuple>
+#include <vector>
+
 template <class Node_t, typename Query_t>
 struct segment_tree {
   MEMBER_FUNCTION_CHECKER(push);
@@ -49,13 +53,13 @@ struct segment_tree {
   static_assert(!_has_put_condition<Node_t>::value || has_break_condition);
 
   int lim, length;
-  vector<Node_t> data;
+  std::vector<Node_t> data;
   Node_t& operator [] (int i) { return data[i]; }
 
   segment_tree(int n): lim(n),
     length(1 << (lim == 1 ? 0 : 32 - __builtin_clz(lim - 1))), data(2 * length) {}
   template <class Input_t>
-  segment_tree(const vector<Input_t>& a, int offset = 0): lim((int)size(a)),
+  segment_tree(const std::vector<Input_t>& a, int offset = 0): lim((int)size(a)),
     length(1 << (lim == 1 ? 0 : 32 - __builtin_clz(lim - 1))), data(2*length) {
     for (int i = offset; i < lim; i++) {
       data[length + i] = Node_t(a[i]);
@@ -83,7 +87,7 @@ struct segment_tree {
   template <class... Args>
   void update(int l, int r, const Args&... args) {
     if (r < l) return;
-    if (l < 0 || lim <= r) throw invalid_argument("update range out of bounds");
+    if (l < 0 || lim <= r) throw std::invalid_argument("update range out of bounds");
     __update(l, r, 1, 0, length - 1, args...);
   }
   template <class... Args>
@@ -94,7 +98,7 @@ struct segment_tree {
         return data[i].put(args...);
       }
       if (i >= length) {
-        throw invalid_argument("put_condition/break_condition is incorrect, "
+        throw std::invalid_argument("put_condition/break_condition is incorrect, "
                                "trying to descend past a leaf");
       }
     } else {
@@ -119,7 +123,7 @@ struct segment_tree {
       if constexpr (has_default_value) return Node_t::default_value();
       else assert(false);
     }
-    if (l < 0 || lim <= r) throw invalid_argument("query range out of bounds");
+    if (l < 0 || lim <= r) throw std::invalid_argument("query range out of bounds");
     return __query(l, r, 1, 0, length - 1, args...);
   }
   template <class... Args>
@@ -136,7 +140,7 @@ struct segment_tree {
 
   template <class... Args>
   void update_point(int x, const Args&... args) {
-    if (x < 0 || lim <= x) throw invalid_argument("update_point index out of bounds");
+    if (x < 0 || lim <= x) throw std::invalid_argument("update_point index out of bounds");
     __update_point(x, 1, 0, length - 1, args...);
   }
   template <class... Args>
@@ -151,7 +155,7 @@ struct segment_tree {
 
   template <class... Args>
   Query_t query_point(int x, const Args&... args) {
-    if (x < 0 || lim <= x) throw invalid_argument("query_point index out of bounds");
+    if (x < 0 || lim <= x) throw std::invalid_argument("query_point index out of bounds");
     return __query_point(x, 1, 0, length - 1, args...);
   }
   template <class... Args>
@@ -166,7 +170,7 @@ struct segment_tree {
   template <class... Args>
   void update_up(int x, const Args&... args) {
     static_assert(!has_push);
-    if (x < 0 || lim <= x) throw invalid_argument("update_up index out of bounds");
+    if (x < 0 || lim <= x) throw std::invalid_argument("update_up index out of bounds");
     for (int i = x + length; i > 0; i /= 2) {
       data[i].put(args...);
     }
@@ -174,7 +178,7 @@ struct segment_tree {
 
   template <class... Args>
   Query_t query_up(int x, const Args&... args) {
-    if (x < 0 || lim <= x) throw invalid_argument("query_up index out of bounds");
+    if (x < 0 || lim <= x) throw std::invalid_argument("query_up index out of bounds");
     return __query_up(x, 1, 0, length - 1, args...);
   }
   template <class... Args>
@@ -192,19 +196,19 @@ struct segment_tree {
   template <class... Args>
   int search_left(int l, int r, Args... args) {
     if (r < l) return lim;
-    if (l < 0 || lim <= r) throw invalid_argument("search_left range out of bounds");
+    if (l < 0 || lim <= r) throw std::invalid_argument("search_left range out of bounds");
     return __search_left(l, r, 1, 0, length - 1, forward_as_tuple(args...));
   }
   template <class... Args>
   int search_left_mutable(int l, int r, Args&... args) {
     if (r < l) return lim;
-    if (l < 0 || lim <= r) throw invalid_argument("search_left range out of bounds");
+    if (l < 0 || lim <= r) throw std::invalid_argument("search_left range out of bounds");
     return __search_left(l, r, 1, 0, length - 1, forward_as_tuple(args...));
   }
   template <class... Args>
-  int __search_left(int l, int r, int i, int first, int last, tuple<Args&...> args) {
+  int __search_left(int l, int r, int i, int first, int last, std::tuple<Args&...> args) {
     if (l <= first && last <= r
-        && !apply(&Node_t::contains, tuple_cat(tuple(data[i]), args))) return lim;
+        && !apply(&Node_t::contains, std::tuple_cat(std::tuple(data[i]), args))) return lim;
     if (first == last) return first;
     if constexpr (has_push) data[i].push(data[2*i], data[2*i + 1]);
     int mid = (first + last) / 2;
@@ -216,19 +220,19 @@ struct segment_tree {
   template <class... Args>
   int search_right(int l, int r, Args... args) {
     if (r < l) return lim;
-    if (l < 0 || lim <= r) throw invalid_argument("search_right range out of bounds");
+    if (l < 0 || lim <= r) throw std::invalid_argument("search_right range out of bounds");
     return __search_right(l, r, 1, 0, length - 1, forward_as_tuple(args...));
   }
   template <class... Args>
   int search_right_mutable(int l, int r, Args&... args) {
     if (r < l) return lim;
-    if (l < 0 || lim <= r) throw invalid_argument("search_right range out of bounds");
+    if (l < 0 || lim <= r) throw std::invalid_argument("search_right range out of bounds");
     return __search_right(l, r, 1, 0, length - 1, forward_as_tuple(args...));
   }
   template <class... Args>
-  int __search_right(int l, int r, int i, int first, int last, tuple<Args&...> args) {
+  int __search_right(int l, int r, int i, int first, int last, std::tuple<Args&...> args) {
     if (l <= first && last <= r
-        && !apply(&Node_t::contains, tuple_cat(tuple(data[i]), args))) return lim;
+        && !apply(&Node_t::contains, std::tuple_cat(std::tuple(data[i]), args))) return lim;
     if (first == last) return first;
     if constexpr (has_push) data[i].push(data[2*i], data[2*i + 1]);
     int mid = (first + last) / 2;

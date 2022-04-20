@@ -16,7 +16,7 @@ struct link_cut_tree : splay_tree<node_t> {
   using base = splay_tree<node_t>;
   using base::nil, base::splay, base::set_child, base::walk_left, base::pull;
   using base::splay_prev, base::splay_next;
-  vector<node_t> data;
+  std::vector<node_t> data;
   link_cut_tree(int n): base(), data(n) {
     for (int i = 0; i < n; i++) {
       data[i].size = 1;
@@ -181,7 +181,7 @@ struct link_cut_node : splay_node_base<derived_t, void, value_t> {
   link_cut_node(): base(), chain_parent(nil), rev(false) {}
   link_cut_node(const value_t& v): base(v), chain_parent(nil), rev(false) {}
   void reverse() {
-    swap(left, right);
+    std::swap(left, right);
     rev ^= 1;
   }
   void push() {
@@ -204,7 +204,7 @@ struct simple_link_cut_node final : splay_node_base<simple_link_cut_node, void, 
   bool rev;
   simple_link_cut_node(): base(), chain_parent(nil), rev(false) {}
   void reverse() {
-    swap(left, right);
+    std::swap(left, right);
     rev ^= 1;
   }
   void push() {

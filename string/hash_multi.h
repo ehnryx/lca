@@ -13,22 +13,25 @@
  */
 #pragma once
 
+#include <string>
+#include <tuple>
+
 template <template <int, int> typename hash_single, int mod, int prime, int... others>
 struct hash_multi : hash_multi<hash_single, others...>, hash_single<mod, prime> {
-  hash_multi(const string& s):
+  hash_multi(const std::string& s):
     hash_multi<hash_single, others...>(s), hash_single<mod, prime>(s) {}
   auto get(int i, int len) {
-    return tuple_cat(
-        tuple(hash_single<mod, prime>::get(i, len)),
+    return std::tuple_cat(
+        std::tuple(hash_single<mod, prime>::get(i, len)),
         hash_multi<hash_single, others...>::get(i, len));
   }
 };
 
 template <template <int, int> typename hash_single, int mod, int prime>
 struct hash_multi<hash_single, mod, prime> : hash_single<mod, prime> {
-  hash_multi(const string& s): hash_single<mod, prime>(s) {}
+  hash_multi(const std::string& s): hash_single<mod, prime>(s) {}
   auto get(int i, int len) {
-    return tuple(hash_single<mod, prime>::get(i, len));
+    return std::tuple(hash_single<mod, prime>::get(i, len));
   }
 };
 

@@ -9,33 +9,38 @@
  */
 #pragma once
 
+#include <queue>
+#include <string>
+#include <unordered_map>
+#include <vector>
+
 template <typename T, typename to_int_t = void>
 struct aho_corasick {
-  static_assert(!is_void_v<to_int_t>);
+  static_assert(!std::is_void_v<to_int_t>);
   struct node {
     node* parent;
     node* fail;
     node* match;
-    array<node*, to_int_t::size()> child;
+    std::array<node*, to_int_t::size()> child;
     int id;
     node(node* p): parent(p), fail(nullptr), match(nullptr), id(-1) {
       fill(begin(child), end(child), nullptr);
     }
   };
   node* root;
-  vector<int> pattern_length, same_pattern;
+  std::vector<int> pattern_length, same_pattern;
   int pattern_cnt;
 
   aho_corasick(): root(new node(nullptr)), pattern_cnt(0) {}
-  aho_corasick(const vector<basic_string<T>>& patterns):
+  aho_corasick(const std::vector<std::basic_string<T>>& patterns):
     root(new node(nullptr)), pattern_cnt(0) {
-    for (const basic_string<T>& s : patterns) {
+    for (const std::basic_string<T>& s : patterns) {
       add(s);
     }
     build();
   }
 
-  void add(const basic_string<T>& s) {
+  void add(const std::basic_string<T>& s) {
     node* u = root;
     for (T c : s) {
       if (!u->child[to_int_t()(c)]) {
@@ -49,7 +54,7 @@ struct aho_corasick {
   }
 
   void build() {
-    queue<pair<int, node*>> bfs;
+    std::queue<std::pair<int, node*>> bfs;
     bfs.emplace(-1, root);
     while (!bfs.empty()) {
       auto [c, u] = bfs.front();
@@ -73,8 +78,8 @@ struct aho_corasick {
     }
   }
 
-  vector<vector<int>> find_all(const string& s) {
-    vector<vector<int>> matches(pattern_cnt);
+  std::vector<std::vector<int>> find_all(const std::string& s) {
+    std::vector<std::vector<int>> matches(pattern_cnt);
     node* u = root;
     for (int i = 0; i < (int)s.size(); i++) {
       int c = to_int_t()(s[i]);
@@ -100,24 +105,24 @@ struct aho_corasick<T, void> {
     node* parent;
     node* fail;
     node* match;
-    unordered_map<T, node*> child;
+    std::unordered_map<T, node*> child;
     int id;
     node(node* p): parent(p), fail(nullptr), match(nullptr), id(-1) {}
   };
   node* root;
-  vector<int> pattern_length, same_pattern;
+  std::vector<int> pattern_length, same_pattern;
   int pattern_cnt;
 
   aho_corasick(): root(new node(nullptr)), pattern_cnt(0) {}
-  aho_corasick(const vector<basic_string<T>>& patterns):
+  aho_corasick(const std::vector<std::basic_string<T>>& patterns):
     root(new node(nullptr)), pattern_cnt(0) {
-    for (const basic_string<T>& s : patterns) {
+    for (const std::basic_string<T>& s : patterns) {
       add(s);
     }
     build();
   }
 
-  void add(const basic_string<T>& s) {
+  void add(const std::basic_string<T>& s) {
     node* u = root;
     for (T c : s) {
       if (!u->child.count(c)) {
@@ -131,7 +136,7 @@ struct aho_corasick<T, void> {
   }
 
   void build() {
-    queue<pair<T, node*>> bfs;
+    std::queue<std::pair<T, node*>> bfs;
     bfs.emplace(-1, root);
     while (!bfs.empty()) {
       auto [c, u] = bfs.front();
@@ -153,8 +158,8 @@ struct aho_corasick<T, void> {
     }
   }
 
-  vector<vector<int>> find_all(const string& s) {
-    vector<vector<int>> matches(pattern_cnt);
+  std::vector<std::vector<int>> find_all(const std::string& s) {
+    std::vector<std::vector<int>> matches(pattern_cnt);
     node* u = root;
     for (int i = 0; i < (int)s.size(); i++) {
       while (u != root && !u->child.count(s[i])) {

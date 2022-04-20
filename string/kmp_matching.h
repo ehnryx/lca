@@ -9,15 +9,18 @@
  */
 #pragma once
 
+#include <string>
+#include <vector>
+
 template <typename T>
 struct kmp_matching {
-  basic_string<T> pattern;
-  vector<int> fail;
-  kmp_matching(const basic_string<T>& s): pattern(s), fail(pattern.size(), -1) { build(); }
-  kmp_matching(basic_string<T>&& s): pattern(move(s)), fail(pattern.size(), -1) { build(); }
+  std::basic_string<T> pattern;
+  std::vector<int> fail;
+  kmp_matching(const std::basic_string<T>& s): pattern(s), fail(pattern.size(), -1) { build(); }
+  kmp_matching(std::basic_string<T>&& s): pattern(move(s)), fail(pattern.size(), -1) { build(); }
 
-  vector<int> find_all(const basic_string<T>& s) {
-    vector<int> matches;
+  std::vector<int> find_all(const std::basic_string<T>& s) {
+    std::vector<int> matches;
     for (int i = 0, state = -1; i < (int)s.size(); i++) {
       while (state != -1 && pattern[state + 1] != s[i]) {
         state = fail[state];
@@ -31,7 +34,7 @@ struct kmp_matching {
     return matches;
   }
 
-  int find_first(const basic_string<T>& s) {
+  int find_first(const std::basic_string<T>& s) {
     for (int i = 0, state = -1; i < (int)s.size(); i++) {
       while (state != -1 && pattern[state + 1] != s[i]) {
         state = fail[state];

@@ -19,21 +19,21 @@
 #include "../data_structure/range_minimum_query.h"
 
 struct lca_rmq : rooted_tree {
-  vector<int> idx;
-  range_minimum_query<pair<int, int>> rmq;
-  lca_rmq(const vector<vector<int>>& adj_list, int root):
-    rooted_tree(adj_list, root) {
+  std::vector<int> idx;
+  range_minimum_query<std::pair<int, int>> rmq;
+  lca_rmq(const std::vector<std::vector<int>>& adj_list, int r):
+    rooted_tree(adj_list, r) {
     build();
   }
-  lca_rmq(vector<vector<int>>&& adj_list, int root):
-    rooted_tree(move(adj_list), root) {
+  lca_rmq(std::vector<std::vector<int>>&& adj_list, int r):
+    rooted_tree(move(adj_list), r) {
     build();
   }
 
   int lca(int a, int b) const {
     int l = idx[a];
     int r = idx[b];
-    return rmq.query(min(l, r), max(l, r) + 1).second;
+    return rmq.query(std::min(l, r), std::max(l, r) + 1).second;
   }
   int distance(int a, int b) const {
     return depth[a] + depth[b] - 2 * depth[lca(a, b)];
@@ -42,7 +42,7 @@ struct lca_rmq : rooted_tree {
 private:
   void build() {
     idx.resize(adj.size());
-    vector<pair<int, int>> arr;
+    std::vector<std::pair<int, int>> arr;
     arr.reserve(2 * preorder.size());
     for (int i = 0; i < (int)preorder.size(); i++) {
       int u = preorder[i];

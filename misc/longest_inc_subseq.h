@@ -14,21 +14,23 @@
  */
 #pragma once
 
+#include <vector>
+
 template <typename T>
-vector<int> longest_inc_subseq(const vector<T>& arr, bool strict = true) {
+std::vector<int> longest_inc_subseq(const std::vector<T>& arr, bool strict = true) {
   if (arr.empty()) return {};
-  vector<pair<T, int>> inc;
-  vector<int> previous(size(arr), -1);
+  std::vector<std::pair<T, int>> inc;
+  std::vector<int> previous(size(arr), -1);
   for (int i = 0; i < (int)size(arr); i++) {
-    auto it = lower_bound(begin(inc), end(inc), pair(arr[i], !strict * i));
+    auto it = lower_bound(begin(inc), end(inc), std::pair(arr[i], !strict * i));
     if (it != begin(inc)) previous[i] = prev(it)->second;
     if (it == end(inc)) {
       inc.emplace_back(arr[i], i);
     } else {
-      *it = pair(arr[i], i);
+      *it = std::pair(arr[i], i);
     }
   }
-  vector<int> lis;
+  std::vector<int> lis;
   for (int i = inc.back().second; i != -1; i = previous[i]) {
     lis.push_back(i);
   }

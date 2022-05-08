@@ -15,12 +15,13 @@
 #pragma once
 
 #include "point.h"
+#include <vector>
 
 template <typename T>
-vector<point<T>> convex_hull(vector<point<T>> points, bool keep=false) {
+std::vector<point<T>> convex_hull(std::vector<point<T>> points, bool keep=false) {
   sort(begin(points), end(points));
   points.resize(unique(begin(points), end(points)) - begin(points));
-  vector<point<T>> hull(2 * size(points));
+  std::vector<point<T>> hull(2 * size(points));
   int top = 0, bot = 0;
   for (int i = 0, dir = 1; i < (int)size(points) && i >= 0; i += dir) {
     while (top - bot > 1) {
@@ -34,7 +35,7 @@ vector<point<T>> convex_hull(vector<point<T>> points, bool keep=false) {
       bot = top - 1;
     }
   }
-  hull.resize(max(1, top - 1));
+  hull.resize(std::max(1, top - 1));
   return hull;
 }
 

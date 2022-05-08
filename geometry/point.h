@@ -7,15 +7,20 @@
  */
 #pragma once
 
+#include <complex>
+
 template <typename T = long double>
 struct point {
   T x, y;
   point() = default;
   point(const T& c): x(c), y(0) {}
   point(const T& _x, const T& _y): x(_x), y(_y) {}
-  point(const complex<T>& v): x(v.real()), y(v.imag()) {}
-  friend ostream& operator << (ostream& os, const point& v) {
+  point(const std::complex<T>& v): x(v.real()), y(v.imag()) {}
+  friend std::ostream& operator << (std::ostream& os, const point& v) {
     return os << '(' << v.x << ',' << v.y << ')';
+  }
+  friend std::istream& operator >> (std::istream& is, point& v) {
+    return is >> v.x >> v.y;
   }
   bool operator < (const point& v) const { return tie(x, y) < tie(v.x, v.y); }
   bool operator == (const point& v) const { return x == v.x && y == v.y; }

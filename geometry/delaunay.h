@@ -17,26 +17,30 @@
  */
 #pragma once
 
-#include "point.h"
-#include "general.h"
 #include "circumcenter.h"
+#include "general.h"
+#include "point.h"
+#include <iostream>
+#include <queue>
+#include <random>
+#include <set>
 
 namespace delaunay_triangulator {
   template <typename T> struct Boundary;
-  template <typename T> using b_iterator = typename set<Boundary<T>>::iterator;
-  template <typename T> struct Data : vector<point<T>> {
+  template <typename T> using b_iterator = typename std::set<Boundary<T>>::iterator;
+  template <typename T> struct Data : std::vector<point<T>> {
     T x, inf, eps, random_rotation;
     Data(): inf(T(1)/T(0)) {}
-    set<Boundary<T>, less<>> shore;
-    set<tuple<int, int, int>> invalid;
+    std::set<Boundary<T>, std::less<>> shore;
+    std::set<std::tuple<int, int, int>> invalid;
     void clear() {
-      vector<point<T>>::clear();
+      std::vector<point<T>>::clear();
       shore.clear();
       invalid.clear();
     }
     void invalidate(int i, int j, int k) {
       // could skip insert if collinear
-      invalid.insert(tuple(i, j, k));
+      invalid.insert(std::tuple(i, j, k));
     }
   };
   template <typename T> Data<T> data;
@@ -93,8 +97,8 @@ namespace delaunay_triangulator {
   };
 
   template <typename T>
-  void add_circle_event(int i, int j, int k, priority_queue<Event<T>>& events) {
-    if (data<T>.invalid.count(tuple(i, j, k))) return;
+  void add_circle_event(int i, int j, int k, std::priority_queue<Event<T>>& events) {
+    if (data<T>.invalid.count(std::tuple(i, j, k))) return;
     const auto& a = data<T>[i];
     const auto& b = data<T>[j];
     const auto& c = data<T>[k];
@@ -107,8 +111,8 @@ namespace delaunay_triangulator {
   }
 
   template <typename T>
-  bool handle_circle_event(const Event<T>& ev, priority_queue<Event<T>>& events) {
-    if (data<T>.invalid.count(tuple(ev.i, ev.j, ev.k))) return false;
+  bool handle_circle_event(const Event<T>& ev, std::priority_queue<Event<T>>& events) {
+    if (data<T>.invalid.count(std::tuple(ev.i, ev.j, ev.k))) return false;
     Boundary<T> left(ev.i, ev.j), right(ev.j, ev.k);
     T lval = left.y_value(ev.xtime + data<T>.eps);
     T rval = right.y_value(ev.xtime + data<T>.eps);
@@ -139,7 +143,7 @@ namespace delaunay_triangulator {
   }
 
   template <typename T>
-  void handle_point_event(const Event<T>& ev, priority_queue<Event<T>>& events) {
+  void handle_point_event(const Event<T>& ev, std::priority_queue<Event<T>>& events) {
     data<T>.x = ev.xtime;
     auto it = data<T>.shore.upper_bound(data<T>[ev.i].y);
     if (it == data<T>.shore.end()) {
@@ -162,14 +166,14 @@ namespace delaunay_triangulator {
   }
 
   template <typename T>
-  void initialize(const vector<point<T>>& p, const T& e, const T& angle) {
+  void initialize(const std::vector<point<T>>& p, const T& e, const T& angle) {
     data<T>.eps = e;
     data<T>.random_rotation = angle;
     if (!data<T>.random_rotation) {
-      random_device delaunay_rd;
-      mt19937 generator(delaunay_rd());
+      std::random_device delaunay_rd;
+      std::mt19937 generator(delaunay_rd());
       data<T>.random_rotation = uniform_real_distribution<T>(0, 3.14)(generator);
-      cerr << "delaunay: random_rotation " << data<T>.random_rotation << '\n';
+      std::cerr << "delaunay: random_rotation " << data<T>.random_rotation << '\n';
     }
     data<T>.clear();
     transform(begin(p), end(p), back_inserter(data<T>), [=](const point<T>& v) {
@@ -177,14 +181,14 @@ namespace delaunay_triangulator {
   }
 
   template <typename T>
-  vector<tuple<int, int, int>> triangulate(
-      const vector<point<T>>& p,
+  std::vector<std::tuple<int, int, int>> triangulate(
+      const std::vector<point<T>>& p,
       const T& e,
       const T& angle) {
     initialize(p, e, angle);
 
-    vector<tuple<int, int, int>> triangles;
-    priority_queue<Event<T>> events;
+    std::vector<std::tuple<int, int, int>> triangles;
+    std::priority_queue<Event<T>> events;
     for (int i = 0; i < (int)size(data<T>); i++) {
       events.emplace(data<T>[i].x, i, i, i);
     }
@@ -202,8 +206,8 @@ namespace delaunay_triangulator {
 }
 
 template <typename T>
-vector<tuple<int, int, int>> delaunay(
-    const vector<point<T>>& points,
+std::vector<std::tuple<int, int, int>> delaunay(
+    const std::vector<point<T>>& points,
     const T& eps = 1e-9, // this code is really sketchy
     const T& random_angle = 0) {
   return delaunay_triangulator::triangulate(points, eps, random_angle);

@@ -5,6 +5,7 @@
 #pragma once
 
 #include "point.h"
+#include <vector>
 
 namespace {
   template <typename T>
@@ -35,13 +36,13 @@ point<T> line_inter(
 }
 
 template <typename T>
-enable_if_t<is_floating_point_v<T>, T> line_point_dist(
+T line_point_dist(
   const point<T>& a, const point<T>& b, const point<T>& c) {
   return cross(b - a, c - a) / abs(b - a);
 }
 
 template <typename T>
-enable_if_t<is_floating_point_v<T>, T> segment_point_dist(
+T segment_point_dist(
   const point<T>& a, const point<T>& b, const point<T>& c) {
   if (dot(b - a, c - a) > 0 && dot(a - b, c - b) > 0) {
     return abs(line_point_dist(a, b, c));
@@ -51,7 +52,7 @@ enable_if_t<is_floating_point_v<T>, T> segment_point_dist(
 }
 
 template <typename T>
-enable_if_t<is_floating_point_v<T>, T> segment_closest(
+T segment_closest(
   const point<T>& a, const point<T>& b, const point<T>& c,
   const T& eps = 1e-9) {
   if (dot(b - a, c - a) > 0 && dot(a - b, c - b) > 0) {
@@ -62,7 +63,7 @@ enable_if_t<is_floating_point_v<T>, T> segment_closest(
 }
 
 template <typename T>
-T signed_area(const vector<point<T>>& v) {
+T signed_area(const std::vector<point<T>>& v) {
   int n = (int)v.size();
   T area = 0;
   for (int i = n - 1, j = 0; j < n; i = j++) {
@@ -80,7 +81,7 @@ bool on_segment(
 }
 
 template <typename T>
-bool on_boundary(const vector<point<T>>& v, const point<T>& c, const T& eps = 1e-9) {
+bool on_boundary(const std::vector<point<T>>& v, const point<T>& c, const T& eps = 1e-9) {
   bool ok = false;
   for (int i = (int)size(v) - 1, j = 0; !ok && j < (int)size(v); i = j++) {
     ok |= on_segment(v[i], v[j], c, false, eps);
@@ -90,7 +91,7 @@ bool on_boundary(const vector<point<T>>& v, const point<T>& c, const T& eps = 1e
 
 template <typename T>
 bool in_polygon(
-    const vector<point<T>>& v, const point<T>& c,
+    const std::vector<point<T>>& v, const point<T>& c,
     bool strict = false, const T& eps = 1e-9) {
   if (on_boundary(v, c, eps)) return !strict;
   T sum = 0;

@@ -164,7 +164,7 @@ struct dynamic_connectivity : dynamic_forest_layer<node_t, use_memory_pool> {
     dynamic_connectivity_node_simple, use_memory_pool>;
   vector<forest_t*> forest;
   dynamic_connectivity(int n): base(n) {
-    int lg_n = (int)bit_width((unsigned int)n);
+    int lg_n = (n ? 32 - __builtin_clz(n) : 0); // C++17 (int)bit_width((unsigned int)n);
     if (lg_n > 1) {
       forest.reserve(lg_n - 1);
       for (int i = 1; i < lg_n; i++) {

@@ -12,8 +12,9 @@
 template <typename T, bool overflow_guard = false>
 struct fraction {
   T num, den;
-  explicit fraction(const T& n = 0, const T& d = 1) {
+  fraction(const T& n = 0, const T& d = 1) {
     T g = gcd(n, d);
+    g = g < 0 ? -g : g;
     num = d < 0 ? -n/g : n/g;
     den = d < 0 ? -d/g : d/g;
   }

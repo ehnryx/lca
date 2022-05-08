@@ -2,7 +2,7 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-#include "../../misc/fast_input.h"
+#include "../../utility/fast_input.h"
 #include "../min_arborescence.h"
 
 using ll = long long;

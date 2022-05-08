@@ -10,6 +10,7 @@
  */
 #pragma once
 
+#include "../utility/fast_input.h"
 #include "../math/fast_fourier_transform.h"
 
 struct int_base10 {
@@ -20,6 +21,13 @@ struct int_base10 {
   static constexpr size_t large_div_threshold = 144;
   static constexpr size_t recursive_div_limit = 64;
   static_assert(recursive_div_limit < small_div_threshold);
+
+  template <size_t buf_size>
+  void fast_read(fast_input<buf_size>& in) {
+    string s;
+    in >> s;
+    build(s);
+  }
 
   bool negative;
   vector<int> digits;
@@ -234,8 +242,8 @@ struct int_base10 {
 
   int_base10 operator * (const int_base10& o) const {
     if (is_zero() || o.is_zero()) return int_base10(0);
-    if (is_one()) return o;
-    if (o.is_one()) return *this;
+    if (is_one()) return negative ? -o : o;
+    if (o.is_one()) return o.negative ? -*this : *this;
     if (min(digits.size(), o.digits.size()) >= fft_threshold) return fft_multiply(o);
     vector<int> num(digits.size() + o.digits.size());
     for (size_t i = 0; i < digits.size(); i++) {
@@ -247,22 +255,6 @@ struct int_base10 {
       }
     }
     return int_base10(move(num), negative ^ o.negative);
-  }
-
-  int_base10 fft_multiply(const int_base10& o) const {
-    vector<long long> num = convolve<long long, double>(digits, o.digits);
-    vector<int> res(num.size() + 1);
-    for (size_t i = 0; i < num.size(); i++) {
-      num[i] += res[i];
-      if (num[i] < radix) {
-        res[i] = (int)num[i];
-        res[i + 1] = 0;
-      } else {
-        res[i] = (int)(num[i] % radix);
-        res[i + 1] = (int)(num[i] / radix);
-      }
-    }
-    return int_base10(move(res), negative ^ o.negative);
   }
 
   int_base10 pow(const int_base10& exponent) const {
@@ -308,7 +300,7 @@ struct int_base10 {
     return res;
   }
 
-private:
+  // this doesn't have sign
   pair<int_base10, int_base10> divide_remainder(const int_base10& o) const {
     if (o.is_zero()) throw invalid_argument("division by zero");
     if (is_zero()) return pair(int_base10(0), int_base10(0));
@@ -319,6 +311,23 @@ private:
     } else {
       return long_division(o);
     }
+  }
+
+private:
+  int_base10 fft_multiply(const int_base10& o) const {
+    vector<long long> num = convolve<long long, double>(digits, o.digits);
+    vector<int> res(num.size() + 1);
+    for (size_t i = 0; i < num.size(); i++) {
+      num[i] += res[i];
+      if (num[i] < radix) {
+        res[i] = (int)num[i];
+        res[i + 1] = 0;
+      } else {
+        res[i] = (int)(num[i] % radix);
+        res[i + 1] = (int)(num[i] / radix);
+      }
+    }
+    return int_base10(move(res), negative ^ o.negative);
   }
 
   pair<int_base10, int_base10> long_division(const int_base10& o) const {

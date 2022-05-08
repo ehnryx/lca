@@ -15,10 +15,11 @@
  */
 #pragma once
 
+#include <stdexcept>
 #include <tuple>
 #include <vector>
 
-template <bool by_weight = false, bool persistent = false, typename = void>
+template <bool by_weight = false, bool persistent = false>
 struct union_find {
   std::vector<int> dsu, size;
   union_find(int n): dsu(n, -1), size(n, 1) {}
@@ -51,8 +52,8 @@ struct union_find {
   }
 };
 
-template <bool by_weight, bool persistent>
-struct union_find<by_weight, persistent, std::enable_if_t<persistent>> {
+template <bool by_weight>
+struct union_find<by_weight, true> {
   static_assert(by_weight);  // needs to be by weight if persistent
   std::vector<int> dsu, size;
   std::vector<std::tuple<int, int, int, int>> memo;

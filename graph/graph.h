@@ -14,14 +14,26 @@
 
 // AJDACENCY LIST
 
-template <typename weight_t>  // weighted
+template <typename _weight_t>  // weighted
 struct graph_list {
+  using weight_t = _weight_t;
   static constexpr bool weighted = true;
   std::vector<std::vector<graph_adj<weight_t>>> adj;
   std::vector<int> in_degree, out_degree;
-  graph_list(int n): adj(n), in_degree(n), out_degree(n) {}
+  int num_edges, num_arcs;
+  bool directed;
+  graph_list(int n, bool d = false):
+    adj(n), in_degree(n), out_degree(n), num_edges(0), num_arcs(0), directed(d) {}
   int size() const { return (int)adj.size(); }
   void add_edge(int a, int b, weight_t c) {
+    num_edges++;
+    add_arc(a, b, c);
+    if (!directed) {
+      add_arc(b, a, c);
+    }
+  }
+  void add_arc(int a, int b, weight_t c) {
+    num_arcs++;
     adj[a].emplace_back(b, c);
     in_degree[b]++;
     out_degree[a]++;
@@ -36,12 +48,24 @@ struct graph_list {
 
 template <>  // unweighted
 struct graph_list<void> {
+  using weight_t = void;
   static constexpr bool weighted = false;
   std::vector<std::vector<int>> adj;
   std::vector<int> in_degree, out_degree;
-  graph_list(int n): adj(n), in_degree(n), out_degree(n) {}
+  int num_edges, num_arcs;
+  bool directed;
+  graph_list(int n, bool d = false):
+    adj(n), in_degree(n), out_degree(n), num_edges(0), num_arcs(0), directed(d) {}
   int size() const { return (int)adj.size(); }
   void add_edge(int a, int b) {
+    num_edges++;
+    add_arc(a, b);
+    if (!directed) {
+      add_arc(b, a);
+    }
+  }
+  void add_arc(int a, int b) {
+    num_arcs++;
     adj[a].emplace_back(b);
     in_degree[b]++;
     out_degree[a]++;
@@ -56,19 +80,27 @@ struct graph_list<void> {
 
 // AJDACENCY MATRIX
 
-template <typename weight_t>  // weighted
+template <typename _weight_t>  // weighted
 struct graph_matrix {
+  using weight_t = _weight_t;
   static constexpr bool weighted = true;
   std::vector<std::vector<weight_t>> adj;
   std::vector<int> in_degree, out_degree;
   weight_t inf;
-  graph_matrix(int n, weight_t _inf):
-    adj(n, std::vector<weight_t>(n, _inf)), in_degree(n), out_degree(n), inf(_inf) {}
+  bool directed;
+  graph_matrix(int n, weight_t _inf, bool d = false):
+    adj(n, std::vector<weight_t>(n, _inf)), in_degree(n), out_degree(n), inf(_inf), directed(d) {}
   int size() const { return (int)adj.size(); }
   void add_edge(int a, int b, weight_t c) {
+    add_arc(a, b, c);
+    if (!directed) {
+      add_arc(b, a, c);
+    }
+  }
+  void add_arc(int a, int b, weight_t c) {
+    in_degree[b] += (adj[a][b] == inf);
+    out_degree[a] += (adj[a][b] == inf);
     adj[a][b] = c;
-    in_degree[b]++;
-    out_degree[a]++;
   }
   matrix_adj_list_view<weight_t> operator [] (int u) const {
     return matrix_adj_list_view(this, u);
@@ -80,16 +112,24 @@ struct graph_matrix {
 
 template <>  // unweighted
 struct graph_matrix<void> {
+  using weight_t = void;
   static constexpr bool weighted = false;
   std::vector<std::vector<bool>> adj;
   std::vector<int> in_degree, out_degree;
-  graph_matrix(int n):
-    adj(n, std::vector<bool>(n)), in_degree(n), out_degree(n) {}
+  bool directed;
+  graph_matrix(int n, bool d = false):
+    adj(n, std::vector<bool>(n)), in_degree(n), out_degree(n), directed(d) {}
   int size() const { return (int)adj.size(); }
   void add_edge(int a, int b) {
+    add_arc(a, b);
+    if (!directed) {
+      add_arc(b, a);
+    }
+  }
+  void add_arc(int a, int b) {
+    in_degree[b] += !adj[a][b];
+    out_degree[a] += !adj[a][b];
     adj[a][b] = true;
-    in_degree[b]++;
-    out_degree[a]++;
   }
   matrix_adj_list_view<void> operator [] (int u) const {
     return matrix_adj_list_view(this, u);

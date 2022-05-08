@@ -46,11 +46,13 @@ struct segment_tree {
   MEMBER_FUNCTION_CHECKER(default_value);
   MEMBER_FUNCTION_CHECKER(break_condition);
   MEMBER_FUNCTION_CHECKER(put_condition);
-  static constexpr bool has_push = _has_push<Node_t>::value;
-  static constexpr bool has_pull = _has_pull<Node_t>::value;
+  static constexpr bool has_push = _has_push<Node_t, Node_t&, Node_t&>::value;
+  static constexpr bool has_pull = _has_pull<Node_t, Node_t, Node_t>::value;
   static constexpr bool has_default_value = _has_default_value<Node_t>::value;
+  // TODO fix this
   static constexpr bool has_break_condition = _has_break_condition<Node_t>::value;
   static_assert(!_has_put_condition<Node_t>::value || has_break_condition);
+  // end TODO
 
   int lim, length;
   std::vector<Node_t> data;

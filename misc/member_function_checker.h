@@ -11,7 +11,7 @@
     template <typename __class> \
     static constexpr auto check(__class*) -> \
       typename std::is_void<std::void_t< \
-        decltype(std::declval<__class&>().get(std::declval<__args_t>()...))>>::type; \
+        decltype(std::declval<__class&>().FUNCTION(std::declval<__args_t>()...))>>::type; \
     template <typename __dummy> \
     static constexpr auto check(...) -> std::false_type; \
     using type = decltype(check<__class_t>(0)); \

@@ -44,6 +44,7 @@ struct dijkstra : graph_traversal {
   struct Item {
     int u;
     weight_t d;
+    Item(int _u, weight_t _d): u(_u), d(_d) {} // C++17
     bool operator < (const Item& o) const { return d > o.d; }
   };
 };

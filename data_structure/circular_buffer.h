@@ -94,7 +94,7 @@ struct circular_buffer_data_N final : circular_buffer_data<T> {
 
 template <typename T>
 circular_buffer_data<T>* make_circular_buffer_data(int n) {
-  switch (n ? 32 - __builtin_clz(n) : 0) {
+  switch (n ? 32 - __builtin_clz(n) : 0) { // C++17 (int)bit_width((unsigned int)n);
     case 0://return new circular_buffer_data_N<T, 0>();
     case 1://return new circular_buffer_data_N<T, 1>();
     case 2:  return new circular_buffer_data_N<T, 2>();

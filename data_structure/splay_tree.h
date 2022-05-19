@@ -9,9 +9,10 @@
  */
 #pragma once
 
-#include "../misc/static_memory_pool.h"
-#include "../misc/simple_memory_pool.h"
-#include "../misc/member_function_checker.h"
+#include "../utility/static_memory_pool.h"
+#include "../utility/simple_memory_pool.h"
+#include "../utility/member_function_checker.h"
+#include <stdexcept>
 
 template <class node_t, int max_size, typename = void>
 struct splay_tree_memory_base {

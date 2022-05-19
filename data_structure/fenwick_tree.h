@@ -17,6 +17,7 @@
 #pragma once
 
 #include <vector>
+#include <stdexcept>
 
 template <typename T>
 struct fenwick_tree {
@@ -42,6 +43,7 @@ struct fenwick_tree {
     return res;
   }
   void update_point(int i, const T& v) { update(i, v); }
+  void insert(int i, const T& v = T(1)) { update(i, v); }
   void update(int i, const T& v) {
     if (i < 0 || n < i) throw std::invalid_argument("update index out of bounds");
     for (i += 1; i <= n; i += i & -i) {

@@ -19,6 +19,11 @@
  */
 #pragma once
 
+#include <cassert>
+#include <limits>
+#include <queue>
+#include <vector>
+
 template <typename T>
 struct dinic {
   struct edge {
@@ -26,17 +31,19 @@ struct dinic {
     T cap, flow;
     edge(int t, int r, const T& c, const T& f): to(t), rev(r), cap(c), flow(f) {}
   };
-  vector<vector<edge>> adj;
-  vector<int> layer, cur_edge;
+  std::vector<std::vector<edge>> adj;
+  std::vector<int> layer, cur_edge;
   dinic(int n): adj(n), layer(n), cur_edge(n) {}
 
-  void add_edge(int a, int b, const T& c, bool bidirectional = false) {
-    adj[a].emplace_back(b, (int)size(adj[b]), c, 0);
-    adj[b].emplace_back(a, (int)size(adj[a]) - 1, bidirectional ? c : 0, 0);
+  int size() const { return (int)adj.size(); }
+
+  void add_edge(int a, int b, const T& c = 1, bool bidirectional = false) {
+    adj[a].emplace_back(b, (int)adj[b].size(), c, 0);
+    adj[b].emplace_back(a, (int)adj[a].size() - 1, bidirectional ? c : 0, 0);
   }
   bool left_of_min_cut(int u) const { return layer[u] != -1; }
   void clear_flow() {
-    for (vector<edge>& adjacency : adj) {
+    for (std::vector<edge>& adjacency : adj) {
       for (edge& e : adjacency) {
         e.flow = 0;
       }
@@ -46,7 +53,7 @@ struct dinic {
   bool bfs(int s, int t) {
     fill(begin(layer), end(layer), -1);
     fill(begin(cur_edge), end(cur_edge), 0);
-    queue<int> todo;
+    std::queue<int> todo;
     layer[s] = 0;
     todo.push(s);
     while (!empty(todo) && layer[t] == -1) {
@@ -65,7 +72,7 @@ struct dinic {
   T dfs(int u, int t, T f) {
     if (u == t || f == 0) return f;
     T res = 0;
-    for (int i = cur_edge[u]; i < (int)size(adj[u]) && f != 0; i++) {
+    for (int i = cur_edge[u]; i < (int)adj[u].size() && f != 0; i++) {
       cur_edge[u] = i; // save current edge
       if (layer[u] + 1 != layer[adj[u][i].to]) continue;
       if (T cur_flow = dfs(adj[u][i].to, t, min(f, adj[u][i].cap - adj[u][i].flow))) {
@@ -78,11 +85,11 @@ struct dinic {
     return res;
   }
 
-  T flow(int source, int sink, int max_iters = numeric_limits<int>::max()) {
-    if constexpr (!is_integral_v<T>) {
-      assert(max_iters < numeric_limits<int>::max());
+  T flow(int source, int sink, int max_iters = std::numeric_limits<int>::max()) {
+    if constexpr (!std::is_integral_v<T>) {
+      assert(max_iters < std::numeric_limits<int>::max());
     }
-    T inf = numeric_limits<T>::max();
+    T inf = std::numeric_limits<T>::max();
     T res = 0;
     for (int i = 0; i < max_iters && bfs(source, sink); i++) {
       while (T cur_flow = dfs(source, sink, inf)) {

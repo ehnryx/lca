@@ -1,7 +1,7 @@
 /* For checking whether a class has a member function by name
  * USAGE
  *  MEMBER_FUNCTION_CHECKER(function_name);
- *  bool <- _has_function_name(class);
+ *  bool <- _has_function_name<class, args...>::value;
  */
 #pragma once
 

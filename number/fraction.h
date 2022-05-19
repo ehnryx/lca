@@ -8,6 +8,8 @@
 #pragma once
 
 #include "int128.h"
+#include <cmath>
+#include <iostream>
 
 template <typename T, bool overflow_guard = false>
 struct fraction {
@@ -18,15 +20,20 @@ struct fraction {
     num = d < 0 ? -n/g : n/g;
     den = d < 0 ? -d/g : d/g;
   }
-  fraction(const pair<T, T>& f): num(f.first), den(f.second) {} // skip gcd
+  fraction(const std::pair<T, T>& f): num(f.first), den(f.second) {} // skip gcd
   template <typename F> fraction(const fraction<F>& o): num(o.num), den(o.den) {}
   const T& numerator() const { return num; }
   const T& denominator() const { return den; }
   T floor() const { return num < 0 ? (num - den + 1) / den : num / den; }
-  friend ostream& operator << (ostream& os, const fraction& v) {
+  T integer_part() const { return floor(); }
+  fraction fractional_part() const {
+    T rem = num % den;
+    return fraction(std::pair(rem < 0 ? rem + den : rem, den));
+  }
+  friend std::ostream& operator << (std::ostream& os, const fraction& v) {
     return os << v.numerator() << '/' << v.denominator();
   }
-  fraction operator - () const { return fraction(pair(-num, den)); }
+  fraction operator - () const { return fraction(std::pair(-num, den)); }
   fraction operator + (const fraction& o) const { return fraction(*this) += o; }
   fraction operator - (const fraction& o) const { return fraction(*this) -= o; }
   fraction operator * (const fraction& o) const { return fraction(*this) *= o; }
@@ -63,6 +70,9 @@ struct fraction {
     den = den / gd * (o.num < 0 ? -o.num : o.num) / gn;
     return *this;
   }
+  fraction inverse() const {
+    return fraction(num < 0 ? std::pair(-den, -num) : std::pair(den, num));
+  }
   bool operator < (const fraction& o) const {
     if (den == 0 && o.den == 0) return num && o.num && num < o.num;
     if (den == 0) return num < 0;
@@ -98,7 +108,7 @@ struct fraction {
   explicit operator float() const { return value<float>(); }
   explicit operator double() const { return value<double>(); }
   explicit operator long double() const { return value<long double>(); }
-  fraction abs() const { return fraction(pair(num < 0 ? -num : num, den)); }
+  fraction abs() const { return fraction(std::pair(num < 0 ? -num : num, den)); }
   template <typename D = long double> D sqrt() const { return std::sqrt(value<D>()); }
   struct as_pair {
     bool operator () (const fraction& a, const fraction& b) const {

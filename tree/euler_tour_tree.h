@@ -10,8 +10,8 @@
 #pragma once
 
 #include "../data_structure/splay_tree.h"
-#include "../misc/fake_memory_pool.h"
-#include "../misc/simple_memory_pool.h"
+#include "../utility/fake_memory_pool.h"
+#include "../utility/simple_memory_pool.h"
 
 template <class node_t, bool use_memory_pool = true>
 struct euler_tour_tree : splay_tree<node_t> {

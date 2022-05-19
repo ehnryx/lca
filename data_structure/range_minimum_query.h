@@ -12,6 +12,8 @@
  */
 #pragma once
 
+#include <functional>
+#include <stdexcept>
 #include <vector>
 
 template <typename T, class Compare = std::less<>>

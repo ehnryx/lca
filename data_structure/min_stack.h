@@ -13,6 +13,9 @@
  */
 #pragma once
 
+#include <functional>
+#include <vector>
+
 template <typename T, class Compare = std::less<>>
 struct min_stack {
   struct stack_item {

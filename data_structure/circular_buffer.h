@@ -12,6 +12,7 @@
  *  O(1) push/pop/front/back
  * STATUS
  *  untested
+ * SLOW!!!
  */
 #pragma once
 

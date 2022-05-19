@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#include "../misc/member_function_checker.h"
+#include "member_function_checker.h"
 
 #include <complex>
 #include <string>
@@ -46,6 +46,11 @@ struct fast_input {
     for (; !isspace(c) && c != EOF; c = getc()) {
       x.push_back(c);
     }
+  }
+
+  inline void get(decltype(std::ignore)) {
+    while (isspace(c = getc()) && c != EOF);
+    for (; !isspace(c) && c != EOF; c = getc());
   }
 
   template <typename var_t, std::enable_if_t<std::is_integral_v<var_t>, bool> = true>
@@ -124,6 +129,15 @@ struct fast_input {
     std::string out;
     while ((c = getc()) != '\n' && c != EOF) {
       out.push_back(c);
+    }
+    return out;
+  }
+
+  std::vector<std::string> readlines(int n) {
+    std::vector<std::string> out;
+    out.reserve(n);
+    for (int i = 0; i < n; i++) {
+      out.push_back(getline());
     }
     return out;
   }

@@ -19,7 +19,8 @@
  */
 #pragma once
 
-#include "../misc/member_function_checker.h"
+#include "../utility/member_function_checker.h"
+#include <functional>
 
 template <typename value_t>
 struct leftist_node {

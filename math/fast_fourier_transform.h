@@ -10,8 +10,11 @@
  */
 #pragma once
 
+#include <complex>
+#include <vector>
+
 template <typename D>
-void fast_fourier_transform(vector<complex<D>>& a) {
+void fast_fourier_transform(std::vector<std::complex<D>>& a) {
   int n = (int)size(a); // n should be a power of 2
   int L = 31 - __builtin_clz(n); // logn
 #ifdef _USE_MATH_DEFINES
@@ -19,15 +22,15 @@ void fast_fourier_transform(vector<complex<D>>& a) {
 #else
   static constexpr D PI = acos(D(-1));
 #endif
-  static vector<complex<D>> root(2, 1);
+  static std::vector<std::complex<D>> root(2, 1);
   for (static int k = 2; k < n; k *= 2) {
     root.resize(n, 1);
-    complex<D> w = polar(D(1), PI / k);
+    std::complex<D> w = std::polar(D(1), PI / k);
     for (int i = k; i < 2 * k; i++) {
       root[i] = (i % 2 ? root[i / 2] * w : root[i / 2]);
     }
   }
-  vector<int> rev(n);
+  std::vector<int> rev(n);
   for (int i = 0; i < n; i++) {
     rev[i] = (rev[i >> 1] | (i & 1) << L) >> 1;
     if (i < rev[i]) {
@@ -37,7 +40,7 @@ void fast_fourier_transform(vector<complex<D>>& a) {
   for (int k = 1; k < n; k *= 2) {
     for (int i = 0; i < n; i += 2 * k) {
       for (int j = 0; j < k; j++) {
-        complex<D> z = root[j + k] * a[i + j + k];
+        std::complex<D> z = root[j + k] * a[i + j + k];
         a[i + j + k] = a[i + j] - z;
         a[i + j] += z;
       }
@@ -46,14 +49,14 @@ void fast_fourier_transform(vector<complex<D>>& a) {
 }
 
 template <typename Prod_t = void, typename D = long double, typename T>
-auto convolve(const vector<T>& a, const vector<T>& b, size_t cut = -1) {
-  static_assert(is_floating_point_v<D>);
-  using Out_t = conditional_t<is_same_v<Prod_t, void>, T, Prod_t>;
-  if (empty(a) || empty(b)) return vector<Out_t>();
-  vector<Out_t> res(size(a) + size(b) - 1, 0);
+auto convolve(const std::vector<T>& a, const std::vector<T>& b, size_t cut = -1) {
+  static_assert(std::is_floating_point_v<D>);
+  using Out_t = std::conditional_t<std::is_same_v<Prod_t, void>, T, Prod_t>;
+  if (empty(a) || empty(b)) return std::vector<Out_t>();
+  std::vector<Out_t> res(size(a) + size(b) - 1, 0);
   int L = (size(res) == 1 ? 0 : 32 - __builtin_clz((int)size(res) - 1));
   int n = 1 << L;
-  vector<complex<D>> in(n), out(n);
+  std::vector<std::complex<D>> in(n), out(n);
   copy(begin(a), end(a), begin(in));
   for (size_t i = 0; i < size(b); i++) {
     in[i].imag(b[i]);
@@ -65,7 +68,7 @@ auto convolve(const vector<T>& a, const vector<T>& b, size_t cut = -1) {
   }
   fast_fourier_transform(out);
   for (size_t i = 0; i < size(res); i++) {
-    if constexpr (is_integral_v<Out_t>) {
+    if constexpr (std::is_integral_v<Out_t>) {
       res[i] = Out_t(round(imag(out[i]) / (4 * n)));
     } else {
       res[i] = imag(out[i]) / (4 * n);

@@ -13,6 +13,7 @@
  */
 #pragma once
 
+#include <limits>
 #include <set>
 
 template <typename T>
@@ -31,10 +32,10 @@ struct dynamic_hull : std::multiset<dynamic_hull_line<T>, std::less<>> {
   static constexpr T inf = std::numeric_limits<T>::has_infinity ?
     std::numeric_limits<T>::infinity() : std::numeric_limits<T>::max();
   static T div(const T& a, const T& b) {
-    if constexpr (std::is_floating_point_v<T>) {
-      return a / b;
-    } else {
+    if constexpr (std::is_integral_v<T>) {
       return a / b - ((a ^ b) < 0 && a % b != 0);
+    } else {
+      return a / b;
     }
   }
   T intersect(base_it it, base_it jt) {

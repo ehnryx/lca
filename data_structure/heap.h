@@ -1,4 +1,4 @@
-/* Heap
+/* Min Heap
  * USAGE
  *  heap<T> queue;
  * MEMBERS
@@ -11,11 +11,13 @@
  *  O(log) push/pop
  * STATUS
  *  untested
+ * SLOW!!!
  */
 #pragma once
 
-#include <vector>
+#include <functional>
 #include <limits>
+#include <vector>
 
 template <typename T, class Compare = std::less<>>
 struct heap {
@@ -37,7 +39,7 @@ struct heap {
 
   template <typename... Args>
   void emplace(Args&&... args) {
-    data.emplace_back(forward<Args>(args)...);
+    data.emplace_back(std::forward<Args>(args)...);
     _pull_up(data.size() - 1);
   }
 

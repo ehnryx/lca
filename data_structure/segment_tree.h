@@ -33,22 +33,34 @@
  */
 #pragma once
 
-#include "../misc/member_function_checker.h"
+#include "../utility/member_function_checker.h"
+#include "../utility/member_variable_checker.h"
+#include "../utility/member_type_getter.h"
 
 #include <cassert>
+#include <stdexcept>
 #include <tuple>
 #include <vector>
 
-template <class Node_t, typename Query_t>
+
+template <class Node_t, typename __Query_t = void>
 struct segment_tree {
+  MEMBER_TYPE_GETTER(out_t);
+  using Query_t = typename _get_type_out_t<Node_t, __Query_t>::type;
+  static_assert(std::is_same_v<Query_t, __Query_t> || std::is_void_v<__Query_t>);
+
+  MEMBER_VARIABLE_CHECKER(length);
   MEMBER_FUNCTION_CHECKER(push);
   MEMBER_FUNCTION_CHECKER(pull);
+  MEMBER_FUNCTION_CHECKER(merge);
   MEMBER_FUNCTION_CHECKER(default_value);
-  MEMBER_FUNCTION_CHECKER(break_condition);
-  MEMBER_FUNCTION_CHECKER(put_condition);
+  MEMBER_FUNCTION_CHECKER(break_condition); // TODO
+  MEMBER_FUNCTION_CHECKER(put_condition); // TODO
   static constexpr bool has_push = _has_push<Node_t, Node_t&, Node_t&>::value;
   static constexpr bool has_pull = _has_pull<Node_t, Node_t, Node_t>::value;
+  static constexpr bool has_merge = _has_merge<Node_t, Query_t, Query_t>::value;
   static constexpr bool has_default_value = _has_default_value<Node_t>::value;
+  static constexpr bool has_length = _has_length<Node_t>::value;
   // TODO fix this
   static constexpr bool has_break_condition = _has_break_condition<Node_t>::value;
   static_assert(!_has_put_condition<Node_t>::value || has_break_condition);
@@ -59,7 +71,9 @@ struct segment_tree {
   Node_t& operator [] (int i) { return data[i]; }
 
   segment_tree(int n): lim(n),
-    length(1 << (lim == 1 ? 0 : 32 - __builtin_clz(lim - 1))), data(2 * length) {}
+    length(1 << (lim == 1 ? 0 : 32 - __builtin_clz(lim - 1))), data(2 * length) {
+    if constexpr (has_length) assign_lengths();
+  }
   template <class Input_t>
   segment_tree(const std::vector<Input_t>& a, int offset = 0): lim((int)size(a)),
     length(1 << (lim == 1 ? 0 : 32 - __builtin_clz(lim - 1))), data(2*length) {
@@ -67,6 +81,7 @@ struct segment_tree {
       data[length + i] = Node_t(a[i]);
     }
     build();
+    if constexpr (has_length) assign_lengths();
   }
   void build() {
     for (int i = length - 1; i > 0; i--) {
@@ -135,9 +150,13 @@ struct segment_tree {
     int mid = (first + last) / 2;
     if(r <= mid) return __query(l, r, 2*i, first, mid, args...);
     if(mid < l) return __query(l, r, 2*i + 1, mid + 1, last, args...);
-    return Node_t::merge(
-        __query(l, r, 2*i, first, mid, args...),
-        __query(l, r, 2*i + 1, mid + 1, last, args...));
+    Query_t left = __query(l, r, 2*i, first, mid, args...);
+    Query_t right = __query(l, r, 2*i + 1, mid + 1, last, args...);
+    if constexpr (!has_merge && std::is_same_v<Node_t, Query_t>) {
+      return Node_t().pull(left, right);
+    } else {
+      return Node_t::merge(left, right);
+    }
   }
 
   template <class... Args>

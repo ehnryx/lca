@@ -101,8 +101,8 @@ struct dynamic_forest_layer : euler_tour_tree<node_t, use_memory_pool> {
   }
 
   template <typename T, bool B>
-  pair<int, int> reconnect(int u, int v, dynamic_forest_layer<T, B>* forest) {
-    if (size(u) > size(v)) swap(u, v);
+  std::pair<int, int> reconnect(int u, int v, dynamic_forest_layer<T, B>* forest) {
+    if (size(u) > size(v)) std::swap(u, v);
     splay(u); // for the iteration
     // push all tree edges
     for (auto it = base::find_first_after(nil,
@@ -138,11 +138,11 @@ struct dynamic_forest_layer : euler_tour_tree<node_t, use_memory_pool> {
           splay(neighbour)->del_edge_to(cur);
           base::link(cur, neighbour);
           add_edge(cur, neighbour, true);
-          return pair(cur, neighbour);
+          return std::pair(cur, neighbour);
         }
       }
     }
-    return pair(-1, -1);;
+    return std::pair(-1, -1);;
   }
 
 private:
@@ -162,7 +162,7 @@ struct dynamic_connectivity : dynamic_forest_layer<node_t, use_memory_pool> {
 
   using forest_t = dynamic_forest_layer<
     dynamic_connectivity_node_simple, use_memory_pool>;
-  vector<forest_t*> forest;
+  std::vector<forest_t*> forest;
   dynamic_connectivity(int n): base(n) {
     int lg_n = (n ? 32 - __builtin_clz(n) : 0); // C++17 (int)bit_width((unsigned int)n);
     if (lg_n > 1) {

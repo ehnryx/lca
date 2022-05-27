@@ -12,6 +12,7 @@
 #include "../utility/static_memory_pool.h"
 #include "../utility/simple_memory_pool.h"
 #include "../utility/member_function_checker.h"
+#include <cassert>
 #include <stdexcept>
 
 template <class node_t, int max_size, typename = void>
@@ -40,11 +41,11 @@ struct splay_tree : splay_tree_memory_base<node_t, max_size> {
   template <class... Args>
   inline node_t* new_node(Args&&... args) {
     if constexpr (max_size == 0) {
-      return new node_t(forward<Args>(args)...);
+      return new node_t(std::forward<Args>(args)...);
     } else if constexpr (max_size == -1) {
-      return new (memory_base::shared_memory->allocate()) node_t(forward<Args>(args)...);
+      return new (memory_base::shared_memory->allocate()) node_t(std::forward<Args>(args)...);
     } else {
-      return new (memory.allocate()) node_t(forward<Args>(args)...);
+      return new (memory.allocate()) node_t(std::forward<Args>(args)...);
     }
   }
   inline void del_node(node_t* x) {
@@ -217,7 +218,7 @@ struct splay_tree : splay_tree_memory_base<node_t, max_size> {
 
   template <typename key_t, class... Args>
   node_t* insert(const key_t& key, Args&&... args) {
-    return _insert(new_node(key, forward<Args>(args)...));
+    return _insert(new_node(key, std::forward<Args>(args)...));
   }
 
   template <typename key_t>
@@ -230,15 +231,15 @@ struct splay_tree : splay_tree_memory_base<node_t, max_size> {
   template <typename key_t, class... Args>
   node_t* insert_if_none(const key_t& key, Args&&... args) {
     if (contains(key)) return nil;
-    return _insert(new_node(key, forward<Args>(args)...));
+    return _insert(new_node(key, std::forward<Args>(args)...));
   }
 
   template <typename key_t, class... Args>
   node_t* overwrite(const key_t& key, Args&&... args) {
     node_t* has = find(key);
-    if (has == nil) return insert(key, forward<Args>(args)...);
+    if (has == nil) return insert(key, std::forward<Args>(args)...);
     if constexpr (sizeof...(args) != 0) {
-      has->value = typename node_t::value_t(forward<Args>(args)...);
+      has->value = typename node_t::value_t(std::forward<Args>(args)...);
     }
     return has;
   }
@@ -437,19 +438,19 @@ struct splay_tree : splay_tree_memory_base<node_t, max_size> {
 
   template <class... Args>
   node_t* push_back(Args&&... args) {
-    return _push_back(new_node(forward<Args>(args)...));
+    return _push_back(new_node(std::forward<Args>(args)...));
   }
   template <class... Args>
   node_t* push_front(Args&&... args) {
-    return _push_front(new_node(forward<Args>(args)...));
+    return _push_front(new_node(std::forward<Args>(args)...));
   }
   template <class... Args>
   node_t* insert_before(int ref, Args&&... args) {
-    return _insert_before(at(ref), new_node(forward<Args>(args)...));
+    return _insert_before(at(ref), new_node(std::forward<Args>(args)...));
   }
   template <class... Args>
   node_t* insert_after(int ref, Args&&... args) {
-    return _insert_after(at(ref), new_node(forward<Args>(args)...));
+    return _insert_after(at(ref), new_node(std::forward<Args>(args)...));
   }
   splay_tree split_before(int x) { return split_before(at(x)); }
   splay_tree split_after(int x) { return split_after(at(x)); }

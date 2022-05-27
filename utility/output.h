@@ -9,12 +9,22 @@
 
 template <template <typename> typename Container, typename T>
 std::ostream& operator << (std::ostream& os, const Container<T>& v) {
-  for (size_t i = 0; i < v.size(); i++) {
-    if (i) os << " ";
-    os << v[i];
+  if (v.begin() == v.end()) return os;
+  os << *v.begin();
+  for (auto it = v.begin() + 1; it != v.end(); it++) {
+    os << " " << *it;
   }
   return os;
 }
+
+template <typename Iterator>//, typename = std::iter_value_t<Iterator>>
+struct container_view {
+  const Iterator _begin, _end;
+  container_view(const Iterator s, const Iterator t):
+    _begin(s), _end(t) {}
+  const Iterator begin() const { return _begin; }
+  const Iterator end() const { return _end; }
+};
 
 template <typename T, typename U>
 std::ostream& operator << (std::ostream& os, const std::pair<T, U>& v) {

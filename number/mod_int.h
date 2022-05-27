@@ -11,6 +11,7 @@
 #pragma once
 
 #include "../math/extended_gcd.h"
+#include "../utility/fast_input.h"
 #include <iostream>
 
 template <long long mod_value, bool is_prime = true>
@@ -33,6 +34,12 @@ struct mod_int {
     if (v < 0) v += mod;
   }
   void assign(mod_t c) { v = c; }
+  template <size_t buf_size>
+  void fast_read(fast_input<buf_size>& in) {
+    in >> v;
+    if (abs(v) >= mod) v %= mod;
+    if (v < 0) v += mod;
+  }
   friend std::istream& operator >> (std::istream& is, mod_int& num) {
     is >> num.v;
     if (abs(num.v) >= mod) num.v %= mod;
@@ -42,8 +49,8 @@ struct mod_int {
   friend std::ostream& operator << (std::ostream& os, const mod_int& num) {
     return os << num.v;
   }
-  const mod_t& value() const { return v; }
-  const mod_t& legible_value() const { return 2*v <= mod ? v : v - mod; }
+  mod_t value() const { return v; }
+  mod_t legible_value() const { return 2*v <= mod ? v : v - mod; }
   bool operator == (const mod_int& o) const { return v == o.v; }
   bool operator != (const mod_int& o) const { return v != o.v; }
   mod_int operator + (const mod_int& o) const { return mod_int(*this) += o; }
@@ -103,8 +110,8 @@ struct mod_int {
     if (g != 1) {
       throw std::invalid_argument("taking the inverse of a non-coprime number");
     }
-    assert(operator * (mod_int(y)) == 1);
-    return mod_int(y < 0 ? y + mod : y);
+    // assert(operator * (mod_int(y)) == 1);
+    return mod_int(y);
   }
 };
 

@@ -48,35 +48,37 @@ void fast_fourier_transform(std::vector<std::complex<D>>& a) {
   }
 }
 
-template <typename Prod_t = void, typename D = long double, typename T>
-auto convolve(const std::vector<T>& a, const std::vector<T>& b, size_t cut = -1) {
-  static_assert(std::is_floating_point_v<D>);
-  using Out_t = std::conditional_t<std::is_same_v<Prod_t, void>, T, Prod_t>;
-  if (empty(a) || empty(b)) return std::vector<Out_t>();
-  std::vector<Out_t> res(size(a) + size(b) - 1, 0);
-  int L = (size(res) == 1 ? 0 : 32 - __builtin_clz((int)size(res) - 1));
-  int n = 1 << L;
-  std::vector<std::complex<D>> in(n), out(n);
-  copy(begin(a), end(a), begin(in));
-  for (size_t i = 0; i < size(b); i++) {
-    in[i].imag(b[i]);
-  }
-  fast_fourier_transform(in);
-  for (int i = 0; i < n; i++) {
-    int j = (n - i) & (n - 1);
-    out[i] = in[j] * in[j] - conj(in[i] * in[i]);
-  }
-  fast_fourier_transform(out);
-  for (size_t i = 0; i < size(res); i++) {
-    if constexpr (std::is_integral_v<Out_t>) {
-      res[i] = Out_t(round(imag(out[i]) / (4 * n)));
-    } else {
-      res[i] = imag(out[i]) / (4 * n);
+namespace fft {
+  template <typename Prod_t = void, typename D = long double, typename T>
+  auto convolve(const std::vector<T>& a, const std::vector<T>& b, size_t cut = -1) {
+    static_assert(std::is_floating_point_v<D>);
+    using Out_t = std::conditional_t<std::is_same_v<Prod_t, void>, T, Prod_t>;
+    if (empty(a) || empty(b)) return std::vector<Out_t>();
+    std::vector<Out_t> res(size(a) + size(b) - 1, 0);
+    int L = (size(res) == 1 ? 0 : 32 - __builtin_clz((int)size(res) - 1));
+    int n = 1 << L;
+    std::vector<std::complex<D>> in(n), out(n);
+    copy(begin(a), end(a), begin(in));
+    for (size_t i = 0; i < size(b); i++) {
+      in[i].imag(b[i]);
     }
+    fast_fourier_transform(in);
+    for (int i = 0; i < n; i++) {
+      int j = (n - i) & (n - 1);
+      out[i] = in[j] * in[j] - conj(in[i] * in[i]);
+    }
+    fast_fourier_transform(out);
+    for (size_t i = 0; i < size(res); i++) {
+      if constexpr (std::is_integral_v<Out_t>) {
+        res[i] = Out_t(round(imag(out[i]) / (4 * n)));
+      } else {
+        res[i] = imag(out[i]) / (4 * n);
+      }
+    }
+    if (cut < size(res)) {
+      res.resize(cut);
+    }
+    return res;
   }
-  if (cut < size(res)) {
-    res.resize(cut);
-  }
-  return res;
 }
 

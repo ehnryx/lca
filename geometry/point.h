@@ -10,14 +10,17 @@
 #include "../utility/fast_input.h"
 #include <complex>
 
-template <typename T = long double>
+template <typename T>
 struct point {
   static constexpr bool floating = std::is_floating_point_v<T>;
+  using type = T;
   T x, y;
   point() = default;
   point(const T& c): x(c), y(0) {}
   point(const T& _x, const T& _y): x(_x), y(_y) {}
   point(const std::complex<T>& v): x(v.real()), y(v.imag()) {}
+  template <typename U>
+  point(const point<U>& v): x(v.x), y(v.y) {}
   friend std::ostream& operator << (std::ostream& os, const point& v) {
     return os << v.x << ' ' << v.y;
   }
@@ -29,8 +32,10 @@ struct point {
     in >> x >> y;
   }
   bool operator < (const point& v) const { return tie(x, y) < tie(v.x, v.y); }
+  bool operator > (const point& v) const { return tie(x, y) > tie(v.x, v.y); }
   bool operator == (const point& v) const { return x == v.x && y == v.y; }
   bool operator != (const point& v) const { return !operator == (v); }
+  point operator - () const { return point(-x, -y); }
   point operator + (const point& v) const { return point(x + v.x, y + v.y); }
   point operator - (const point& v) const { return point(x - v.x, y - v.y); }
   point operator * (const point& v) const { return point(x*v.x - y*v.y, x*v.y + y*v.x); }
@@ -44,6 +49,7 @@ struct point {
   point& operator *= (const T& c) { x *= c; y *= c; return *this; }
   point& operator /= (const T& c) { x /= c; y /= c; return *this; }
   friend point operator * (const T& c, const point& v) { return v*c; }
+  point transpose() const { return point(y, x); }
   point inverse() const { return conj() / norm(); }
   point conj() const { return point(x, -y); }
   point perp() const { return point(-y, x); }
@@ -58,12 +64,37 @@ struct point {
   template <typename U = T> auto abs() const { return sqrt(norm<U>()); }
   template <typename U = T> auto argl() const { return atan2l(U(y), U(x)); }
   template <typename U = T> auto absl() const { return sqrtl(norm<U>()); }
-  static point polar(const T& r, const T& angle) {
-    return point(r * cos(angle), r * sin(angle));
+  template <typename U, typename V>
+  static point polar(const U& radius, const V& angle) {
+    return point(radius * cos(angle), radius * sin(angle));
   }
   static bool by_angle(const point& a, const point& b) {
     return a.arg() < b.arg();
   }
+  struct by_x {
+    T eps;
+    by_x() = default;
+    by_x(T e): eps(e) {}
+    bool operator () (const point& a, const point& b) const {
+      if constexpr (floating) {
+        return a.x + eps < b.x || (a.x <= b.x + eps && a.y < b.y);
+      } else {
+        return a.x < b.x || (a.x == b.x && a.y < b.y);
+      }
+    }
+  };
+  struct by_y {
+    T eps;
+    by_y() = default;
+    by_y(T e): eps(e) {}
+    bool operator () (const point& a, const point& b) const {
+      if constexpr (floating) {
+        return a.y + eps < b.y || (a.y <= b.y + eps && a.x < b.x);
+      } else {
+        return a.y < b.y || (a.y == b.y && a.x < b.x);
+      }
+    }
+  };
 };
 
 template <typename T> auto real(const point<T>& v) { return v.real(); }
@@ -80,7 +111,21 @@ template <typename T> auto dot(const point<T>& a, const point<T>& b) { return a.
 template <typename T> auto cross(const point<T>& a, const point<T>& b) { return a.cross(b); }
 
 template <typename T, std::enable_if_t<point<T>::floating, bool> = true>
-bool equal(const point<T>& a, const point<T>& b, const T& eps) { return abs(a - b) <= eps; }
+bool equal(T eps, const point<T>& a, const point<T>& b) { return abs(a - b) <= eps; }
 template <typename T, std::enable_if_t<!point<T>::floating, bool> = true>
 bool equal(const point<T>& a, const point<T>& b) { return a == b; }
+
+template <typename T, std::enable_if_t<point<T>::floating, bool> = true>
+bool less_than(T eps, const point<T>& a, const point<T>& b) {
+  return a.x + eps < b.x || (a.x <= b.x + eps && a.y + eps < b.y);
+}
+template <typename T, std::enable_if_t<!point<T>::floating, bool> = true>
+bool less_than(const point<T>& a, const point<T>& b) { return a < b; }
+
+namespace utility {
+  template <typename T>
+  int sign(const T& x, const T& eps) {
+    return x < -eps ? -1 : x > eps ? 1 : 0;
+  }
+}
 

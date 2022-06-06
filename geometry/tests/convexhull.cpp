@@ -4,11 +4,7 @@ using namespace std;
 //// deprecated
 //#define USE_RATIONAL_POINTS
 
-#ifdef HENRYX
-#include "../convex_hull.h"
-#else
-#include "convex_hull.h"
-#endif
+%:include "geometry/convex_hull.h"
 
 constexpr char nl = '\n';
 using pt = point<long long>;

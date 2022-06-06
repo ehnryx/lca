@@ -1,14 +1,10 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-#ifdef HENRYX
-#include "../convex_hull.h"
-#else
-#include "convex_hull.h"
-#endif
+%:include "geometry/convex_hull.h"
 
 constexpr char nl = '\n';
-using pt = point<>;
+using pt = point<long double>;
 
 int main() {
   cin.tie(0)->sync_with_stdio(0);
@@ -23,7 +19,7 @@ int main() {
       v.emplace_back(x, y);
     }
   }
-  auto hull = convex_hull(v, true);
+  auto hull = convex_hull(pt::type(1e-9), v, true);
   assert(size(hull) == size(v));
   cout << size(hull) << nl;
   for (auto [x, y] : hull) {

@@ -35,7 +35,8 @@ struct fenwick_tree {
   T query_range(int l, int r) const { return query(l, r); }
   T query(int l, int r) const { return query(r) - query(l - 1); }
   T query(int r) const {
-    if (r < -1 || n <= r) return 0;
+    if (r <= -1) return 0;
+    if (r >= n) throw std::invalid_argument("query index out of bounds");
     T res(0);
     for (r += 1; r > 0; r -= r & -r) {
       res += data[r];
@@ -45,7 +46,7 @@ struct fenwick_tree {
   void update_point(int i, const T& v) { update(i, v); }
   void insert(int i, const T& v = T(1)) { update(i, v); }
   void update(int i, const T& v) {
-    if (i < 0 || n < i) throw std::invalid_argument("update index out of bounds");
+    if (i < 0 || n <= i) throw std::invalid_argument("update index out of bounds");
     for (i += 1; i <= n; i += i & -i) {
       data[i] += v;
     }

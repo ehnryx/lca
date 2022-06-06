@@ -5,9 +5,17 @@
 #pragma once
 
 #include <ostream>
+#include <set>
 #include <tuple>
+#include <unordered_set>
+#include <vector>
 
-template <template <typename> typename Container, typename T>
+template <template <typename> typename Container, typename T,
+          typename = std::enable_if_t<std::disjunction_v<
+            std::is_same<Container<T>, std::vector<T>>,
+            std::is_same<Container<T>, std::set<T>>,
+            std::is_same<Container<T>, std::unordered_set<T>>>>
+         >
 std::ostream& operator << (std::ostream& os, const Container<T>& v) {
   if (v.begin() == v.end()) return os;
   os << *v.begin();
@@ -24,6 +32,14 @@ struct container_view {
     _begin(s), _end(t) {}
   const Iterator begin() const { return _begin; }
   const Iterator end() const { return _end; }
+  friend std::ostream& operator << (std::ostream& os, container_view v) {
+    if (v.begin() == v.end()) return os;
+    os << *v.begin();
+    for (auto it = v.begin() + 1; it != v.end(); it++) {
+      os << " " << *it;
+    }
+    return os;
+  }
 };
 
 template <typename T, typename U>

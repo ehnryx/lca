@@ -7,10 +7,12 @@
  */
 #pragma once
 
+#include <vector>
+
 struct graph_traversal {
-  virtual const vector<int>& get_parents() const = 0;
-  vector<int> get_path(int to) const {
-    vector<int> path;
+  virtual const std::vector<int>& get_parents() const = 0;
+  std::vector<int> get_path(int to) const {
+    std::vector<int> path;
     if (get_parents()[to] != -1) {
       while (true) {
         path.push_back(to);

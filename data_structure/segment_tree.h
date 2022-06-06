@@ -98,17 +98,21 @@ struct segment_tree {
   }
 
   template <class... Args>
-  void update_range(int l, int r, const Args&... args) {
+  void update_range(int l, int r, Args&... args) {
     update(l, r, args...);
   }
   template <class... Args>
-  void update(int l, int r, const Args&... args) {
+  void update_copy(int l, int r, Args... args) {
+    update(l, r, args...);
+  }
+  template <class... Args>
+  void update(int l, int r, Args&... args) {
     if (r < l) return;
     if (l < 0 || lim <= r) throw std::invalid_argument("update range out of bounds");
     __update(l, r, 1, 0, length - 1, args...);
   }
   template <class... Args>
-  void __update(int l, int r, int i, int first, int last, const Args&... args) {
+  void __update(int l, int r, int i, int first, int last, Args&... args) {
     if constexpr (has_break_condition) {
       if (data[i].break_condition(args...)) return;
       if (l <= first && last <= r && data[i].put_condition(args...)) {
@@ -131,11 +135,15 @@ struct segment_tree {
   }
 
   template <class... Args>
-  Query_t query_range(int l, int r, const Args&... args) {
+  Query_t query_range(int l, int r, Args&... args) {
     return query(l, r, args...);
   }
   template <class... Args>
-  Query_t query(int l, int r, const Args&... args) {
+  Query_t query_copy(int l, int r, Args... args) {
+    return query(l, r, args...);
+  }
+  template <class... Args>
+  Query_t query(int l, int r, Args&... args) {
     if (r < l) {
       if constexpr (has_default_value) return Node_t::default_value();
       else assert(false);
@@ -144,7 +152,7 @@ struct segment_tree {
     return __query(l, r, 1, 0, length - 1, args...);
   }
   template <class... Args>
-  Query_t __query(int l, int r, int i, int first, int last, const Args&... args) {
+  Query_t __query(int l, int r, int i, int first, int last, Args&... args) {
     if (l <= first && last <= r) return data[i].get(args...);
     if constexpr (has_push) data[i].push(data[2*i], data[2*i + 1]);
     int mid = (first + last) / 2;
@@ -160,12 +168,16 @@ struct segment_tree {
   }
 
   template <class... Args>
-  void update_point(int x, const Args&... args) {
+  void update_point(int x, Args&... args) {
     if (x < 0 || lim <= x) throw std::invalid_argument("update_point index out of bounds");
     __update_point(x, 1, 0, length - 1, args...);
   }
   template <class... Args>
-  void __update_point(int x, int i, int first, int last, const Args&... args) {
+  void update_point_copy(int x, Args... args) {
+    update_point(x, args...);
+  }
+  template <class... Args>
+  void __update_point(int x, int i, int first, int last, Args&... args) {
     if (first == last) return data[i].put(args...);
     if constexpr (has_push) data[i].push(data[2*i], data[2*i + 1]);
     int mid = (first + last) / 2;
@@ -175,12 +187,16 @@ struct segment_tree {
   }
 
   template <class... Args>
-  Query_t query_point(int x, const Args&... args) {
+  Query_t query_point(int x, Args&... args) {
     if (x < 0 || lim <= x) throw std::invalid_argument("query_point index out of bounds");
     return __query_point(x, 1, 0, length - 1, args...);
   }
   template <class... Args>
-  Query_t __query_point(int x, int i, int first, int last, const Args&... args) {
+  Query_t query_point_copy(int x, Args... args) {
+    return query_point(x, args...);
+  }
+  template <class... Args>
+  Query_t __query_point(int x, int i, int first, int last, Args&... args) {
     if (first == last) return data[i].get(args...);
     if constexpr (has_push) data[i].push(data[2*i], data[2*i + 1]);
     int mid = (first + last) / 2;
@@ -189,7 +205,11 @@ struct segment_tree {
   }
 
   template <class... Args>
-  void update_up(int x, const Args&... args) {
+  void update_up_copy(int x, Args... args) {
+    update_up(x, args...);
+  }
+  template <class... Args>
+  void update_up(int x, Args&... args) {
     static_assert(!has_push);
     if (x < 0 || lim <= x) throw std::invalid_argument("update_up index out of bounds");
     for (int i = x + length; i > 0; i /= 2) {
@@ -198,12 +218,16 @@ struct segment_tree {
   }
 
   template <class... Args>
-  Query_t query_up(int x, const Args&... args) {
+  Query_t query_up(int x, Args&... args) {
     if (x < 0 || lim <= x) throw std::invalid_argument("query_up index out of bounds");
     return __query_up(x, 1, 0, length - 1, args...);
   }
   template <class... Args>
-  Query_t __query_up(int x, int i, int first, int last, const Args&... args) {
+  Query_t query_up_copy(int x, Args... args) {
+    return query_up(x, args...);
+  }
+  template <class... Args>
+  Query_t __query_up(int x, int i, int first, int last, Args&... args) {
     if (first == last) return data[i].get(args...);
     if constexpr (has_push) data[i].push(data[2*i], data[2*i + 1]);
     int mid = (first + last) / 2;

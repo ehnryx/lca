@@ -33,7 +33,7 @@ struct lca_rmq : rooted_tree {
   int lca(int a, int b) const {
     int l = idx[a];
     int r = idx[b];
-    return rmq.query(std::min(l, r), std::max(l, r) + 1).second;
+    return rmq.query(std::min(l, r), std::max(l, r)).second;
   }
   int distance(int a, int b) const {
     return depth[a] + depth[b] - 2 * depth[lca(a, b)];

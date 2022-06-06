@@ -157,6 +157,7 @@ template <typename G>
 constexpr bool is_graph_matrix_v = is_graph_checker<G>::is_graph_matrix;
 template <typename G>
 using get_graph_weight_t = typename is_graph_checker<G>::weight_t;
+// TODO remove ^
 
 template <template <typename> typename graph_t, typename T,
          std::enable_if_t<is_graph_v<graph_t<T>>, bool> = true>

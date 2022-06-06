@@ -25,19 +25,16 @@ namespace segment_node {
   struct range_assign_range_sum final : custom_update_range_sum<T> {
     using Base = custom_update_range_sum<T>;
     using Base::sum;
-    T value;
     int length;
     bool lazy;
     range_assign_range_sum() = default;
-    range_assign_range_sum(T v): Base(v), value(v), lazy(false) {}
+    range_assign_range_sum(T v): Base(v), lazy(false) {}
     void put(T v) {
-      value = v;
       sum = v * length;
       lazy = true;
     }
     void push(range_assign_range_sum& left, range_assign_range_sum& right) {
       if (lazy) {
-        left.value = right.value = value;
         left.sum = right.sum = sum / 2;
         left.lazy = right.lazy = true;
         lazy = false;
@@ -49,22 +46,23 @@ namespace segment_node {
   struct range_add_range_sum final : custom_update_range_sum<T> {
     using Base = custom_update_range_sum<T>;
     using Base::sum;
-    T value;
+    T lazy;
     int length;
     range_add_range_sum() = default;
-    range_add_range_sum(T v): Base(v), value(v) {}
+    range_add_range_sum(T v): Base(v), lazy(v) {}
     void put(T v) {
       T add = v * length;
-      value += add;
+      lazy += add;
       sum += add;
     }
     void push(range_add_range_sum& left, range_add_range_sum& right) {
-      if (value != T(0)) {
-        T add = value / 2;
-        left.value += add;
-        right.value += add;
+      if (lazy != T(0)) {
+        T add = lazy / 2;
+        left.lazy += add;
+        right.lazy += add;
         left.sum += add;
         right.sum += add;
+        lazy = T(0);
       }
     }
   };

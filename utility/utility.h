@@ -14,33 +14,33 @@ namespace utility {
 
   // functional form of std::min
 
-  template <typename T = void>
+  template <typename T = void, class Compare = std::less<>>
   struct min {
     T operator () (const T& a, const T& b) const {
-      return std::min(a, b);
+      return std::min<T>(a, b, Compare());
     }
   };
   template <>
-  struct min<void> {
+  struct min<void, std::less<>> {
     template <typename input_t>
     input_t operator () (const input_t& a, const input_t& b) const {
-      return std::min(a, b);
+      return std::min(a, b, std::less<>());
     }
   };
 
   // functional form of std::max
 
-  template <typename T = void>
+  template <typename T = void, class Compare = std::less<>>
   struct max {
     T operator () (const T& a, const T& b) const {
-      return std::max(a, b);
+      return std::max<T>(a, b, Compare());
     }
   };
   template <>
-  struct max<void> {
+  struct max<void, std::less<>> {
     template <typename input_t>
     input_t operator () (const input_t& a, const input_t& b) const {
-      return std::max(a, b);
+      return std::max(a, b, std::less<>());
     }
   };
 

@@ -18,29 +18,29 @@ int main() {
       cin >> a[i];
     }
     range_minimum_query rmq_min(a);
-    range_minimum_query<int,greater<>> rmq_max(a);
+    range_minimum_query<int, greater<>> rmq_max(a);
 
     bool ok = false;
     for (int i = 1; !ok && i <= n - 2; i++) {
-      int val = rmq_max.query(0, i);
+      int val = rmq_max.query(0, i - 1);
       int l = i + 1;
       int r = n - 1;
       while(l + 1 < r) {
         int m = (l + r) / 2;
-        if (rmq_min.query(i, m) > val) {
+        if (rmq_min.query(i, m - 1) > val) {
           l = m + 1;
-        } else if (rmq_min.query(i, m) < val) {
+        } else if (rmq_min.query(i, m - 1) < val) {
           r = m - 1;
-        } else if (rmq_max.query(m, n) < val) {
+        } else if (rmq_max.query(m, n - 1) < val) {
           r = m - 1;
-        } else if (rmq_max.query(m, n) > val) {
+        } else if (rmq_max.query(m, n - 1) > val) {
           l = m + 1;
         } else {
           r = m;
         }
       }
       for (int j = l; j <= r; j++) {
-        if (val == rmq_min.query(i, j) && val == rmq_max.query(j, n)) {
+        if (val == rmq_min.query(i, j - 1) && val == rmq_max.query(j, n - 1)) {
           ok = true;
           cout << "YES" << nl;
           cout << i << " " << j - i << " " << n - j << nl;

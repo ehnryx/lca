@@ -25,10 +25,10 @@
 
 template <typename graph_t>
 struct bellman_ford : graph_traversal {
-  using weight_t = get_graph_weight_t<graph_t>;
-  vector<weight_t> dist;
-  vector<int> parent;
-  vector<bool> in_neg;
+  using weight_t = graph_t::weight_t;
+  std::vector<weight_t> dist;
+  std::vector<int> parent;
+  std::vector<bool> in_neg;
   bool has_neg;
   bellman_ford(const graph_t& graph, int source, weight_t inf,
       bool reachable_only = true):
@@ -52,9 +52,9 @@ struct bellman_ford : graph_traversal {
       }
     }
   }
-  const vector<weight_t>& get_dists() const { return dist; }
-  const vector<int>& get_parents() const override { return parent; }
-  const vector<bool>& get_negatives() const { return in_neg; }
+  const std::vector<weight_t>& get_dists() const { return dist; }
+  const std::vector<int>& get_parents() const override { return parent; }
+  const std::vector<bool>& get_negatives() const { return in_neg; }
   bool in_negative_cycle(int u) const { return in_neg[u]; }
   bool has_negative_cycle() const { return has_neg; }
 };

@@ -17,7 +17,7 @@ int main() {
   for(int i=0; i<q; i++) {
     int l, r;
     cin >> l >> r;
-    cout << rmq.query(l, r) << '\n';
+    cout << rmq.query(l, r - 1) << '\n';
   }
 
   return 0;

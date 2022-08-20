@@ -25,7 +25,7 @@
 
 template <typename graph_t>
 struct bellman_ford : graph_traversal {
-  using weight_t = graph_t::weight_t;
+  using weight_t = typename graph_t::weight_t;
   std::vector<weight_t> dist;
   std::vector<int> parent;
   std::vector<bool> in_neg;

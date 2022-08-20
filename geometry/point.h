@@ -7,7 +7,6 @@
  */
 #pragma once
 
-#include "../utility/fast_input.h"
 #include <complex>
 
 template <typename T>
@@ -27,8 +26,8 @@ struct point {
   friend std::istream& operator >> (std::istream& is, point& v) {
     return is >> v.x >> v.y;
   }
-  template <size_t buf_size>
-  void fast_read(fast_input<buf_size>& in) {
+  template <typename fast_input_t>
+  void fast_read(fast_input_t& in) {
     in >> x >> y;
   }
   bool operator < (const point& v) const { return tie(x, y) < tie(v.x, v.y); }

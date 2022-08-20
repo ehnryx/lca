@@ -11,7 +11,6 @@
 #pragma once
 
 #include "../math/extended_gcd.h"
-#include "../utility/fast_input.h"
 #include <iostream>
 
 template <long long mod_value, bool is_prime = true>
@@ -53,8 +52,8 @@ struct montgomery_int {
     return *this;
   }
 
-  template <size_t buf_size>
-  void fast_read(fast_input<buf_size>& in) {
+  template <typename fast_input_t>
+  void fast_read(fast_input_t& in) {
     in >> v;
     v = to_montgomery(abs(v) >= mod ? v % mod : v);
   }

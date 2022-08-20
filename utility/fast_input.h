@@ -16,6 +16,8 @@
 #include <tuple>
 #include <vector>
 
+#define USING_FAST_INPUT
+
 template <size_t buf_size = 10000>
 struct fast_input {
   char buf[buf_size], *S, *T, c = 0;

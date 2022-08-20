@@ -21,7 +21,9 @@ struct min_span_forest {
   using edge_t = graph_edge<weight_t>;
   union_find<> components;
   std::vector<edge_t> edges, other;
-  min_span_forest(const graph_t& graph, const std::vector<std::pair<int, int>>& init_edges):
+  min_span_forest(
+      const graph_t& graph,
+      const std::vector<std::pair<int, int>>& init_edges = {}):
     components(graph.size()) {
     for (auto [a, b] : init_edges) {
       components.link(a, b);

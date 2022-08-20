@@ -11,7 +11,6 @@
 #pragma once
 
 #include "../math/fast_fourier_transform.h"
-#include "../utility/fast_input.h"
 #include <cassert>
 #include <iomanip>
 #include <iostream>
@@ -27,8 +26,8 @@ struct int_base10 {
   static constexpr size_t recursive_div_limit = 64;
   static_assert(recursive_div_limit < small_div_threshold);
 
-  template <size_t buf_size>
-  void fast_read(fast_input<buf_size>& in) {
+  template <typename fast_input_t>
+  void fast_read(fast_input_t& in) {
     std::string s;
     in >> s;
     build(s);

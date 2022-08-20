@@ -5,19 +5,23 @@ using namespace std;
 //#define USE_RATIONAL_POINTS
 
 %:include "geometry/convex_hull.h"
+%:include "utility/fast_input.h"
 
 constexpr char nl = '\n';
 using pt = point<long long>;
 
 int main() {
   cin.tie(0)->sync_with_stdio(0);
+  fast_input cin;
 
   for (int n; cin >> n && n; ) {
-    vector<pt> v;
+    //vector<pt> v;
+    vector<pt> v(n);
     for (int i = 0; i < n; i++) {
-      int x, y;
-      cin >> x >> y;
-      v.emplace_back(x, y);
+      //int x, y;
+      //cin >> x >> y;
+      //v.emplace_back(x, y);
+      cin >> v[i];
     }
     auto hull = convex_hull(v);
     cout << size(hull) << nl;

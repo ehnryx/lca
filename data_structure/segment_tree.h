@@ -18,8 +18,8 @@
  *    bool put_condition(args...); whether to update in segtree beats
  * MEMBERS
  *  * All ranges are inclusive
- *  update(l, r, value...); value for range update
- *  query(l, r, ...); query with optional args
+ *  update_range(l, r, value...); value for range update
+ *  query_range(l, r, ...); query with optional args
  *  update_point(x, value...); point update
  *  query_point(x, ...); point query
  *  search_left(l, r, ...); search on the segtree, starting from the left
@@ -98,15 +98,15 @@ struct segment_tree {
   }
 
   template <class... Args>
-  void update_range(int l, int r, Args&... args) {
-    update(l, r, args...);
+  void update(int l, int r, const Args&... args) {
+    update_range_mutable(l, r, args...);
   }
   template <class... Args>
-  void update_copy(int l, int r, Args... args) {
-    update(l, r, args...);
+  void update_range(int l, int r, const Args&... args) {
+    update_range_mutable(l, r, args...);
   }
   template <class... Args>
-  void update(int l, int r, Args&... args) {
+  void update_range_mutable(int l, int r, Args&... args) {
     if (r < l) return;
     if (l < 0 || lim <= r) throw std::invalid_argument("update range out of bounds");
     __update(l, r, 1, 0, length - 1, args...);
@@ -135,15 +135,15 @@ struct segment_tree {
   }
 
   template <class... Args>
-  Query_t query_range(int l, int r, Args&... args) {
-    return query(l, r, args...);
+  Query_t query(int l, int r, const Args&... args) {
+    return query_range_mutable(l, r, args...);
   }
   template <class... Args>
-  Query_t query_copy(int l, int r, Args... args) {
-    return query(l, r, args...);
+  Query_t query_range(int l, int r, const Args&... args) {
+    return query_range_mutable(l, r, args...);
   }
   template <class... Args>
-  Query_t query(int l, int r, Args&... args) {
+  Query_t query_range_mutable(int l, int r, Args&... args) {
     if (r < l) {
       if constexpr (has_default_value) return Node_t::default_value();
       else assert(false);
@@ -168,13 +168,13 @@ struct segment_tree {
   }
 
   template <class... Args>
-  void update_point(int x, Args&... args) {
-    if (x < 0 || lim <= x) throw std::invalid_argument("update_point index out of bounds");
-    __update_point(x, 1, 0, length - 1, args...);
+  void update_point(int x, const Args&... args) {
+    update_point_mutable(x, args...);
   }
   template <class... Args>
-  void update_point_copy(int x, Args... args) {
-    update_point(x, args...);
+  void update_point_mutable(int x, Args&... args) {
+    if (x < 0 || lim <= x) throw std::invalid_argument("update_point index out of bounds");
+    __update_point(x, 1, 0, length - 1, args...);
   }
   template <class... Args>
   void __update_point(int x, int i, int first, int last, Args&... args) {
@@ -187,13 +187,13 @@ struct segment_tree {
   }
 
   template <class... Args>
-  Query_t query_point(int x, Args&... args) {
-    if (x < 0 || lim <= x) throw std::invalid_argument("query_point index out of bounds");
-    return __query_point(x, 1, 0, length - 1, args...);
+  Query_t query_point(int x, const Args&... args) {
+    return query_point(x, args...);
   }
   template <class... Args>
-  Query_t query_point_copy(int x, Args... args) {
-    return query_point(x, args...);
+  Query_t query_point_mutable(int x, Args&... args) {
+    if (x < 0 || lim <= x) throw std::invalid_argument("query_point index out of bounds");
+    return __query_point(x, 1, 0, length - 1, args...);
   }
   template <class... Args>
   Query_t __query_point(int x, int i, int first, int last, Args&... args) {
@@ -205,11 +205,11 @@ struct segment_tree {
   }
 
   template <class... Args>
-  void update_up_copy(int x, Args... args) {
+  void update_up(int x, const Args&... args) {
     update_up(x, args...);
   }
   template <class... Args>
-  void update_up(int x, Args&... args) {
+  void update_up_mutable(int x, Args&... args) {
     static_assert(!has_push);
     if (x < 0 || lim <= x) throw std::invalid_argument("update_up index out of bounds");
     for (int i = x + length; i > 0; i /= 2) {
@@ -218,13 +218,13 @@ struct segment_tree {
   }
 
   template <class... Args>
-  Query_t query_up(int x, Args&... args) {
-    if (x < 0 || lim <= x) throw std::invalid_argument("query_up index out of bounds");
-    return __query_up(x, 1, 0, length - 1, args...);
+  Query_t query_up(int x, const Args&... args) {
+    return query_up_mutable(x, args...);
   }
   template <class... Args>
-  Query_t query_up_copy(int x, Args... args) {
-    return query_up(x, args...);
+  Query_t query_up_mutable(int x, Args&... args) {
+    if (x < 0 || lim <= x) throw std::invalid_argument("query_up index out of bounds");
+    return __query_up(x, 1, 0, length - 1, args...);
   }
   template <class... Args>
   Query_t __query_up(int x, int i, int first, int last, Args&... args) {
@@ -242,23 +242,22 @@ struct segment_tree {
   int search_left(int l, int r, Args... args) {
     if (r < l) return lim;
     if (l < 0 || lim <= r) throw std::invalid_argument("search_left range out of bounds");
-    return __search_left(l, r, 1, 0, length - 1, forward_as_tuple(args...));
+    return __search_left(l, r, 1, 0, length - 1, args...);
   }
   template <class... Args>
   int search_left_mutable(int l, int r, Args&... args) {
     if (r < l) return lim;
     if (l < 0 || lim <= r) throw std::invalid_argument("search_left range out of bounds");
-    return __search_left(l, r, 1, 0, length - 1, forward_as_tuple(args...));
+    return __search_left(l, r, 1, 0, length - 1, args...);
   }
   template <class... Args>
-  int __search_left(int l, int r, int i, int first, int last, std::tuple<Args&...> args) {
-    if (l <= first && last <= r
-        && !apply(&Node_t::contains, std::tuple_cat(std::tuple(data[i]), args))) return lim;
+  int __search_left(int l, int r, int i, int first, int last, Args&... args) {
+    if (l <= first && last <= r && !data[i].contains(args...)) return lim;
     if (first == last) return first;
     if constexpr (has_push) data[i].push(data[2*i], data[2*i + 1]);
     int mid = (first + last) / 2;
-    int res = (l <= mid ? __search_left(l, r, 2*i, first, mid, args) : lim);
-    if (res == lim && mid < r) res = __search_left(l, r, 2*i + 1, mid + 1, last, args);
+    int res = (l <= mid ? __search_left(l, r, 2*i, first, mid, args...) : lim);
+    if (res == lim && mid < r) res = __search_left(l, r, 2*i + 1, mid + 1, last, args...);
     return res;
   }
 
@@ -266,23 +265,22 @@ struct segment_tree {
   int search_right(int l, int r, Args... args) {
     if (r < l) return lim;
     if (l < 0 || lim <= r) throw std::invalid_argument("search_right range out of bounds");
-    return __search_right(l, r, 1, 0, length - 1, forward_as_tuple(args...));
+    return __search_right(l, r, 1, 0, length - 1, args...);
   }
   template <class... Args>
   int search_right_mutable(int l, int r, Args&... args) {
     if (r < l) return lim;
     if (l < 0 || lim <= r) throw std::invalid_argument("search_right range out of bounds");
-    return __search_right(l, r, 1, 0, length - 1, forward_as_tuple(args...));
+    return __search_right(l, r, 1, 0, length - 1, args...);
   }
   template <class... Args>
-  int __search_right(int l, int r, int i, int first, int last, std::tuple<Args&...> args) {
-    if (l <= first && last <= r
-        && !apply(&Node_t::contains, std::tuple_cat(std::tuple(data[i]), args))) return lim;
+  int __search_right(int l, int r, int i, int first, int last, Args&... args) {
+    if (l <= first && last <= r && !data[i].contains(args...)) return lim;
     if (first == last) return first;
     if constexpr (has_push) data[i].push(data[2*i], data[2*i + 1]);
     int mid = (first + last) / 2;
-    int res = (mid < r ? __search_right(l, r, 2*i + 1, mid + 1, last, args) : lim);
-    if (res == lim && l <= mid) res = __search_right(l, r, 2*i, first, mid, args);
+    int res = (mid < r ? __search_right(l, r, 2*i + 1, mid + 1, last, args...) : lim);
+    if (res == lim && l <= mid) res = __search_right(l, r, 2*i, first, mid, args...);
     return res;
   }
 };

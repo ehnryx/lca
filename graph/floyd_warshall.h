@@ -14,6 +14,7 @@
 
 #include "../utility/utility.h"
 #include <functional>
+#include <iostream>
 
 template <typename weight_t, class Smaller = utility::min<>>
 struct floyd_warshall {
@@ -46,10 +47,10 @@ struct floyd_warshall {
     }
   }
   void run() { return run(std::plus<>()); }
-  const std::vector<weight_t>& operator [] (int i) const { return adj.at(i); }
-  friend std::ostream& operator << (std::ostream& os, const floyd_warshall& g) {
+  const std::vector<weight_t>& operator[](int i) const { return adj.at(i); }
+  friend std::ostream& operator<<(std::ostream& os, const floyd_warshall& g) {
     for (size_t i = 0; i < g.adj.size(); i++) {
-      for (size_t j = 0; j < g.adj.size(); j++) {
+      for (size_t j = 0; j < g.adj[i].size(); j++) {
         if (j) os << " ";
         os << g[i][j];
       }

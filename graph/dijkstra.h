@@ -15,36 +15,47 @@
 
 #include "graph.h"
 #include "graph_traversal.h"
+#include <queue>
 
-template <typename graph_t>
+template <typename graph_impl, typename weight_t>
 struct dijkstra : graph_traversal {
-  using weight_t = get_graph_weight_t<graph_t>;
-  vector<weight_t> dist;
-  vector<int> parent;
-  dijkstra(const graph_t& graph, int source, weight_t inf):
-    dist(graph.size(), inf), parent(graph.size(), -1) {
-    priority_queue<Item> to_visit;
-    to_visit.emplace(source, weight_t());
-    dist[source] = weight_t();
-    parent[source] = source;
+  const Graph<graph_impl, weight_t>& graph;
+  std::vector<weight_t> dist;
+  std::vector<int> parent;
+  const weight_t infinity;
+  dijkstra(const Graph<graph_impl, weight_t>& g, weight_t inf):
+    graph(g), dist(graph.size(), inf), parent(graph.size(), -1), infinity(inf) {}
+
+  template <typename source_t>
+  dijkstra& run(const std::vector<source_t>& sources) {
+    std::priority_queue<Item> to_visit;
+    for (auto [source, dist_to_source] : sources) {
+      if (dist[source] == infinity || dist_to_source < dist[source]) {
+        dist[source] = dist_to_source;
+        parent[source] = source;
+        to_visit.emplace(source, dist_to_source);
+      }
+    }
     while (!to_visit.empty()) {
       auto [u, d] = to_visit.top();
       to_visit.pop();
       if (d != dist[u]) continue;
       for (const auto& [v, c] : graph[u]) {
-        if (dist[v] != inf && dist[v] <= d + c) continue;
+        if (dist[v] != infinity && dist[v] <= d + c) continue;
         dist[v] = d + c;
         parent[v] = u;
         to_visit.emplace(v, dist[v]);
       }
     }
+    return *this;
   }
-  const vector<weight_t>& get_dists() const { return dist; }
-  const vector<int>& get_parents() const override { return parent; }
+  const std::vector<weight_t>& get_dists() const { return dist; }
+  const std::vector<int>& get_parents() const override { return parent; }
   struct Item {
     int u;
     weight_t d;
-    Item(int _u, weight_t _d): u(_u), d(_d) {} // C++17
+    Item(int _u, weight_t _d): u(_u), d(_d) {}
+    Item(std::pair<int, weight_t> item): u(item.first), d(item.second) {}
     bool operator < (const Item& o) const { return d > o.d; }
   };
 };

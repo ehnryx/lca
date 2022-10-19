@@ -20,17 +20,20 @@
  */
 #pragma once
 
+#include <vector>
+#include <stack>
+
 template <bool build_dag, typename = void>
 struct scc_dag_base {
-  scc_dag_base(int) {}
+  scc_dag_base(size_t) {}
 };
 
 template <bool build_dag>
-struct scc_dag_base<build_dag, enable_if_t<build_dag>> {
-  vector<int> remap;
-  vector<vector<int>> group;
-  vector<int> indegree;
-  vector<vector<int>> dag;
+struct scc_dag_base<build_dag, std::enable_if_t<build_dag>> {
+  std::vector<int> remap;
+  std::vector<std::vector<int>> group;
+  std::vector<int> indegree;
+  std::vector<std::vector<int>> dag;
   scc_dag_base(size_t n): remap(n) { group.reserve(n); }
 };
 
@@ -38,11 +41,11 @@ template <bool build_dag = false, bool remove_dups = true>
 struct strongly_connected : scc_dag_base<build_dag> {
   using base = scc_dag_base<build_dag>;
   int components;
-  vector<int> idx, low, scc;
+  std::vector<int> idx, low, scc;
   int operator [] (int i) const { return scc[i]; }
   int size() const { return components; }
 
-  strongly_connected(const vector<vector<int>>& graph):
+  strongly_connected(const std::vector<std::vector<int>>& graph):
     base(graph.size()), components(0),
     idx(graph.size(), -1), low(graph.size(), -1), scc(graph.size(), -1) {
     for (int i = 0, j = 0; i < (int)graph.size(); i++) {
@@ -72,13 +75,13 @@ struct strongly_connected : scc_dag_base<build_dag> {
     }
   }
 
-  void dfs(const vector<vector<int>>& graph, int u, int& i) {
-    static stack<int> stk;
+  void dfs(const std::vector<std::vector<int>>& graph, int u, int& i) {
+    static std::stack<int> stk;
     stk.push(u);
     idx[u] = low[u] = i++;
     for (int v : graph[u]) {
       if (low[v] == -1) dfs(graph, v, i);
-      if (scc[v] == -1) low[u] = min(low[u], low[v]);
+      if (scc[v] == -1) low[u] = std::min(low[u], low[v]);
     }
     if (idx[u] == low[u]) {
       if constexpr (build_dag) base::group.emplace_back();

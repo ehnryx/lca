@@ -1,57 +1,125 @@
-#include <bits/stdc++.h>
+#include "../graph_edgelist.h"
+#include "../graph_list.h"
+#include "../graph_matrix.h"
+#include "../graph_vector.h"
+#include "../floyd_warshall.h"
+
+#include <iostream>
+#include <tuple>
 using namespace std;
 
-#include "../graph.h"
+void run_edgelist(int n, const vector<tuple<int, int, int>>& edges) {
+  cout << "EDGELIST" << endl;
+
+  GraphEdgeList<int> g(n, true);
+  GraphEdgeList<void> unwg(n, true);
+
+  for (auto [a, b, c] : edges) {
+    g.add_edge(a, b, c);
+    unwg.add_edge(a, b);
+  }
+
+  cout << "WEIGHTED\n" << g << endl;
+  for (auto [a, b, c] : g.get_edges()) {
+    cout << a << " " << b << " " << c << endl;
+  }
+  cout << endl;
+
+  cout << "UNWEIGHTED\n" << unwg << endl;
+  for (auto [a, b] : unwg.get_edges()) {
+    cout << a << " " << b << " " << endl;
+  }
+  cout <<endl;
+}
+
+void run_list(int n, const vector<tuple<int, int, int>>& edges) {
+  cout << "LIST" << endl;
+
+  GraphList<int> g(n, true);
+  GraphList<void> unwg(n, true);
+
+  for (auto [a, b, c] : edges) {
+    g.add_edge(a, b, c);
+    unwg.add_edge(a, b);
+  }
+
+  cout << "WEIGHTED\n" << g << endl;
+  for (auto [a, b, c] : g.get_edges()) {
+    cout << a << " " << b << " " << c << endl;
+  }
+  cout << endl;
+
+  cout << "UNWEIGHTED\n" << unwg << endl;
+  for (auto [a, b] : unwg.get_edges()) {
+    cout << a << " " << b << " " << endl;
+  }
+  cout <<endl;
+}
+
+void run_matrix(int n, const vector<tuple<int, int, int>>& edges) {
+  cout << "MATRIX" << endl;
+
+  GraphMatrix<int, utility::min<int>> g(n, -1, true);
+  GraphMatrix<void> unwg(n, true);
+
+  for (auto [a, b, c] : edges) {
+    g.add_edge(a, b, c);
+    unwg.add_edge(a, b);
+  }
+
+  cout << "WEIGHTED\n" << g << endl;
+  for (auto [a, b, c] : g.get_edges()) {
+    cout << a << " " << b << " " << c << endl;
+  }
+  cout << endl;
+
+  cout << "UNWEIGHTED\n" << unwg << endl;
+  for (auto [a, b] : unwg.get_edges()) {
+    cout << a << " " << b << " " << endl;
+  }
+  cout <<endl;
+}
+
+void run_vector(int n, const vector<tuple<int, int, int>>& edges) {
+  cout << "VECTOR" << endl;
+
+  GraphVector<int> g(n);
+  GraphVector<void> unwg(n);
+
+  for (auto [a, b, c] : edges) {
+    g.add_edge(a, b, c);
+    unwg.add_edge(a, b);
+  }
+
+  cout << "WEIGHTED\n" << g << endl;
+  for (auto [a, b, c] : g.get_edges()) {
+    cout << a << " " << b << " " << c << endl;
+  }
+  cout << endl;
+
+  cout << "UNWEIGHTED\n" << unwg << endl;
+  for (auto [a, b] : unwg.get_edges()) {
+    cout << a << " " << b << " " << endl;
+  }
+  cout <<endl;
+}
 
 int main() {
-  cin.tie(0)->sync_with_stdio(0);
-
   int n, m;
   cin >> n >> m;
 
-  //cout << "instantiating graphs " << n << " ..." << endl;
-  graph_list<void> unweighted_list(n);
-  graph_list<int> weighted_list(n);
-  graph_matrix<void> unweighted_matrix(n);
-  graph_matrix<int> weighted_matrix(n, -1);
-  //cout << "DONE!" << endl;
+  vector<tuple<int, int, int>> edges;
 
-  for (int i = 0; i < m; i++) {
+  for(int i=0; i<m; i++) {
     int a, b, c;
     cin >> a >> b >> c;
-    //cout << "adding edge " << a << " -> " << b << " weight " << c << " ..." << endl;
-    unweighted_list.add_edge(a, b);
-    weighted_list.add_edge(a, b, c);
-    unweighted_matrix.add_edge(a, b);
-    weighted_matrix.add_edge(a, b, c);
-    //cout << "DONE!" << endl;
+    edges.emplace_back(a, b, c);
   }
 
-  cout << "unweighted_list" << endl << unweighted_list << endl;
-  cout << "weighted_list" << endl << weighted_list << endl;
-  cout << "unweighted_matrix" << endl << unweighted_matrix << endl;
-  cout << "weighted_matrix" << endl << weighted_matrix << endl;
-
-  cout << "-------------------------------------------" << endl;
-  cout << "edges (unweigted_list):" << endl;
-  for(auto [a, b] : unweighted_list.get_edges()) cout << a << " " << b << endl;
-  cout << "edges (weigted_list):" << endl;
-  for(auto [a, b, c] : weighted_list.get_edges()) cout << a << " " << b << " " << c << endl;
-  cout << "edges (unweigted_matrix):" << endl;
-  for(auto [a, b] : unweighted_matrix.get_edges()) cout << a << " " << b << endl;
-  cout << "edges (weigted_matrix):" << endl;
-  for(auto [a, b, c] : weighted_matrix.get_edges()) cout << a << " " << b << " " << c << endl;
-
-  // edge list
-  cout << "\n-------------------------------------------" << endl;
-  cout << "Edge list for testing iterator" << endl;
-  auto it = unweighted_list.get_edges().begin();
-  while (it != unweighted_list.get_edges().end()) {
-    auto old = it;
-    auto [a, b] = *it++;
-    assert(a == old->from && b == old->to);
-    cout << a << " " << b << endl;
-  }
+  run_edgelist(n, edges);
+  run_list(n, edges);
+  run_matrix(n, edges);
+  run_vector(n, edges);
 
   return 0;
 }

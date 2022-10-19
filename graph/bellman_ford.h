@@ -20,7 +20,6 @@
  */
 #pragma once
 
-#include "graph.h"
 #include "graph_traversal.h"
 
 template <typename graph_t>

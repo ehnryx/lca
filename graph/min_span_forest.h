@@ -13,7 +13,6 @@
 #pragma once
 
 #include "../data_structure/union_find.h"
-#include "graph.h"
 
 template <typename graph_t, typename Compare = std::less<>>
 struct min_span_forest {

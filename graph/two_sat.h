@@ -18,8 +18,8 @@
 
 struct two_sat {
   int n;
-  vector<bool> truth;
-  vector<vector<int>> adj;
+  std::vector<bool> truth;
+  std::vector<std::vector<int>> adj;
   two_sat(int _n): n(_n), truth(n), adj(2*n) {}
   void add_edge(int a, int b) { adj[a].push_back(b); }
   bool operator [] (int i) const { return truth[i]; }
@@ -40,11 +40,18 @@ struct two_sat {
     add_edge(a, b);
     add_edge(b^1, a^1);
   }
+  void iff(int a, int b) {
+    implies(a, b);
+    implies(b, a);
+  }
   void or_clause(int a, bool a_truth, int b, bool b_truth) {
     or_clause(2*a + !a_truth, 2*b + !b_truth);
   }
   void implies(int a, bool a_truth, int b, bool b_truth) {
     implies(2*a + !a_truth, 2*b + !b_truth);
+  }
+  void iff(int a, bool a_truth, int b, bool b_truth) {
+    iff(2*a + !a_truth, 2*b + !b_truth);
   }
 };
 

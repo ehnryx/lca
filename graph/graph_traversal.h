@@ -10,6 +10,7 @@
 #include <vector>
 
 struct graph_traversal {
+  virtual ~graph_traversal() = default;
   virtual const std::vector<int>& get_parents() const = 0;
   std::vector<int> get_path(int to) const {
     std::vector<int> path;

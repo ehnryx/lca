@@ -110,7 +110,7 @@ struct int_base10 {
 
   int length() const {
     int i = 1;
-    for (int tens = 10; tens < digits.back(); tens *= 10) {
+    for (int tens = 10; tens <= digits.back(); tens *= 10) {
       i++;
     }
     return i + ((int)digits.size() - 1) * radix_length;
@@ -323,7 +323,7 @@ struct int_base10 {
 
 private:
   int_base10 fft_multiply(const int_base10& o) const {
-    std::vector<long long> num = convolve<long long, double>(digits, o.digits);
+    std::vector<long long> num = fft::convolve<long long, double>(digits, o.digits);
     std::vector<int> res(num.size() + 1);
     for (size_t i = 0; i < num.size(); i++) {
       num[i] += res[i];

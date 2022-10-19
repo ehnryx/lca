@@ -78,3 +78,16 @@ struct dynamic_hull : std::multiset<dynamic_hull_line<T>, std::less<>> {
   }
 };
 
+template <typename T>
+using dynamic_hull_max = dynamic_hull<T>;
+
+template <typename T>
+struct dynamic_hull_min : dynamic_hull<T> {
+  void insert(const T& m, const T& b) {
+    return dynamic_hull<T>::insert(-m, -b);
+  }
+  T query(const T& x) const {
+    return -dynamic_hull<T>::query(x);
+  }
+};
+

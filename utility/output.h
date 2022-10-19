@@ -26,20 +26,29 @@ std::ostream& operator << (std::ostream& os, const Container<T>& v) {
 }
 
 template <typename Iterator>//, typename = std::iter_value_t<Iterator>>
-struct container_view {
+struct output_view {
   const Iterator _begin, _end;
-  container_view(const Iterator s, const Iterator t):
-    _begin(s), _end(t) {}
+  std::string_view delim;
+  output_view(const Iterator s, const Iterator t, std::string_view d = " "):
+    _begin(s), _end(t), delim(d) {}
   const Iterator begin() const { return _begin; }
   const Iterator end() const { return _end; }
-  friend std::ostream& operator << (std::ostream& os, container_view v) {
+  friend std::ostream& operator << (std::ostream& os, output_view v) {
     if (v.begin() == v.end()) return os;
     os << *v.begin();
     for (auto it = v.begin() + 1; it != v.end(); it++) {
-      os << " " << *it;
+      os << v.delim << *it;
     }
     return os;
   }
+};
+
+template <typename Container>
+struct container_view : output_view<typename Container::const_iterator> {
+  container_view(const Container& v, int l, int r, std::string_view d = " "):
+    output_view<typename Container::const_iterator>(v.begin() + l, v.begin() + r+1, d) {}
+  container_view(const Container& v, std::string_view d = " "):
+    output_view<typename Container::const_iterator>(v.begin(), v.end(), d) {}
 };
 
 template <typename T, typename U>

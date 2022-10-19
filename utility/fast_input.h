@@ -149,6 +149,11 @@ struct fast_input {
     return x;
   }
 
+  template <typename... T, std::enable_if_t<sizeof...(T) != 1, bool> = true>
+  std::tuple<T...> getv() {
+    return getv<std::tuple<T...>>();
+  }
+
   template <typename T, int pad_n = 0>
   std::vector<T> read(int n) {
     return readinit<T, pad_n>(n, T());

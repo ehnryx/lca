@@ -188,7 +188,7 @@ struct segment_tree {
 
   template <class... Args>
   Query_t query_point(int x, const Args&... args) {
-    return query_point(x, args...);
+    return query_point_mutable(x, args...);
   }
   template <class... Args>
   Query_t query_point_mutable(int x, Args&... args) {
@@ -206,7 +206,7 @@ struct segment_tree {
 
   template <class... Args>
   void update_up(int x, const Args&... args) {
-    update_up(x, args...);
+    update_up_mutable(x, args...);
   }
   template <class... Args>
   void update_up_mutable(int x, Args&... args) {

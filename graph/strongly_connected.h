@@ -23,13 +23,13 @@
 #include <vector>
 #include <stack>
 
-template <bool build_dag, typename = void>
+template <bool build_dag>
 struct scc_dag_base {
   scc_dag_base(size_t) {}
 };
 
-template <bool build_dag>
-struct scc_dag_base<build_dag, std::enable_if_t<build_dag>> {
+template <>
+struct scc_dag_base<true> {
   std::vector<int> remap;
   std::vector<std::vector<int>> group;
   std::vector<int> indegree;

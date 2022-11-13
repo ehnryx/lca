@@ -7,18 +7,53 @@
  */
 #pragma once
 
+#include "../number/float128.h"
 #include <complex>
+
+// forward declaration
+template <typename T, bool> struct fraction;
+
+namespace geo {
+template <typename T>
+struct type_info {
+  using bigger_type = T;
+  using intersection_type = T;
+};
+
+template <>
+struct type_info<int> {
+  using bigger_type = long long;
+  using intersection_type = fraction<bigger_type, false>;
+};
+
+template <>
+struct type_info<long long> {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic" // ISO C++ __int128
+  using bigger_type = __int128;
+#pragma GCC diagnostic pop
+  using intersection_type = fraction<bigger_type, false>;
+};
+
+template <typename T, typename U>
+struct is_constructible {
+  static constexpr bool value = std::is_same_v<T, U> ||
+    std::is_same_v<T, typename type_info<U>::intersection_type>;
+};
+}
 
 template <typename T>
 struct point {
   static constexpr bool floating = std::is_floating_point_v<T>;
-  using type = T;
+  using Type = T;
+  using Bigger = typename geo::type_info<T>::bigger_type;
+  using Inter = typename geo::type_info<T>::intersection_type;
   T x, y;
-  point() = default;
+  point(): x(0), y(0) {}
   point(const T& c): x(c), y(0) {}
   point(const T& _x, const T& _y): x(_x), y(_y) {}
   point(const std::complex<T>& v): x(v.real()), y(v.imag()) {}
-  template <typename U>
+  template <typename U, std::enable_if_t<geo::is_constructible<T, U>::value, bool> = true>
   point(const point<U>& v): x(v.x), y(v.y) {}
   friend std::ostream& operator << (std::ostream& os, const point& v) {
     return os << v.x << ' ' << v.y;
@@ -56,15 +91,15 @@ struct point {
   T imag() const { return y; }
   void real(const T& v) { x = v; }
   void imag(const T& v) { y = v; }
-  template <typename U = T> U norm() const { return U(x)*x + U(y)*y; }
-  template <typename U = T> U dot(const point& v) const { return U(x)*v.x + U(y)*v.y; }
-  template <typename U = T> U cross(const point& v) const { return U(x)*v.y - U(y)*v.x; }
+  template <typename U = Bigger> auto norm() const { return U(x)*x + U(y)*y; }
+  template <typename U = Bigger> auto dot(const point& v) const { return U(x)*v.x + U(y)*v.y; }
+  template <typename U = Bigger> auto cross(const point& v) const { return U(x)*v.y - U(y)*v.x; }
   template <typename U = T> auto arg() const { return atan2(U(y), U(x)); }
-  template <typename U = T> auto abs() const { return sqrt(norm<U>()); }
+  template <typename U = Bigger> auto abs() const { return sqrt(norm<U>()); }
   template <typename U = T> auto argl() const { return atan2l(U(y), U(x)); }
-  template <typename U = T> auto absl() const { return sqrtl(norm<U>()); }
-  template <typename U, typename V>
-  static point polar(const U& radius, const V& angle) {
+  template <typename U = Bigger> auto absl() const { return sqrtl(norm<U>()); }
+  template <typename U, typename V, bool F = floating>
+  static std::enable_if_t<F, point> polar(const U& radius, const V& angle) {
     return point(radius * cos(angle), radius * sin(angle));
   }
   static bool by_angle(const point& a, const point& b) {
@@ -109,6 +144,18 @@ template <typename T> auto absl(const point<T>& v) { return v.absl(); }
 template <typename T> auto dot(const point<T>& a, const point<T>& b) { return a.dot(b); }
 template <typename T> auto cross(const point<T>& a, const point<T>& b) { return a.cross(b); }
 
+template <typename T, typename U>
+std::enable_if_t<std::is_same_v<U, typename point<T>::Inter>, point<U>>
+operator+(const point<T>& a, const point<U>& b) {
+  return point<U>(a) + b;
+}
+template <typename T, typename U>
+std::enable_if_t<std::is_same_v<U, typename point<T>::Inter>, point<U>>
+operator-(const point<T>& a, const point<U>& b) {
+  return point<U>(a) - b;
+}
+
+namespace geo {
 template <typename T, std::enable_if_t<point<T>::floating, bool> = true>
 bool equal(T eps, const point<T>& a, const point<T>& b) { return abs(a - b) <= eps; }
 template <typename T, std::enable_if_t<!point<T>::floating, bool> = true>
@@ -121,10 +168,9 @@ bool less_than(T eps, const point<T>& a, const point<T>& b) {
 template <typename T, std::enable_if_t<!point<T>::floating, bool> = true>
 bool less_than(const point<T>& a, const point<T>& b) { return a < b; }
 
-namespace utility {
-  template <typename T>
-  int sign(const T& x, const T& eps) {
-    return x < -eps ? -1 : x > eps ? 1 : 0;
-  }
+template <typename T>
+int sign(const T& x, const T& eps) {
+  return x < -eps ? -1 : x > eps ? 1 : 0;
+}
 }
 

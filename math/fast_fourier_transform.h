@@ -55,12 +55,12 @@ namespace fft {
     using Out_t = std::conditional_t<std::is_same_v<Prod_t, void>, T, Prod_t>;
     if (empty(a) || empty(b)) return std::vector<Out_t>();
     std::vector<Out_t> res(size(a) + size(b) - 1, 0);
-    int L = (size(res) == 1 ? 0 : 32 - __builtin_clz((int)size(res) - 1));
+    int L = (size(res) == 1 ? 0 : 32 - __builtin_clz(size(res) - 1));
     int n = 1 << L;
     std::vector<std::complex<D>> in(n), out(n);
     copy(begin(a), end(a), begin(in));
     for (size_t i = 0; i < size(b); i++) {
-      in[i].imag(b[i]);
+      in[i] += complex<D>(0, 1) * b[i];
     }
     fast_fourier_transform(in);
     for (int i = 0; i < n; i++) {
@@ -79,6 +79,29 @@ namespace fft {
       res.resize(cut);
     }
     return res;
+  }
+  template <typename T>
+  auto convolve(std::vector<complex<T>> a, std::vector<complex<T>> b, size_t cut = -1) {
+    if (empty(a) || empty(b)) return std::vector<complex<T>>();
+    size_t length = a.size() + b.size() - 1;
+    int n = 1 << (length == 1 ? 0 : 32 - __builtin_clz(length - 1));
+    bool equal = (a == b);
+    a.resize(n);
+    fast_fourier_transform(a);
+    if (equal) {
+      b = a;
+    } else {
+      b.resize(n);
+      fast_fourier_transform(b);
+    }
+    const T inv = 1 / T(n);
+    for (int i = 0; i < n; i++) {
+      a[i] *= b[i] * inv;
+    }
+    reverse(begin(a) + 1, end(a));
+    fast_fourier_transform(a);
+    a.resize(std::min(length, cut));
+    return a;
   }
 }
 

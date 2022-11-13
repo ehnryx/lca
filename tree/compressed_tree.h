@@ -2,6 +2,7 @@
  * USAGE
  *  compressed_tree tree(lca_binary_jumping, vector of vertices);
  *  stored as an adjacency list of pair(neighbour, #edges to neighbour)
+ *  remapped 0 is always the root of the compressed tree
  * TIME
  *  O(VlogN) construction
  *  N = #vertices in lca_binary_jumping
@@ -10,8 +11,6 @@
  *  untested
  */
 #pragma once
-
-#include "lca_binary_jumping.h"
 
 #include <map>
 #include <stdexcept>
@@ -23,7 +22,8 @@ struct compressed_tree {
   std::vector<std::vector<std::pair<int, int>>> adj;
   std::vector<std::pair<int, int>> parent;
 
-  compressed_tree(const lca_binary_jumping& tree, const std::vector<int>& verts) {
+  template <typename T>
+  compressed_tree(const T& tree, const std::vector<int>& verts) {
     if (verts.empty()) {
       throw std::invalid_argument("vertices of compressed tree must not be empty");
     }

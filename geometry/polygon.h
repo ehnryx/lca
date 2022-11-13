@@ -89,8 +89,8 @@ std::vector<point<T>> cut_polygon(const T& eps,
     if (cross(b - a, v[i] - a) >= -normalized_eps) {
       res.push_back(v[i]);
     }
-    if (utility::sign(cross(b - a, v[i] - a), normalized_eps) *
-        utility::sign(cross(b - a, v[j] - a), normalized_eps) < 0) {
+    if (geo::sign(cross(b - a, v[i] - a), normalized_eps) *
+        geo::sign(cross(b - a, v[j] - a), normalized_eps) < 0) {
       point<T> it = line_inter(a, b, v[i], v[j]);
       if (res.empty() || !equal(eps, res.back(), it)) {
         res.push_back(it);
@@ -112,8 +112,8 @@ std::vector<point<T>> cut_polygon(
     if (cross(b - a, v[i] - a) >= 0) {
       res.push_back(v[i]);
     }
-    if (utility::sign(cross(b - a, v[i] - a), T(0)) *
-        utility::sign(cross(b - a, v[j] - a), T(0)) < 0) {
+    if (geo::sign(cross(b - a, v[i] - a), T(0)) *
+        geo::sign(cross(b - a, v[j] - a), T(0)) < 0) {
       point<T> it = line_inter(a, b, v[i], v[j]);
       if (res.empty() || !equal(res.back(), it)) {
         res.push_back(it);

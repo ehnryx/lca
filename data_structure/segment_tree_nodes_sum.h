@@ -6,7 +6,7 @@
  */
 #pragma once
 
-namespace segment_node {
+namespace segment_tree_nodes {
 
   template <typename T>
   struct custom_update_range_sum {
@@ -22,20 +22,25 @@ namespace segment_node {
   };
 
   template <typename T>
-  struct range_assign_range_sum final : custom_update_range_sum<T> {
-    using Base = custom_update_range_sum<T>;
-    using Base::sum;
+  struct point_assign_range_sum : custom_update_range_sum<T> {
+    point_assign_range_sum() = default;
+    point_assign_range_sum(T v): custom_update_range_sum<T>(v) {}
+    void put(T v) { this->sum = v; }
+  };
+
+  template <typename T>
+  struct range_assign_range_sum : custom_update_range_sum<T> {
     int length;
     bool lazy;
     range_assign_range_sum() = default;
-    range_assign_range_sum(T v): Base(v), lazy(false) {}
+    range_assign_range_sum(T v): custom_update_range_sum<T>(v), lazy(false) {}
     void put(T v) {
-      sum = v * length;
+      this->sum = v * length;
       lazy = true;
     }
     void push(range_assign_range_sum& left, range_assign_range_sum& right) {
       if (lazy) {
-        left.sum = right.sum = sum / 2;
+        left.sum = right.sum = this->sum / 2;
         left.lazy = right.lazy = true;
         lazy = false;
       }
@@ -43,17 +48,22 @@ namespace segment_node {
   };
 
   template <typename T>
-  struct range_add_range_sum final : custom_update_range_sum<T> {
-    using Base = custom_update_range_sum<T>;
-    using Base::sum;
+  struct point_add_range_sum : custom_update_range_sum<T> {
+    point_add_range_sum() = default;
+    point_add_range_sum(T v): custom_update_range_sum<T>(v) {}
+    void put(T v) { this->sum += v; }
+  };
+
+  template <typename T>
+  struct range_add_range_sum : custom_update_range_sum<T> {
     T lazy;
     int length;
     range_add_range_sum() = default;
-    range_add_range_sum(T v): Base(v), lazy(v) {}
+    range_add_range_sum(T v): custom_update_range_sum<T>(v), lazy(v) {}
     void put(T v) {
       T add = v * length;
       lazy += add;
-      sum += add;
+      this->sum += add;
     }
     void push(range_add_range_sum& left, range_add_range_sum& right) {
       if (lazy != T(0)) {

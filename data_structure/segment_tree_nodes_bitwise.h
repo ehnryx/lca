@@ -6,7 +6,7 @@
  */
 #pragma once
 
-namespace segment_node {
+namespace segment_tree_nodes {
 
   template <typename T>
   struct custom_update_range_and {
@@ -22,7 +22,7 @@ namespace segment_node {
   };
 
   template <typename T>
-  struct range_assign_range_and final : custom_update_range_and<T> {
+  struct range_assign_range_and : custom_update_range_and<T> {
     using Base = custom_update_range_and<T>;
     using Base::value;
     bool lazy;
@@ -55,7 +55,7 @@ namespace segment_node {
   };
 
   template <typename T>
-  struct range_assign_range_or final : custom_update_range_or<T> {
+  struct range_assign_range_or : custom_update_range_or<T> {
     using Base = custom_update_range_or<T>;
     using Base::value;
     bool lazy;

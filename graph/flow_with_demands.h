@@ -7,8 +7,9 @@
  *  void add_edge(a, b, demand, capacity); adds an edge a -> b
  *  bool flowable(source, sink);
  *    adds the edge sink -> source with capacity inf, and calls flowable();
- *  bool flowable(); returns whether a circulation exists.
- *    *** flowable should only be called once!
+ *  bool flow(source, sink); returns whether a circulation exists.
+ *  void finalize(); completes the flow with demands graph.
+ *    Should be called before flowing
  * TIME
  *  O(flow)
  * STATUS
@@ -16,14 +17,25 @@
  */
 #pragma once
 
+#include <numeric>
+#include <stdexcept>
+#include <vector>
+
 template <template <typename> class Flow, typename T>
 struct flow_with_demands : Flow<T> {
   int source, sink;
-  vector<T> in, out;
-  flow_with_demands(int n): Flow<T>(n + 2), source(n), sink(n + 1), in(n), out(n) {}
+  std::vector<T> in, out;
+  T saturated;
+  flow_with_demands(int n):
+    Flow<T>(n + 2), source(n), sink(n + 1), in(n), out(n), saturated(0) {}
 
   void add_edge(int a, int b, const T& d, const T& c) {
-    assert(a < source && b < source && d <= c);
+    if (a >= source or b >= source) {
+     throw std::invalid_argument("add_edge: node indices out of bounds");
+    }
+    if (d > c) {
+      throw std::invalid_argument("add_edge: demand is larger than capacity");
+    }
     if (c != d) {
       Flow<T>::add_edge(a, b, c - d);
     }
@@ -31,14 +43,7 @@ struct flow_with_demands : Flow<T> {
     out[a] += d;
   }
 
-  bool flowable(int s, int t) {
-    assert(s < source && t < source);
-    Flow<T>::add_edge(t, s, numeric_limits<T>::max());
-    return flowable();
-  }
-
-  bool flowable() {
-    T saturated = 0;
+  void finalize() {
     for (int i = 0; i < source; i++) {
       if (in[i] != 0) {
         Flow<T>::add_edge(source, i, in[i]);
@@ -48,7 +53,33 @@ struct flow_with_demands : Flow<T> {
         Flow<T>::add_edge(i, sink, out[i]);
       }
     }
-    return Flow<T>::flow(source, sink) == saturated;
+  }
+
+  bool flowable(int s, int t, T max_flow = std::numeric_limits<T>::max()) {
+    if (s >= source or t >= source) {
+     throw std::invalid_argument("flowable: node indices out of bounds");
+    }
+    Flow<T>::add_edge(t, s, max_flow);
+    bool ok = Flow<T>::flow(source, sink) == saturated;
+    Flow<T>::adj[s].pop_back();
+    Flow<T>::adj[t].pop_back();
+    return ok;
+  }
+
+  T min_flowable(int s, int t, T upper = std::numeric_limits<T>::max()) {
+    T lower = 0;
+    while (lower < upper) {
+      T guess = lower + (upper - lower) / 2;
+      if (flowable(s, t, guess)) {
+        upper = guess;
+      } else {
+        lower = guess + 1;
+      }
+      if (lower != upper) {
+        Flow<T>::clear_flow();
+      }
+    }
+    return upper;
   }
 };
 

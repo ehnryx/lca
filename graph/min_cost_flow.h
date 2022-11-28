@@ -15,10 +15,15 @@
  */
 #pragma once
 
+#include <algorithm>
+#include <numeric>
+#include <queue>
+#include <vector>
+
 template <typename Flow_t, typename Cost_t, bool sparse = true>
 struct min_cost_flow {
-  static constexpr Flow_t flow_inf = numeric_limits<Flow_t>::max() / 4;
-  static constexpr Cost_t cost_inf = numeric_limits<Cost_t>::max() / 4;
+  static constexpr Flow_t flow_inf = std::numeric_limits<Flow_t>::max() / 4;
+  static constexpr Cost_t cost_inf = std::numeric_limits<Cost_t>::max() / 4;
   struct edge {
     int to, rev;
     Flow_t cap, flow;
@@ -26,9 +31,9 @@ struct min_cost_flow {
     edge(int t, int r, const Flow_t& c, const Flow_t& f, const Cost_t& d):
       to(t), rev(r), cap(c), flow(f), cost(d) {}
   };
-  vector<vector<edge>> adj;
-  vector<Cost_t> pot, dist;
-  vector<int> vis, path;
+  std::vector<std::vector<edge>> adj;
+  std::vector<Cost_t> pot, dist;
+  std::vector<int> vis, path;
   bool has_negative;
   min_cost_flow(int n):
     adj(n), pot(n), dist(n), vis(n), path(n), has_negative(false) {}
@@ -38,7 +43,9 @@ struct min_cost_flow {
     adj[b].emplace_back(a, (int)size(adj[a]) - 1, 0, 0, -cost);
     has_negative |= (cost < 0);
   }
+
   void init_potential() {
+    std::fill(begin(pot), end(pot), 0);
     for (size_t i = 1; i < adj.size(); i++) {
       for (size_t u = 0; u < adj.size(); u++) {
         for (const edge& e : adj[u]) {
@@ -50,12 +57,23 @@ struct min_cost_flow {
     }
   }
 
-  pair<Flow_t, Cost_t> augmenting_path(int source, int sink) {
-    fill(begin(vis), end(vis), false);
-    fill(begin(dist), end(dist), cost_inf);
+  void clear_flow() {
+    for (std::vector<edge>& adjacency : adj) {
+      for (edge& e : adjacency) {
+        e.flow = 0;
+      }
+    }
+  }
+
+  std::pair<Flow_t, Cost_t> augmenting_path(int source, int sink) {
+    std::fill(begin(vis), end(vis), false);
+    std::fill(begin(dist), end(dist), cost_inf);
     dist[source] = 0;
     if constexpr (sparse) {
-      priority_queue<pair<Cost_t, int>, vector<pair<Cost_t, int>>, greater<>> dijk;
+      std::priority_queue<
+        std::pair<Cost_t, int>,
+        std::vector<std::pair<Cost_t, int>>,
+        std::greater<>> dijk;
       dijk.emplace(0, source);
       while (!empty(dijk)) {
         auto [d, u] = dijk.top();
@@ -73,10 +91,10 @@ struct min_cost_flow {
       }
     } else { // dense O(V^2 + E) dijkstra instead of O(ElogV)
       while (true) {
-        pair<Cost_t, int> best(cost_inf, -1);
+        std::pair<Cost_t, int> best(cost_inf, -1);
         for (int i = 0; i < (int)adj.size(); i++) {
           if (!vis[i]) {
-            best = min(best, pair(dist[i], i));
+            best = min(best, std::pair(dist[i], i));
           }
         }
         if (best.second == -1) break;
@@ -92,7 +110,7 @@ struct min_cost_flow {
       }
     }
     if (dist[sink] == cost_inf) {
-      return pair(0, 0);
+      return std::pair(0, 0);
     }
     for (size_t i = 0; i < size(adj); i++) {
       pot[i] = min(cost_inf, dist[i] + pot[i]);
@@ -112,10 +130,10 @@ struct min_cost_flow {
       back.flow -= df;
       dcost += df * e.cost;
     }
-    return pair(df, dcost);
+    return std::pair(df, dcost);
   }
 
-  pair<Flow_t, Cost_t> flow(int source, int sink) {
+  std::pair<Flow_t, Cost_t> flow(int source, int sink) {
     if (has_negative) init_potential();
     Flow_t res = 0;
     Cost_t cost = 0;
@@ -125,7 +143,7 @@ struct min_cost_flow {
       cost += dcost;
       tie(df, dcost) = augmenting_path(source, sink);
     }
-    return pair(res, cost);
+    return std::pair(res, cost);
   }
 };
 

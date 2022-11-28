@@ -10,18 +10,20 @@
 #include <vector>
 
 struct graph_traversal {
-  virtual ~graph_traversal() = default;
-  virtual const std::vector<int>& get_parents() const = 0;
+  std::vector<int> parent;
+  graph_traversal(int n): parent(n, -1) {}
   std::vector<int> get_path(int to) const {
     std::vector<int> path;
-    if (get_parents()[to] != -1) {
+    if (parent[to] != -1) {
       while (true) {
         path.push_back(to);
-        if (to == get_parents()[to]) break;
-        to = get_parents()[to];
+        if (to == parent[to]) break;
+        to = parent[to];
       }
       reverse(path.begin(), path.end());
     }
     return path;
   }
+  const std::vector<int>& get_parents() const { return parent; }
+  bool visited(int u) const { return parent[u] != -1; }
 };

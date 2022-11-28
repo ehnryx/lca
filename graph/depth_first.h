@@ -17,13 +17,15 @@
 #include "graph_traversal.h"
 #include <stack>
 
-template <typename graph_impl, typename weight_t>
+template <typename weight_t>
 struct depth_first : graph_traversal {
-  const Graph<graph_impl, weight_t>& graph;
-  std::vector<int> parent;
-  depth_first(const Graph<graph_impl, weight_t>& g):
-    graph(g), parent(graph.size(), -1) {}
-  depth_first& run(int source) {
+  const vector_graph<weight_t>& graph;
+  depth_first(const vector_graph<weight_t>& g):
+    graph_traversal(g.size()), graph(g) {}
+  template <typename NodeF, typename EdgeF>
+  depth_first& run(int source, NodeF&& node_func, EdgeF&& edge_func) {
+    static constexpr bool has_node_func = not std::is_same_v<NodeF, bool>;
+    static constexpr bool has_edge_func = not std::is_same_v<EdgeF, bool>;
     if (parent[source] != -1) return *this;
     std::stack<int> to_visit;
     to_visit.push(source);
@@ -31,14 +33,24 @@ struct depth_first : graph_traversal {
     while (!to_visit.empty()) {
       int u = to_visit.top();
       to_visit.pop();
+      if constexpr (has_node_func) node_func(u);
       for (const auto& e : graph[u]) {
         if (parent[e.to] != -1) continue;
         parent[e.to] = u;
         to_visit.push(e.to);
+        if constexpr (has_edge_func) edge_func(u, e.to);
       }
     }
     return *this;
   }
-  const std::vector<int>& get_parents() const override final { return parent; }
+  template <typename NodeF>
+  depth_first& run_node_func(int source, NodeF&& node_func) {
+    return run(source, node_func, false);
+  }
+  template <typename EdgeF>
+  depth_first& run_edge_func(int source, EdgeF&& edge_func) {
+    return run(source, false, edge_func);
+  }
+  depth_first& run(int source) { return run(source, false, false); }
 };
 

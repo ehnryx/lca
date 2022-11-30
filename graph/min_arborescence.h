@@ -17,7 +17,10 @@
 #include "../data_structure/leftist_tree.h"
 #include "../data_structure/union_find.h"
 
-template <typename T, class Compare = less<>, bool sparse = true>
+#include <numeric>
+#include <vector>
+
+template <typename T, class Compare = std::less<>, bool sparse = true>
 struct min_arborescence {
   struct Edge {
     int from, to;
@@ -33,19 +36,20 @@ struct min_arborescence {
     }
   };
 
-  union_find<true, false> weak;
-  union_find<false, false> strong;  // must not swap root
-  vector<Edge> enter;
-  vector<vector<int>> children;
-  vector<int> parent, rep;
+  union_find<> weak;
+  union_find<> strong;  // must not swap root
+  std::vector<Edge> enter;
+  std::vector<std::vector<int>> children;
+  std::vector<int> parent, rep;
 
-  struct dense_data_t : vector<vector<Edge>> {
-    dense_data_t(int n): vector<vector<Edge>>(n, vector(n, Edge(-1, -1, 0, 0))) {}
+  struct dense_data_t : std::vector<std::vector<Edge>> {
+    dense_data_t(int n): std::vector<std::vector<Edge>>(
+        n, std::vector(n, Edge(-1, -1, 0, 0))) {}
     // store reverse edges for cache goodness
   };
 
-  using heap_t = conditional_t<sparse,
-    vector<leftist_tree<Edge, leftist_node_lazy<Edge, T>, Compare>>,
+  using heap_t = std::conditional_t<sparse,
+    std::vector<leftist_tree<Edge, leftist_node_lazy<Edge, T>, Compare>>,
     dense_data_t>;
   heap_t adj;
 
@@ -110,9 +114,9 @@ struct min_arborescence {
   }
 
   void build() {
-    vector<int> roots(adj.size());
-    iota(rep.begin(), rep.end(), 0);
-    iota(roots.begin(), roots.end(), 0);
+    std::vector<int> roots(adj.size());
+    std::iota(rep.begin(), rep.end(), 0);
+    std::iota(roots.begin(), roots.end(), 0);
 
     int rid = 0;
     int uid = (int)adj.size();
@@ -160,29 +164,29 @@ struct min_arborescence {
     }
   }
 
-  pair<vector<pair<int, T>>, T> solve(int root) {
+  std::pair<std::vector<std::pair<int, T>>, T> solve(int root) {
     T sum = 0;
-    vector<pair<int, T>> in(adj.size(), pair(-1, 0));
+    std::vector<std::pair<int, T>> in(adj.size(), std::pair(-1, 0));
     int scc_root = strong.find(root);
     sum += dismantle(rep[scc_root], root, in);
     for (int i = 0; i < (int)adj.size(); i++) {
       if (i == strong.find(i) && i != scc_root) {
         const Edge& e = enter[rep[i]];
         if (e.invalid()) continue;
-        in[e.to] = pair(e.from, e.orig);
+        in[e.to] = std::pair(e.from, e.orig);
         sum += e.orig + dismantle(rep[i], e.to, in);
       }
     }
-    return pair(move(in), sum);
+    return std::pair(move(in), sum);
   }
 
-  T dismantle(int scc, int root, vector<pair<int, T>>& in) {
+  T dismantle(int scc, int root, std::vector<std::pair<int, T>>& in) {
     T sum = 0;
     while (root != scc) {
       for (int v : children[parent[root]]) {
         if (v == root) continue;
         const Edge& e = enter[v];
-        in[e.to] = pair(e.from, e.orig);
+        in[e.to] = std::pair(e.from, e.orig);
         sum += e.orig + dismantle(v, e.to, in);
       }
       root = parent[root];

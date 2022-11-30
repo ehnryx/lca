@@ -2,7 +2,7 @@
  * USAGE
  *  hungarian<T> graph(n, m); // bipartite K_{n,m}
  *  graph.add_weight(a, b, w); // non-negative, default = 0
- *  T weight = graph.match(matching); // `matching` is optional
+ *  T weight = graph.run();
  * TIME
  *  O(cubic)
  * STATUS
@@ -10,30 +10,35 @@
  */
 #pragma once
 
+#include <cassert>
+#include <numeric>
+#include <stdexcept>
+#include <vector>
+
 template <class T>
 struct hungarian {
   int n, m;
-  vector<vector<T>> weight;
-  vector<int> match; // match[l] = r
-  hungarian(int _n, int _m): n(_n), m(_m), weight(n, vector<T>(m)), match(n, -1) {
-    if (n > m) throw invalid_argument("expected n <= m");
+  std::vector<std::vector<T>> weight;
+  std::vector<int> match; // match[l] = r
+  hungarian(int _n, int _m): n(_n), m(_m), weight(n, std::vector<T>(m)), match(n, -1) {
+    if (n > m) throw std::invalid_argument("expected n <= m");
   }
   void add_weight(int a, int b, const T& w) {
-    weight[a][b] = w;
+    weight[a][b] = max(weight[a][b], w);
   }
 
   T run() {
-    vector<int> inv(m, -1); // inverse of match
-    vector<T> left(n), right(m); // labels
+    std::vector<int> inv(m, -1); // inverse of match
+    std::vector<T> left(n), right(m); // labels
     for (int i = 0; i < n; i++) {
       left[i] = *max_element(weight[i].begin(), weight[i].end());
     }
 
     for (int i = 0; i < n; i++) {
       // adding i into the matching
-      vector<bool> in_s(n), in_tree(m);
-      vector<int> parent(m, -1); // parent in alt-tree
-      vector<T> slack(m);
+      std::vector<bool> in_s(n), in_tree(m);
+      std::vector<int> parent(m, -1); // parent in alt-tree
+      std::vector<T> slack(m);
       in_s[i] = true;
       for (int j = 0; j < m; j++) {
         slack[j] = left[i] + right[j] - weight[i][j];
@@ -51,7 +56,7 @@ struct hungarian {
 
         // N(S) = T, update labels
         if (add == -1) {
-          T sub = numeric_limits<T>::max();
+          T sub = std::numeric_limits<T>::max();
           for (int j = 0; j < m; j++) {
             if (slack[j] != 0) {
               sub = min(sub, slack[j]);

@@ -13,22 +13,23 @@
 #pragma once
 
 #include "../data_structure/union_find.h"
+#include "graph_utility.h"
 
-template <typename graph_t, typename Compare = std::less<>>
+template <typename weight_t, typename Compare = std::less<>>
 struct min_span_forest {
-  using weight_t = typename graph_t::weight_t;
   using edge_t = graph_edge<weight_t>;
   union_find<> components;
   std::vector<edge_t> edges, other;
   min_span_forest(
-      const graph_t& graph,
+      int num_nodes,
+      const std::vector<edge_t>& graph_edges,
       const std::vector<std::pair<int, int>>& init_edges = {}):
-    components(graph.size()) {
+    components(num_nodes) {
     for (auto [a, b] : init_edges) {
       components.link(a, b);
     }
     if constexpr (std::is_void_v<weight_t>) {
-      for (const edge_t& e : graph.get_edges()) {
+      for (const edge_t& e : graph_edges) {
         if (components.link(e.from, e.to)) {
           edges.push_back(e);
         } else {
@@ -36,10 +37,7 @@ struct min_span_forest {
         }
       }
     } else {
-      std::vector<edge_t> order;
-      for (const edge_t& e : graph.get_edges()) {
-        order.push_back(e);
-      }
+      std::vector<edge_t> order = graph_edges;
       sort(order.begin(), order.end(), [](const edge_t& a, const edge_t& b) {
             return Compare()(a.weight, b.weight); });
       for (const edge_t& e : order) {
@@ -69,6 +67,6 @@ struct min_span_forest {
       return res;
     }
   }
-  const union_find<>& operator * () const { return components; }
+  const union_find<>& operator*() const { return components; }
 };
 

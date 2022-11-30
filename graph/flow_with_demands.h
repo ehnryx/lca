@@ -55,31 +55,23 @@ struct flow_with_demands : Flow<T> {
     }
   }
 
-  bool flowable(int s, int t, T max_flow = std::numeric_limits<T>::max()) {
+  T flowable(int s, int t, T max_flow = std::numeric_limits<T>::max()) {
     if (s >= source or t >= source) {
      throw std::invalid_argument("flowable: node indices out of bounds");
     }
     Flow<T>::add_edge(t, s, max_flow);
-    bool ok = Flow<T>::flow(source, sink) == saturated;
+    T res = (Flow<T>::flow(source, sink) == saturated ? Flow<T>::adj[t].back().flow : -1);
     Flow<T>::adj[s].pop_back();
     Flow<T>::adj[t].pop_back();
-    return ok;
+    return res;
   }
 
-  T min_flowable(int s, int t, T upper = std::numeric_limits<T>::max()) {
-    T lower = 0;
-    while (lower < upper) {
-      T guess = lower + (upper - lower) / 2;
-      if (flowable(s, t, guess)) {
-        upper = guess;
-      } else {
-        lower = guess + 1;
-      }
-      if (lower != upper) {
-        Flow<T>::clear_flow();
-      }
+  T min_flowable(int s, int t) {
+    T res = flowable(s, t);
+    if (res != -1) {
+      res -= Flow<T>::flow(t, s);
     }
-    return upper;
+    return res;
   }
 };
 

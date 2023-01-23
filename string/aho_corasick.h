@@ -18,22 +18,32 @@ template <typename T, typename to_int_t = void>
 struct aho_corasick {
   static_assert(!std::is_void_v<to_int_t>);
   struct node {
-    node* parent;
-    node* fail;
-    node* match;
-    std::array<node*, to_int_t::size()> child;
-    int id;
-    node(node* p): parent(p), fail(nullptr), match(nullptr), id(-1) {
-      fill(begin(child), end(child), nullptr);
+    int parent, fail, match, pattern;
+    std::array<int, to_int_t::size> child;
+    node(int p): parent(p), fail(-1), match(-1), pattern(-1) {
+      fill(begin(child), end(child), -1);
+    }
+    void for_each_child(auto&& func) const {
+      for (int i = 0; i < to_int_t::size; i++) {
+        if (child[i] != -1) {
+          func(child[i], i);
+        }
+      }
     }
   };
-  node* root;
-  std::vector<int> pattern_length, same_pattern;
-  int pattern_cnt;
+  static constexpr int root = 0;
+  std::vector<node> nodes;
+  int num_patterns = 0;
+  int size() const { return (int)nodes.size(); }
+  const node& operator[](int u) const { return nodes[u]; }
 
-  aho_corasick(): root(new node(nullptr)), pattern_cnt(0) {}
-  aho_corasick(const std::vector<std::basic_string<T>>& patterns):
-    root(new node(nullptr)), pattern_cnt(0) {
+  aho_corasick(int r = 0) {
+    nodes.reserve(r);
+    nodes.emplace_back(-1);  // root
+  }
+  aho_corasick(const std::vector<std::basic_string<T>>& patterns, int r = 0) {
+    nodes.reserve(r);
+    nodes.emplace_back(-1);  // root
     for (const std::basic_string<T>& s : patterns) {
       add(s);
     }
@@ -41,81 +51,112 @@ struct aho_corasick {
   }
 
   void add(const std::basic_string<T>& s) {
-    node* u = root;
-    for (T c : s) {
-      if (!u->child[to_int_t()(c)]) {
-        u->child[to_int_t()(c)] = new node(u);
+    int u = root;  // 0 is root
+    for (const T c : s) {
+      const int ci = to_int_t()(c);
+      if (nodes[u].child[ci] == -1) {
+        nodes[u].child[ci] = (int)nodes.size();
+        nodes.emplace_back(u);
       }
-      u = u->child[to_int_t()(c)];
+      u = nodes[u].child[ci];
     }
-    same_pattern.push_back(u->id);
-    u->id = pattern_cnt++;
-    pattern_length.push_back((int)s.size());
+    if (nodes[u].pattern != -1) {
+      throw std::logic_error("aho_corasick does not support duplicates");
+    }
+    nodes[u].pattern = num_patterns++;
   }
 
   void build() {
-    std::queue<std::pair<int, node*>> bfs;
+    std::queue<std::pair<int, int>> bfs;
     bfs.emplace(-1, root);
     while (!bfs.empty()) {
-      auto [c, u] = bfs.front();
+      const auto [c, u] = bfs.front();
       bfs.pop();
-      for (int i = 0; i < to_int_t::size(); i++) {
-        if (u->child[i]) {
-          bfs.emplace(i, u->child[i]);
+      for (int i = 0; i < to_int_t::size; i++) {
+        if (nodes[u].child[i] != -1) {
+          bfs.emplace(i, nodes[u].child[i]);
         }
       }
-      u->fail = u->match = root;
+      nodes[u].fail = nodes[u].match = root;
       if (u != root) {
-        node* v = u->parent->fail;
-        while (v != root && !v->child[c]) {
-          v = v->fail;
+        int v = nodes[nodes[u].parent].fail;
+        while (v != root && nodes[v].child[c] == -1) {
+          v = nodes[v].fail;
         }
-        if (v->child[c] != nullptr && v->child[c] != u) {
-          u->fail = v->child[c];
+        if (nodes[v].child[c] != -1 && nodes[v].child[c] != u) {
+          nodes[u].fail = nodes[v].child[c];
         }
-        u->match = (u->id == -1 ? u->fail->match : u);
+        nodes[u].match = (nodes[u].pattern != -1 ? u : nodes[nodes[u].fail].match);
       }
     }
   }
 
-  std::vector<std::vector<int>> find_all(const std::string& s) {
-    std::vector<std::vector<int>> matches(pattern_cnt);
-    node* u = root;
-    for (int i = 0; i < (int)s.size(); i++) {
-      int c = to_int_t()(s[i]);
-      while (u != root && !u->child[c]) {
-        u = u->fail;
-      }
-      if (u->child[c] != nullptr) {
-        u = u->child[c];
-      }
-      for (node* v = u->match; v != root; v = v->fail->match) {
-        for (int id = v->id; id != -1; id = same_pattern[id]) {
-          matches[id].push_back(i - pattern_length[id] + 1);
-        }
-      }
+  vector<vector<int>> build_fail_tree() const {
+    vector<vector<int>> fail_tree(nodes.size());
+    for (int i = 1; i < nodes.size(); i++) {
+      fail_tree[nodes[i].fail].push_back(i);
     }
-    return matches;
+    return fail_tree;
+  }
+
+  std::vector<int> get_patterns(int u) {
+    std::vector<int> patterns;
+    for (int v = nodes[u].match; v != root; v = nodes[nodes[v].fail].match) {
+      patterns.push_back(nodes[v].pattern);
+    }
+    return patterns;
+  }
+
+  // func(pattern_id, index_of_end);
+  void find_all(const std::string& s, auto&& func) {
+    find_ends(s, [&](int node_id, int s_id) {
+        for (int pattern : get_patterns(node_id)) {
+          func(pattern, s_id);
+        }
+    });
+  }
+
+  // func(node_id, index_of_end);
+  void find_ends(const std::string& s, auto&& func) {
+    int u = root;
+    for (int i = 0; i < (int)s.size(); i++) {
+      const int c = to_int_t()(s[i]);
+      while (u != root && nodes[u].child[c] == -1) {
+        u = nodes[u].fail;
+      }
+      if (nodes[u].child[c] != -1) {
+        u = nodes[u].child[c];
+      }
+      func(u, i);
+    }
   }
 };
 
 template <typename T>
 struct aho_corasick<T, void> {
   struct node {
-    node* parent;
-    node* fail;
-    node* match;
-    std::unordered_map<T, node*> child;
-    int id;
-    node(node* p): parent(p), fail(nullptr), match(nullptr), id(-1) {}
+    int parent, fail, match, pattern;
+    std::unordered_map<T, int> child;
+    node(int p): parent(p), fail(-1), match(-1), pattern(-1) {}
+    void for_each_child(auto&& func) const {
+      for (auto [c, v] : child) {
+        func(v, c);
+      }
+    }
   };
-  node* root;
-  std::vector<int> pattern_length, same_pattern;
-  int pattern_cnt;
+  static constexpr int root = 0;
+  std::vector<node> nodes;
+  int num_patterns = 0;
+  int size() const { return (int)nodes.size(); }
+  const node& operator[](int u) const { return nodes[u]; }
 
-  aho_corasick(): root(new node(nullptr)), pattern_cnt(0) {}
-  aho_corasick(const std::vector<std::basic_string<T>>& patterns):
-    root(new node(nullptr)), pattern_cnt(0) {
+  aho_corasick(int r = 0) {
+    nodes.reserve(r);
+    nodes.emplace_back(-1);  // root
+  }
+  aho_corasick(const std::vector<std::basic_string<T>>& patterns, int r = 0) {
+    nodes.reserve(r);
+    nodes.emplace_back(-1);  // root
     for (const std::basic_string<T>& s : patterns) {
       add(s);
     }
@@ -123,58 +164,90 @@ struct aho_corasick<T, void> {
   }
 
   void add(const std::basic_string<T>& s) {
-    node* u = root;
-    for (T c : s) {
-      if (!u->child.count(c)) {
-        u->child[c] = new node(u);
+    int u = root;  // 0 is root
+    for (const T c : s) {
+      if (auto it = nodes[u].child.find(c); it != nodes[u].child.end()) {
+        u = it->second;
+      } else {
+        auto nxt = nodes[u].child.emplace(c, (int)nodes.size()).first;
+        nodes.emplace_back(u);
+        u = nxt->second;
       }
-      u = u->child[c];
     }
-    same_pattern.push_back(u->id);
-    u->id = pattern_cnt++;
-    pattern_length.push_back((int)s.size());
+    if (nodes[u].pattern != -1) {
+      throw std::logic_error("aho_corasick does not support duplicates");
+    }
+    nodes[u].pattern = num_patterns++;
   }
 
   void build() {
-    std::queue<std::pair<T, node*>> bfs;
+    std::queue<std::pair<T, int>> bfs;
     bfs.emplace(-1, root);
     while (!bfs.empty()) {
-      auto [c, u] = bfs.front();
+      const auto [c, u] = bfs.front();
       bfs.pop();
-      for (const auto& child : u->child) {
+      for (const auto& child : nodes[u].child) {
         bfs.push(child);
       }
-      u->fail = u->match = root;
+      nodes[u].fail = nodes[u].match = root;
       if (u != root) {
-        node* v = u->parent->fail;
-        while (v != root && !v->child.count(c)) {
-          v = v->fail;
+        int v = nodes[nodes[u].parent].fail;
+        while (true) {
+          if (auto it = nodes[v].child.find(c); it != nodes[v].child.end()) {
+            if (it->second != u) {
+              nodes[u].fail = it->second;
+            }
+            break;
+          } else if (v == root) {
+            break;
+          }
+          v = nodes[v].fail;
         }
-        if (auto it = v->child.find(c); it != v->child.end() && it->second != u) {
-          u->fail = it->second;
-        }
-        u->match = (u->id == -1 ? u->fail->match : u);
+        nodes[u].match = (nodes[u].pattern != -1 ? u : nodes[nodes[u].fail].match);
       }
     }
   }
 
-  std::vector<std::vector<int>> find_all(const std::string& s) {
-    std::vector<std::vector<int>> matches(pattern_cnt);
-    node* u = root;
-    for (int i = 0; i < (int)s.size(); i++) {
-      while (u != root && !u->child.count(s[i])) {
-        u = u->fail;
-      }
-      if (auto it = u->child.find(s[i]); it != u->child.end()) {
-        u = it->second;
-      }
-      for (node* v = u->match; v != root; v = v->fail->match) {
-        for (int id = v->id; id != -1; id = same_pattern[id]) {
-          matches[id].push_back(i - pattern_length[id] + 1);
-        }
-      }
+  vector<vector<int>> build_fail_tree() const {
+    vector<vector<int>> fail_tree(nodes.size());
+    for (int i = 1; i < nodes.size(); i++) {
+      fail_tree[nodes[i].fail].push_back(i);
     }
-    return matches;
+    return fail_tree;
+  }
+
+  std::vector<int> get_patterns(int u) {
+    std::vector<int> patterns;
+    for (int v = nodes[u].match; v != root; v = nodes[nodes[v].fail].match) {
+      patterns.push_back(nodes[v].pattern);
+    }
+    return patterns;
+  }
+
+  // func(pattern_id, index_of_end);
+  void find_all(const std::string& s, auto&& func) {
+    find_ends(s, [&](int node_id, int s_id) {
+        for (int pattern : get_patterns(node_id)) {
+          func(pattern, s_id);
+        }
+    });
+  }
+
+  // func(node_id, index_of_end);
+  void find_ends(const std::string& s, auto&& func) {
+    int u = root;
+    for (int i = 0; i < (int)s.size(); i++) {
+      while (true) {
+        if (auto it = nodes[u].child.find(s[i]); it != nodes[u].child.end()) {
+          u = it->second;
+          break;
+        } else if (u == root) {
+          break;
+        }
+        u = nodes[u].fail;
+      }
+      func(u, i);
+    }
   }
 };
 

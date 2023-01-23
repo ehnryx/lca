@@ -49,7 +49,7 @@ void fast_fourier_transform(std::vector<std::complex<D>>& a) {
 }
 
 namespace fft {
-  template <typename Prod_t = void, typename D = long double, typename T>
+  template <typename D = long double, typename Prod_t = void, typename T>
   auto convolve(const std::vector<T>& a, const std::vector<T>& b, size_t cut = -1) {
     static_assert(std::is_floating_point_v<D>);
     using Out_t = std::conditional_t<std::is_same_v<Prod_t, void>, T, Prod_t>;
@@ -60,7 +60,7 @@ namespace fft {
     std::vector<std::complex<D>> in(n), out(n);
     copy(begin(a), end(a), begin(in));
     for (size_t i = 0; i < size(b); i++) {
-      in[i] += complex<D>(0, 1) * b[i];
+      in[i] += complex<D>(0, 1) * complex<D>(b[i]);
     }
     fast_fourier_transform(in);
     for (int i = 0; i < n; i++) {

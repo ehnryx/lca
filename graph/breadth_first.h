@@ -24,9 +24,11 @@ struct breadth_first : graph_traversal {
   breadth_first(const vector_graph<weight_t>& g):
     graph_traversal(g.size()), graph(g), dist(g.size(), -1) {}
   const std::vector<int>& get_dists() const { return dist; }
-  breadth_first& run(int source) { return run(std::vector({ source })); }
   // run bfs while avoiding previously visited nodes
-  breadth_first& run(const std::vector<int>& sources) {
+  template <typename NodeF, typename EdgeF>
+  breadth_first& run(const std::vector<int>& sources, NodeF&& node_func, EdgeF&& edge_func) {
+    static constexpr bool has_node_func = not std::is_same_v<NodeF, bool>;
+    static constexpr bool has_edge_func = not std::is_same_v<EdgeF, bool>;
     std::deque<int> to_visit;
     for (int source : sources) {
       if (dist[source] == -1) {
@@ -38,14 +40,37 @@ struct breadth_first : graph_traversal {
     while (!to_visit.empty()) {
       int u = to_visit.front();
       to_visit.pop_front();
+      if constexpr (has_node_func) node_func(u);
       for (const auto& e : graph[u]) {
-        if (dist[e.to] != -1) continue;
-        parent[e.to] = u;
-        dist[e.to] = dist[u] + 1;
-        to_visit.push_back(e.to);
+        bool visit = (dist[e.to] == -1);
+        if constexpr (has_edge_func) {
+          visit = edge_func(u, dist[u], e.to, dist[e.to]);
+        }
+        if (visit) {
+          parent[e.to] = u;
+          dist[e.to] = dist[u] + 1;
+          to_visit.push_back(e.to);
+        }
       }
     }
     return *this;
   }
+  template <typename NodeF>
+  breadth_first& run_node_func(const std::vector<int>& sources, NodeF&& node_func) {
+    return run_node_func(sources, node_func, false);
+  }
+  template <typename EdgeF>
+  breadth_first& run_edge_func(const std::vector<int>& sources, EdgeF&& edge_func) {
+    return run(sources, false, edge_func);
+  }
+  template <typename NodeF>
+  breadth_first& run_node_func(int source, NodeF&& node_func) {
+    return run_node_func(std::vector({ source }), node_func);
+  }
+  template <typename EdgeF>
+  breadth_first& run_edge_func(int source, EdgeF&& edge_func) {
+    return run_edge_func(std::vector({ source }), edge_func);
+  }
+  breadth_first& run(int source) { return run(std::vector({ source }), false, false); }
 };
 

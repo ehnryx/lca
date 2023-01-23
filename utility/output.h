@@ -14,12 +14,14 @@ template <template <typename> typename Container, typename T,
           typename = std::enable_if_t<std::disjunction_v<
             std::is_same<Container<T>, std::vector<T>>,
             std::is_same<Container<T>, std::set<T>>,
-            std::is_same<Container<T>, std::unordered_set<T>>>>
+            std::is_same<Container<T>, std::unordered_set<T>>,
+            std::is_same<Container<T>, std::multiset<T>>,
+            std::is_same<Container<T>, std::unordered_multiset<T>>>>
          >
 std::ostream& operator << (std::ostream& os, const Container<T>& v) {
   if (v.begin() == v.end()) return os;
   os << *v.begin();
-  for (auto it = v.begin() + 1; it != v.end(); it++) {
+  for (auto it = next(v.begin()); it != v.end(); it++) {
     os << " " << *it;
   }
   return os;
@@ -36,7 +38,7 @@ struct output_view {
   friend std::ostream& operator << (std::ostream& os, output_view v) {
     if (v.begin() == v.end()) return os;
     os << *v.begin();
-    for (auto it = v.begin() + 1; it != v.end(); it++) {
+    for (auto it = next(v.begin()); it != v.end(); it++) {
       os << v.delim << *it;
     }
     return os;

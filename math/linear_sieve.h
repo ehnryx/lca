@@ -18,18 +18,18 @@
  */
 #pragma once
 
-template <class Func, typename = void>
-struct linear_sieve_base {
-  linear_sieve_base(int) {}
-};
-
 template <class Func>
-struct linear_sieve_base<Func, enable_if_t<!is_same_v<Func, void>>> {
+struct linear_sieve_base {
   using T = typename Func::T;
   vector<T> f;
   vector<int> cnt;
   linear_sieve_base(int n): f(n), cnt(n) {}
-  T operator [] (int i) const { return f[i]; }
+  T operator[](int i) const { return f[i]; }
+};
+
+template <>
+struct linear_sieve_base<void> {
+  linear_sieve_base(int) {}
 };
 
 template <class Func = void, bool store_powers = false>

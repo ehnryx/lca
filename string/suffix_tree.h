@@ -38,8 +38,10 @@ struct suffix_tree {
   suffix_tree(std::basic_string<T>&& s): t(move(s)) { build(); }
 
   // BEGIN suffix tree functions
-  // length of the string
-  int size() const { return (int)t.size(); }
+  // size of suffix tree
+  int size() const { return (int)nodes.size(); }
+  // length of string
+  int strlen() const { return (int)t.size(); }
   // the root of the suffix tree
   int root() const { return (int)t.size(); }
   // the depth of the start of a vertex (the number of characters above it)

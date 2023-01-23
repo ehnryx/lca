@@ -27,9 +27,10 @@ template <typename T>
 struct suffix_array {
   std::vector<int> sa, rank, height;
   int operator [] (int i) const { return sa[i]; }
+  int size() const { return (int)sa.size(); }
 
   suffix_array(const std::basic_string<T>& s) {
-    int n = (int)size(s) + 1;
+    int n = (int)s.size() + 1;
     std::vector<int> t(n);
     copy(begin(s), end(s), begin(t));
     sa = build(t, *max_element(begin(t), end(t)) + 1);
@@ -54,7 +55,7 @@ struct suffix_array {
   }
 
   std::vector<int> build(const std::vector<int>& s, int A) {
-    int n = (int)size(s);
+    int n = (int)s.size();
     // get type and lms indices
     std::vector<bool> ltype(n);
     std::vector<int> lms;
@@ -68,7 +69,7 @@ struct suffix_array {
     // induced_sort
     std::vector<int> suf = induced_sort(s, ltype, lms, A);
     // get lms order
-    std::vector<int> lms_order(size(lms));
+    std::vector<int> lms_order(lms.size());
     for (int i = 0, j = 0; i < n; i++) {
       if (suf[i] > 0 && ltype[suf[i] - 1] && !ltype[suf[i]]) {
         lms_order[j++] = suf[i];
@@ -77,7 +78,7 @@ struct suffix_array {
     // name lms substrings
     int name = 0;
     suf[n - 1] = 0;
-    for (int i = 1; i < (int)size(lms); i++) {
+    for (int i = 1; i < (int)lms.size(); i++) {
       bool diff = false;
       for (int j = 0; ; j++) {
         if (s[lms_order[i] + j] != s[lms_order[i - 1] + j]
@@ -93,13 +94,13 @@ struct suffix_array {
       suf[lms_order[i]] = name;
     }
     // recurse if not unique
-    if (name + 1 < (int)size(lms)) {
-      std::vector<int> s_lms(size(lms));
-      for (int i = 0; i < (int)size(lms); i++) {
+    if (name + 1 < (int)lms.size()) {
+      std::vector<int> s_lms(lms.size());
+      for (int i = 0; i < (int)lms.size(); i++) {
         s_lms[i] = suf[lms[i]];
       }
       std::vector<int> suf_lms = build(s_lms, name + 1);
-      for (int i = 0; i < (int)size(lms); i++) {
+      for (int i = 0; i < (int)lms.size(); i++) {
         lms_order[i] = lms[suf_lms[i]];
       }
     }
@@ -110,7 +111,7 @@ struct suffix_array {
   std::vector<int> induced_sort(
       const std::vector<int>& s, const std::vector<bool>& ltype,
       const std::vector<int>& idx, int A) {
-    std::vector<int> suf(size(s), -1);
+    std::vector<int> suf(s.size(), -1);
     std::vector<int> left(A), right(A), r2(A);
     for (int c : s) {
       right[c] += 1;
@@ -118,15 +119,15 @@ struct suffix_array {
     std::partial_sum(begin(right), end(right), begin(right));
     std::copy(begin(right), end(right) - 1, begin(left) + 1);
     std::copy(begin(right), end(right), begin(r2));
-    for (int i = (int)size(idx) - 1; i >= 0; i--) {
+    for (int i = (int)idx.size() - 1; i >= 0; i--) {
       suf[--right[s[idx[i]]]] = idx[i];
     }
-    for (int i = 0; i < (int)size(s); i++) {
+    for (int i = 0; i < (int)s.size(); i++) {
       if (suf[i] > 0 && ltype[suf[i] - 1]) {
         suf[left[s[suf[i] - 1]]++] = suf[i] - 1;
       }
     }
-    for (int i = (int)size(s) - 1; i >= 0; i--) {
+    for (int i = (int)s.size() - 1; i >= 0; i--) {
       if (suf[i] > 0 && !ltype[suf[i] - 1]) {
         suf[--r2[s[suf[i] - 1]]] = suf[i] - 1;
       }

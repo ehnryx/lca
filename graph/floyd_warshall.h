@@ -12,7 +12,7 @@
  */
 #pragma once
 
-#include "../utility/utility.h"
+#include "../utility/minmax.h"
 #include <functional>
 #include <iostream>
 

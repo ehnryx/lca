@@ -18,7 +18,8 @@
 
 template <typename T>
 struct suffix_array_lcp : suffix_array<T>, range_minimum_query<int> {
-  suffix_array_lcp(const std::basic_string<T>& s):
+  template <template<typename> typename container_t>
+  suffix_array_lcp(const container_t<T>& s):
     suffix_array<T>(s), range_minimum_query<int>(suffix_array<T>::height) {}
   int lcp(int i, int j) const {
     if(i == j) return (int)this->sa.size() - 1 - i;

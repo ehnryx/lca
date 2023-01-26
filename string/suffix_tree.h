@@ -17,25 +17,28 @@
 
 #include "suffix_array.h"
 
-template <typename T>
+template <template<typename> typename container_t, typename T>
 struct suffix_tree {
-  std::basic_string<T> t;
+  container_t<T> t;
   // suffix_node ranges are [inclusive, exclusive)
-  struct suffix_node : std::vector<std::pair<T, int>> {
+  struct suffix_node_item {
+    T value; int to;
+    suffix_node_item(T v, int t): value(v), to(t) {}
+    bool operator<(T c) const { return value < c; }
+  };
+  struct suffix_node : std::vector<suffix_node_item> {
     int parent, depth, left, right;
     suffix_node() = default;
     suffix_node(int p, int d, int l, int r): parent(p), depth(d), left(l), right(r) {}
     int get(const T& c) const {
-      auto res = find_if(
-          std::vector<std::pair<T, int>>::begin(), std::vector<std::pair<T, int>>::end(),
-          [=](const std::pair<T, int>& v) { return v.first == c; });
-      return res == std::vector<std::pair<T, int>>::end() ? -1 : res->second;
+      auto res = std::lower_bound(this->begin(), this->end(), c);
+      return res != this->end() && res->value == c ? res->to : -1;
     }
   };
   std::vector<suffix_node> nodes;
 
-  suffix_tree(const std::basic_string<T>& s): t(s) { build(); }
-  suffix_tree(std::basic_string<T>&& s): t(move(s)) { build(); }
+  suffix_tree(const container_t<T>& s): t(s) { build(); }
+  suffix_tree(container_t<T>&& s): t(move(s)) { build(); }
 
   // BEGIN suffix tree functions
   // size of suffix tree
@@ -57,7 +60,8 @@ struct suffix_tree {
 
   // return: (node, idx in range[node]) of the past-the-end of the match.
   //         (-1, -1) if not matched
-  std::pair<int, int> match(const std::string& s) const {
+  template <template<typename> typename container_u>
+  std::pair<int, int> match(const container_u<T>& s) const {
     int u = root();
     int idx = 0;
     for (int i = 0; i < (int)s.size(); i++) {
@@ -98,11 +102,9 @@ private:
         nodes[u].left += split;
         nodes[u].parent = (int)nodes.size() - 1;
         u = (int)nodes.size() - 1;
-        for (auto& edge : nodes[parent(u)]) {
-          if (edge.first == t[nodes[u].left]) {
-            edge.second = u;
-          }
-        }
+        auto edge = std::lower_bound(
+            nodes[parent(u)].begin(), nodes[parent(u)].end(), t[nodes[u].left]);
+        edge->to = u;  // guaranteed to exist
       }
       // add the remaining suffix as a child
       int suf = sa[i];

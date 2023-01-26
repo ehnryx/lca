@@ -29,7 +29,8 @@ struct suffix_array {
   int operator [] (int i) const { return sa[i]; }
   int size() const { return (int)sa.size(); }
 
-  suffix_array(const std::basic_string<T>& s) {
+  template <template<typename> typename container_t>
+  suffix_array(const container_t<T>& s) {
     int n = (int)s.size() + 1;
     std::vector<int> t(n);
     copy(begin(s), end(s), begin(t));

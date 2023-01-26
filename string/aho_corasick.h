@@ -3,13 +3,14 @@
  *  aho_corasick<T, to_int> kmp(patterns);
  *  kmp.match(s);
  * TIME
- *  O(|s|) ish
+ *  O(|s| * |alphabet|)
  * STATUS
  *  untested: kattis/stringmultimatching
  */
 #pragma once
 
 #include <queue>
+#include <stdexcept>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -57,16 +58,18 @@ struct aho_corasick {
     nodes.reserve(total + 1);
     nodes.emplace_back(-1);  // root
   }
+  template <template<typename> typename container_t>
   aho_corasick(
-      const std::vector<std::basic_string<T>>& patterns,
+      const std::vector<container_t<T>>& patterns,
       int total = 0): aho_corasick(patterns.size(), total) {
-    for (const std::basic_string<T>& s : patterns) {
+    for (const container_t<T>& s : patterns) {
       add(s);
     }
     build();
   }
 
-  void add(const std::basic_string<T>& s) {
+  template <template<typename> typename container_t>
+  void add(const container_t<T>& s) {
     int u = root;  // 0 is root
     for (const T c : s) {
       if constexpr (use_map) {
@@ -139,8 +142,8 @@ struct aho_corasick {
     }
   }
 
-  vector<vector<int>> build_fail_tree() const {
-    vector<vector<int>> fail_tree(nodes.size());
+  std::vector<std::vector<int>> build_fail_tree() const {
+    std::vector<std::vector<int>> fail_tree(nodes.size());
     for (int i = 1; i < nodes.size(); i++) {
       fail_tree[nodes[i].fail].push_back(i);
     }
@@ -156,7 +159,8 @@ struct aho_corasick {
   }
 
   // func(pattern_id, index_of_end);
-  void find_all(const std::string& s, auto&& func) {
+  template <template<typename> typename container_t>
+  void find_all(const container_t<T>& s, auto&& func) {
     find_ends(s, [&](int node_id, int s_id) {
         for (int pattern : get_patterns(node_id)) {
           func(pattern, s_id);
@@ -165,7 +169,8 @@ struct aho_corasick {
   }
 
   // func(node_id, index_of_end);
-  void find_ends(const std::string& s, auto&& func) {
+  template <template<typename> typename container_t>
+  void find_ends(const container_t<T>& s, auto&& func) {
     int u = root;
     for (int i = 0; i < (int)s.size(); i++) {
       if constexpr (use_map) {

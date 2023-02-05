@@ -36,9 +36,10 @@ struct suffix_tree {
     }
   };
   std::vector<suffix_node> nodes;
+  suffix_array<T> sa;
 
-  suffix_tree(const container_t<T>& s): t(s) { build(); }
-  suffix_tree(container_t<T>&& s): t(move(s)) { build(); }
+  suffix_tree(const container_t<T>& s): t(s), sa(t) { build(); }
+  suffix_tree(container_t<T>&& s): t(move(s)), sa(t) { build(); }
 
   // BEGIN suffix tree functions
   // size of suffix tree
@@ -84,7 +85,6 @@ struct suffix_tree {
 
 private:
   void build() {
-    suffix_array sa(t);
     int n = (int)t.size();
     nodes.reserve(2 * n);
     nodes.resize(n + 1);

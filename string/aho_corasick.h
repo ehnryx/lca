@@ -169,8 +169,9 @@ struct aho_corasick {
   }
 
   // func(node_id, index_of_end);
-  template <template<typename> typename container_t>
-  void find_ends(const container_t<T>& s, auto&& func) {
+  // s just needs size and operator[]
+  template <typename container_t>
+  void find_ends(const container_t& s, auto&& func) {
     int u = root;
     for (int i = 0; i < (int)s.size(); i++) {
       if constexpr (use_map) {

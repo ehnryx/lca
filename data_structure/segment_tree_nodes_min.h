@@ -9,7 +9,6 @@
 #include <functional>
 
 namespace segment_tree_nodes {
-
   template <typename T, typename Compare = std::less<>>
   struct custom_update_range_min {
     using out_t = T;
@@ -24,10 +23,10 @@ namespace segment_tree_nodes {
   };
 
   template <typename T, typename Compare = std::less<>>
-  struct range_add_range_min : custom_update_range_min<T> {
+  struct range_add_range_min : custom_update_range_min<T, Compare> {
     T lazy;
     range_add_range_min() = default;
-    range_add_range_min(T v): custom_update_range_min<T>(v) {}
+    range_add_range_min(T v): custom_update_range_min<T, Compare>(v), lazy(0) {}
     void put(T v) {
       lazy += v;
       this->min += v;
@@ -46,5 +45,31 @@ namespace segment_tree_nodes {
     }
   };
 
+  template <typename T, typename Compare = std::less<>>
+  struct range_min_range_min : custom_update_range_min<T, Compare> {
+    T new_min;
+    bool lazy = false;
+    range_min_range_min() = default;
+    range_min_range_min(T v): custom_update_range_min<T, Compare>(v) {}
+    void put(T v) {
+      if (lazy) {
+        new_min = std::min(new_min, v, Compare());
+      } else {
+        new_min = v;
+        lazy = true;
+      }
+      this->min = std::min(this->min, v, Compare());
+    }
+    void push(range_min_range_min& left, range_min_range_min& right) {
+      if (lazy) {
+        left.put(new_min);
+        right.put(new_min);
+        this->lazy = false;
+      }
+    }
+    bool contains(T v) {
+      return this->min <= v;
+    }
+  };
 }
 

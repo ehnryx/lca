@@ -40,8 +40,6 @@ struct rmq_functional {
     int j = 31 - __builtin_clz(r + 1 - l);
     return Func()(rmq[j][l], rmq[j][r + 1 - (1<<j)]);
   }
-
-private:
   void build(int n, int L) {
     for (int j = 1; j < L; j++) {
       rmq[j].resize(n - (1 << j) + 1);
@@ -52,6 +50,6 @@ private:
   }
 };
 
-template <typename T, class Compare = std::less<>>
+template <typename T, class Compare = std::less<T>>
 using range_minimum_query = rmq_functional<T, utility::min<T, Compare>>;
 

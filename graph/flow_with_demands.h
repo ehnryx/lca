@@ -75,5 +75,15 @@ struct flow_with_demands : dinic<T> {
     }
     return res;
   }
+
+  T max_flowable(int s, int t) {
+    T res = flowable(s, t);
+    if (res != -1) {
+      cerr << "res " << res << endl;
+      res += dinic<T>::flow(s, t);
+      cerr << "res " << res << endl;
+    }
+    return res;
+  }
 };
 

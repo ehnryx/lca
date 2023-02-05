@@ -63,7 +63,7 @@ struct square_matrix {
   }
   template <typename exp_t, typename = enable_if_t<is_integral_v<exp_t>>>
   square_matrix pow(exp_t exponent) const {
-    square_matrix res(n, 1), base(*this);
+    square_matrix res(1), base(*this);
     for ( ; exponent > 0; exponent /= 2) {
       if (exponent % 2) res *= base;
       base *= base;

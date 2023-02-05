@@ -74,6 +74,10 @@ struct segment_tree {
     length(1 << (lim == 1 ? 0 : 32 - __builtin_clz(lim - 1))), data(2 * length) {
     if constexpr (has_length) assign_lengths();
   }
+  segment_tree(int n, Node_t init): lim(n),
+    length(1 << (lim == 1 ? 0 : 32 - __builtin_clz(lim - 1))), data(2 * length, init) {
+    if constexpr (has_length) assign_lengths();
+  }
   template <class Input_t>
   segment_tree(const std::vector<Input_t>& a, int offset = 0): lim((int)size(a)),
     length(1 << (lim == 1 ? 0 : 32 - __builtin_clz(lim - 1))), data(2*length) {

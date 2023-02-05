@@ -1,7 +1,7 @@
 /* Range Query Tree (combined heavy light and euler tour)
  * USAGE
- *  range_query_tree<DS, Query_t> tree(adj, root);
- *    template: DS is a data structure, Query_t is the output type
+ *  range_query_tree<DS> tree(adj, root);
+ *    template: DS is a data structure
  *    DS should have the following member functions:
  *      query_range, query_point, insert_range, insert_point
  * CONSTRUCTOR
@@ -28,7 +28,7 @@
 
 #include <functional>
 
-template <class DS, typename Query_t>
+template <class DS>
 struct range_query_tree : rooted_tree {
   DS range_ds;
   std::vector<int> top; // top of heavy chains
@@ -87,7 +87,7 @@ struct range_query_tree : rooted_tree {
     range_ds.update_point(start[u], args...);
   }
   template <class... Args>
-  Query_t query_point(int u, const Args&... args) {
+  auto query_point(int u, const Args&... args) {
     return range_ds.query_point(start[u], args...);
   }
 
@@ -96,7 +96,7 @@ struct range_query_tree : rooted_tree {
     range_ds.update_range(start[u], start[u] + subtree[u] - 1, args...);
   }
   template <class... Args>
-  Query_t query_subtree(int u, const Args&... args) {
+  auto query_subtree(int u, const Args&... args) {
     return range_ds.query_range(start[u], start[u] + subtree[u] - 1, args...);
   }
   template <class... Args>
@@ -110,9 +110,9 @@ struct range_query_tree : rooted_tree {
     range_ds.update_range(0, start[u] - 1, args...);
     range_ds.update_range(start[u] + subtree[u], subtree[preorder[0]] - 1, args...);
   }
-  template <class... Args>
-  Query_t query_non_subtree(
-    int u, std::function<Query_t(Query_t, Query_t)> merge, const Args&... args) {
+  template <typename Combine, class... Args>
+  auto query_non_subtree(
+    int u, Combine&& merge, const Args&... args) {
     return merge(
       range_ds.query_range(0, start[u] - 1, args...),
       range_ds.query_range(start[u] + subtree[u], subtree[preorder[0]] - 1, args...));
@@ -138,9 +138,9 @@ struct range_query_tree : rooted_tree {
     }
     return v; // return the lowest common ancestor
   }
-  template <class Combine, class... Args>
-  Query_t query_path(int u, int v, bool include_lca, Query_t res,
-                     const Combine& merge, const Args&... args) {
+  template <typename out_t, class Combine, class... Args>
+  auto query_path(int u, int v, bool include_lca, out_t res,
+                     Combine&& merge, const Args&... args) {
     while (top[u] != top[v]) {
       if (depth[top[u]] < depth[top[v]]) std::swap(u, v);
       res = merge(res, range_ds.query_range(start[top[u]], start[u], args...));

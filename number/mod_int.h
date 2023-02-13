@@ -18,8 +18,9 @@ struct mod_int {
   static_assert(mod_value > 0);
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic" // ISO C++ __int128
-  using mod_t = std::conditional_t < mod_value < 1LL << 31, int, long long>;
-  using larger_t = std::conditional_t < mod_value < 1LL << 31, long long, __int128>;
+  static constexpr int int_threshold = 1 << 30;
+  using mod_t = std::conditional_t<mod_value < int_threshold, int, long long>;
+  using larger_t = std::conditional_t<mod_value < int_threshold, long long, __int128>;
 #pragma GCC diagnostic pop
   static constexpr mod_t mod = mod_value;
   mod_t v;

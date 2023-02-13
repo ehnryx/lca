@@ -14,18 +14,18 @@
 #pragma once
 
 #include "suffix_array.h"
-#include "../data_structure/rmq_linear.h"
+#include "../data_structure/range_minimum_query_linear.h"
 
 template <typename T>
-struct suffix_array_lcp_linear : suffix_array<T>, rmq_linear<int> {
+struct suffix_array_lcp_linear : suffix_array<T>, range_minimum_query_linear<int> {
   template <template<typename> typename container_t>
-  suffix_array_lcp_linear(const container_t<T>& s):
-    suffix_array<T>(s), rmq_linear<int>(suffix_array<T>::height) {}
+  suffix_array_lcp_linear(const container_t<T>& s)
+    : suffix_array<T>(s), range_minimum_query_linear<int>(suffix_array<T>::height) {}
   int lcp(int i, int j) const {
     if(i == j) return (int)this->sa.size() - 1 - i;
     int l = min(this->rank[i], this->rank[j]);
     int r = max(this->rank[i], this->rank[j]);
-    return rmq_linear<int>::query(l + 1, r);
+    return range_minimum_query_linear<int>::query(l + 1, r);
   }
   int operator [] (int i) { return suffix_array<T>::operator [] (i); }
 };

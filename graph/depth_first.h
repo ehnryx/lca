@@ -19,8 +19,8 @@
 
 template <typename weight_t>
 struct depth_first : graph_traversal {
-  const vector_graph<weight_t>& graph;
-  depth_first(const vector_graph<weight_t>& g):
+  const graph_t<weight_t>& graph;
+  depth_first(const graph_t<weight_t>& g):
     graph_traversal(g.size()), graph(g) {}
   template <typename NodeF, typename EdgeF>
   depth_first& run(int source, NodeF&& node_func, EdgeF&& edge_func) {

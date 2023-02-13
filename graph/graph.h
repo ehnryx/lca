@@ -11,13 +11,13 @@
 #include <vector>
 
 template <typename Weight_t>
-struct vector_graph_base {
+struct graph_base_t {
   using weight_t = Weight_t;
   static constexpr bool weighted = not std::is_void_v<weight_t>;
   std::vector<std::vector<graph_adj<weight_t>>> adj;
   std::vector<int> in_degree, out_degree;
-  vector_graph_base(int n): adj(n), in_degree(n), out_degree(n) {}
-  vector_graph_base(const std::vector<std::vector<graph_adj<weight_t>>>& g):
+  graph_base_t(int n): adj(n), in_degree(n), out_degree(n) {}
+  graph_base_t(const std::vector<std::vector<graph_adj<weight_t>>>& g):
     adj(g), in_degree(g.size()), out_degree(g.size()) {
     for (int u = 0; u < size(); u++) {
       out_degree[u] = (int)g[u].size();
@@ -28,7 +28,7 @@ struct vector_graph_base {
   }
   int size() const { return (int)adj.size(); }
   const std::vector<graph_adj<weight_t>>& operator[](int u) const { return adj[u]; }
-  friend std::ostream& operator<<(std::ostream& os, const vector_graph_base& g) {
+  friend std::ostream& operator<<(std::ostream& os, const graph_base_t& g) {
     for (int u = 0; u < g.size(); u++) {
       os << u << " -> [";
       if constexpr (g.weighted) {
@@ -46,11 +46,11 @@ struct vector_graph_base {
   }
 };
 
-template <typename Weight_t>
-struct vector_graph : vector_graph_base<Weight_t> {
-  vector_graph(int n): vector_graph_base<Weight_t>(n) {}
-  vector_graph(const std::vector<std::vector<graph_adj<Weight_t>>>& g):
-    vector_graph_base<Weight_t>(g) {}
+template <typename Weight_t = void>
+struct graph_t : graph_base_t<Weight_t> {
+  graph_t(int n): graph_base_t<Weight_t>(n) {}
+  graph_t(const std::vector<std::vector<graph_adj<Weight_t>>>& g):
+    graph_base_t<Weight_t>(g) {}
   void add_edge(int a, int b, Weight_t c) {
     add_arc(a, b, c);
     if (a != b) add_arc(b, a, c);
@@ -63,10 +63,10 @@ struct vector_graph : vector_graph_base<Weight_t> {
 };
 
 template <>
-struct vector_graph<void> : vector_graph_base<void> {
-  vector_graph(int n): vector_graph_base<void>(n) {}
-  vector_graph(const std::vector<std::vector<graph_adj<void>>>& g):
-    vector_graph_base<void>(g) {}
+struct graph_t<void> : graph_base_t<void> {
+  graph_t(int n): graph_base_t<void>(n) {}
+  graph_t(const std::vector<std::vector<graph_adj<void>>>& g):
+    graph_base_t<void>(g) {}
   void add_edge(int a, int b) {
     add_arc(a, b);
     add_arc(b, a);

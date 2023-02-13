@@ -12,18 +12,20 @@
  */
 #pragma once
 
+#include "graph.h"
 #include <vector>
 
-template <typename graph_t>
+template <typename weight_t>
 struct biconnected_components {
+  const graph_t<weight_t>& graph;
   std::vector<int> degree, depth, low, childcnt;
   std::vector<bool> articulation;
-  biconnected_components(const graph_t& graph):
-    degree(graph.size()), depth(graph.size(), -1), low(graph.size()), childcnt(graph.size()),
-    articulation(graph.size()) {
+  biconnected_components(const graph_t<weight_t>& g)
+    : graph(g), degree(graph.size()), depth(graph.size(), -1),
+    low(graph.size()), childcnt(graph.size()), articulation(graph.size()) {
     for (int i = 0; i < graph.size(); i++) {
       if (depth[i] == -1) {
-        build(graph, i, -1, 0);
+        build(i, -1, 0);
         articulation[i] = childcnt[i] > 1;
       }
     }
@@ -38,37 +40,20 @@ struct biconnected_components {
   }
 
 private:
-  void build(const graph_t& graph, int u, int parent, int cur_depth) {
+  void build(int u, int parent, int cur_depth) {
     depth[u] = low[u] = cur_depth;
-    if constexpr (graph.weighted) {
-      for (auto [v, _] : graph[u]) {
-        degree[u]++;
-        degree[v]++;
-        if (depth[v] == -1) {
-          build(graph, v, u, cur_depth + 1);
-          low[u] = std::min(low[u], low[v]);
-          childcnt[u]++;
-          if (low[v] >= depth[u]) {
-            articulation[u] = true;
-          }
-        } else if (v != parent) {
-          low[u] = std::min(low[u], depth[v]);
+    for (const auto& e : graph[u]) {
+      degree[u]++;
+      degree[e.to]++;
+      if (depth[e.to] == -1) {
+        build(e.to, u, cur_depth + 1);
+        low[u] = std::min(low[u], low[e.to]);
+        childcnt[u]++;
+        if (low[e.to] >= depth[u]) {
+          articulation[u] = true;
         }
-      }
-    } else {
-      for (int v : graph[u]) {
-        degree[u]++;
-        degree[v]++;
-        if (depth[v] == -1) {
-          build(graph, v, u, cur_depth + 1);
-          low[u] = std::min(low[u], low[v]);
-          childcnt[u]++;
-          if (low[v] >= depth[u]) {
-            articulation[u] = true;
-          }
-        } else if (v != parent) {
-          low[u] = std::min(low[u], depth[v]);
-        }
+      } else if (e.to != parent) {
+        low[u] = std::min(low[u], depth[e.to]);
       }
     }
   }

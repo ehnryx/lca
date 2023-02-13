@@ -19,9 +19,9 @@
 
 template <typename weight_t>
 struct breadth_first : graph_traversal {
-  const vector_graph<weight_t>& graph;
+  const graph_t<weight_t>& graph;
   std::vector<int> dist;
-  breadth_first(const vector_graph<weight_t>& g):
+  breadth_first(const graph_t<weight_t>& g):
     graph_traversal(g.size()), graph(g), dist(g.size(), -1) {}
   const std::vector<int>& get_dists() const { return dist; }
   // run bfs while avoiding previously visited nodes

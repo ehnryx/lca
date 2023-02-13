@@ -19,10 +19,10 @@
 
 template <typename weight_t>
 struct dijkstra : graph_traversal {
-  const vector_graph<weight_t>& graph;
+  const graph_t<weight_t>& graph;
   std::vector<weight_t> dist;
   const weight_t infinity;
-  dijkstra(const vector_graph<weight_t>& g, weight_t inf):
+  dijkstra(const graph_t<weight_t>& g, weight_t inf):
     graph_traversal(g.size()), graph(g), dist(g.size(), inf), infinity(inf) {}
   const std::vector<weight_t>& get_dists() const { return dist; }
   dijkstra& run(int source) {

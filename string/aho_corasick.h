@@ -162,9 +162,12 @@ struct aho_corasick {
   template <template<typename> typename container_t>
   void find_all(const container_t<T>& s, auto&& func) {
     find_ends(s, [&](int node_id, int s_id) {
-        for (int pattern : get_patterns(node_id)) {
-          func(pattern, s_id);
+      for (int pattern : get_patterns(node_id)) {
+        if (not func(pattern, s_id)) {
+          return false;
         }
+      }
+      return true;
     });
   }
 
@@ -193,7 +196,9 @@ struct aho_corasick {
           u = nodes[u].child[c];
         }
       }
-      func(u, i);
+      if(not func(u, i)) {
+        break;
+      }
     }
   }
 };

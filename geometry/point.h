@@ -55,34 +55,36 @@ struct point {
   point(const std::complex<T>& v): x(v.real()), y(v.imag()) {}
   template <typename U, std::enable_if_t<geo::is_constructible<T, U>::value, bool> = true>
   point(const point<U>& v): x(v.x), y(v.y) {}
-  friend std::ostream& operator << (std::ostream& os, const point& v) {
+  template <typename U, std::enable_if_t<not geo::is_constructible<T, U>::value, bool> = true>
+  explicit point(const point<U>& v): x(v.x), y(v.y) {}
+  friend std::ostream& operator<<(std::ostream& os, const point& v) {
     return os << v.x << ' ' << v.y;
   }
-  friend std::istream& operator >> (std::istream& is, point& v) {
+  friend std::istream& operator>>(std::istream& is, point& v) {
     return is >> v.x >> v.y;
   }
   template <typename fast_input_t>
   void fast_read(fast_input_t& in) {
     in >> x >> y;
   }
-  bool operator < (const point& v) const { return tie(x, y) < tie(v.x, v.y); }
-  bool operator > (const point& v) const { return tie(x, y) > tie(v.x, v.y); }
-  bool operator == (const point& v) const { return x == v.x && y == v.y; }
-  bool operator != (const point& v) const { return !operator == (v); }
-  point operator - () const { return point(-x, -y); }
-  point operator + (const point& v) const { return point(x + v.x, y + v.y); }
-  point operator - (const point& v) const { return point(x - v.x, y - v.y); }
-  point operator * (const point& v) const { return point(x*v.x - y*v.y, x*v.y + y*v.x); }
-  point operator / (const point& v) const { return (*this) * v.inverse(); }
-  point operator * (const T& c) const { return point(x*c, y*c); }
-  point operator / (const T& c) const { return point(x/c, y/c); }
-  point& operator += (const point& v) { x += v.x; y += v.y; return *this; }
-  point& operator -= (const point& v) { x -= v.x; y -= v.y; return *this; }
-  point& operator *= (const point& v) { return *this = point(x*v.x - y*v.y, x*v.y + y*v.x); }
-  point& operator /= (const point& v) { return operator *= (v.inverse()); }
-  point& operator *= (const T& c) { x *= c; y *= c; return *this; }
-  point& operator /= (const T& c) { x /= c; y /= c; return *this; }
-  friend point operator * (const T& c, const point& v) { return v*c; }
+  bool operator<(const point& v) const { return tie(x, y) < tie(v.x, v.y); }
+  bool operator>(const point& v) const { return tie(x, y) > tie(v.x, v.y); }
+  bool operator==(const point& v) const { return x == v.x && y == v.y; }
+  bool operator!=(const point& v) const { return !operator==(v); }
+  point operator-() const { return point(-x, -y); }
+  point operator+(const point& v) const { return point(x + v.x, y + v.y); }
+  point operator-(const point& v) const { return point(x - v.x, y - v.y); }
+  point operator*(const point& v) const { return point(x*v.x - y*v.y, x*v.y + y*v.x); }
+  point operator/(const point& v) const { return (*this) * v.inverse(); }
+  point operator*(const T& c) const { return point(x*c, y*c); }
+  point operator/(const T& c) const { return point(x/c, y/c); }
+  point& operator+=(const point& v) { x += v.x; y += v.y; return *this; }
+  point& operator-=(const point& v) { x -= v.x; y -= v.y; return *this; }
+  point& operator*=(const point& v) { return *this = point(x*v.x - y*v.y, x*v.y + y*v.x); }
+  point& operator/=(const point& v) { return operator*=(v.inverse()); }
+  point& operator*=(const T& c) { x *= c; y *= c; return *this; }
+  point& operator/=(const T& c) { x /= c; y /= c; return *this; }
+  friend point operator*(const T& c, const point& v) { return v*c; }
   point transpose() const { return point(y, x); }
   point inverse() const { return conj() / norm(); }
   point conj() const { return point(x, -y); }
@@ -109,7 +111,7 @@ struct point {
     T eps;
     by_x() = default;
     by_x(T e): eps(e) {}
-    bool operator () (const point& a, const point& b) const {
+    bool operator()(const point& a, const point& b) const {
       if constexpr (floating) {
         return a.x + eps < b.x || (a.x <= b.x + eps && a.y < b.y);
       } else {
@@ -121,7 +123,7 @@ struct point {
     T eps;
     by_y() = default;
     by_y(T e): eps(e) {}
-    bool operator () (const point& a, const point& b) const {
+    bool operator()(const point& a, const point& b) const {
       if constexpr (floating) {
         return a.y + eps < b.y || (a.y <= b.y + eps && a.x < b.x);
       } else {

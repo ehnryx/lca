@@ -3,7 +3,7 @@
  *  union_find dsu(n);
  * MEMBERS
  *  bool link(a, b, temporary?); // link a -> b
- *  int find(int); (also operator [])
+ *  int find(int); (also operator[])
  *  void unlink();
  *  vector<int> parent, _size;
  * TIME
@@ -16,27 +16,17 @@
 #pragma once
 
 #include <stdexcept>
-#include <tuple>
 #include <vector>
 
-template <bool persistent = false>
-struct union_find {
+struct union_find_base {
   std::vector<int> parent, _size;
-  union_find(int n): parent(n, -1), _size(n, 1) {}
-  int operator [] (int i) { return find(i); }
+  union_find_base(int n): parent(n, -1), _size(n, 1) {}
+  int operator[](int i) { return find(i); }
   int size() const { return (int)parent.size(); }
   int size(int i) { return _size[find(i)]; }
   int find(int i) {
     if (parent[i] == -1) return i;
     return parent[i] = find(parent[i]);
-  }
-  bool link(int from, int to) {
-    from = find(from);
-    to = find(to);
-    if (from == to) return false;
-    parent[from] = to;
-    _size[to] += _size[from];
-    return true;
   }
   void reroot(int root) {
     parent[find(root)] = root;
@@ -51,38 +41,39 @@ struct union_find {
   }
 };
 
-template <>
-struct union_find<true> {
-  std::vector<int> parent, _size;
-  std::vector<std::tuple<int, int, int, int>> memo;
-  union_find(int n): parent(n, -1), _size(n, 1) {}
-  int operator [] (int i) { return find(i); }
-  int size() const { return (int)parent.size(); }
-  int size(int i) { return _size[find(i)]; }
-  int find(int i) {
-    if (parent[i] == -1) return i;
-    if (memo.empty()) return parent[i] = find(parent[i]);
-    return find(parent[i]);
-  }
-  bool link(int from, int to, bool temporary = false) {
+template <typename data_t = void>
+struct union_find : union_find_base {
+  std::vector<data_t> data;
+  union_find(int n): union_find_base(n), data(n) {}
+  union_find(const std::vector<data_t>& d): union_find_base(d.size()), data(d) {}
+  union_find(std::vector<data_t>&& d): union_find_base(d.size()), data(move(d)) {}
+  data_t& get(int i) { return data[i]; }
+  template <typename... Args>
+  bool link(int from, int to, Args&&... args) {
     from = find(from);
     to = find(to);
     if (from == to) return false;
-    if (_size[from] > _size[to]) std::swap(from, to);
-    if (temporary) {
-      memo.emplace_back(from, parent[from], to, _size[to]);
+    if (_size[to] < _size[from]) {
+      std::swap(to, from);
+      data_t::swap_args(args...);
     }
     parent[from] = to;
     _size[to] += _size[from];
+    data[to].merge(data[from], forward<Args>(args)...);
     return true;
   }
-  void unlink(int k = 0) {
-    while (k--) {
-      const auto& [i, root_i, j, size_j] = memo.back();
-      parent[i] = root_i;
-      _size[j] = size_j;
-      memo.pop_back();
-    }
+};
+
+template <>
+struct union_find<void> : union_find_base {
+  using union_find_base::union_find_base;
+  bool link(int from, int to) {
+    from = find(from);
+    to = find(to);
+    if (from == to) return false;
+    parent[from] = to;
+    _size[to] += _size[from];
+    return true;
   }
 };
 

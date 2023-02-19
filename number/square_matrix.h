@@ -26,13 +26,13 @@ struct square_matrix {
       }
     }
   }
-  array<T, N>& operator [] (int i) { return data[i]; }
-  const array<T, N>& operator [] (int i) const { return data[i]; }
+  array<T, N>& operator[](int i) { return data[i]; }
+  const array<T, N>& operator[](int i) const { return data[i]; }
   int size() const { return n; }
-  square_matrix operator + (const square_matrix& o) const { return square_matrix(*this) += o; }
-  square_matrix operator - (const square_matrix& o) const { return square_matrix(*this) -= o; }
-  square_matrix operator * (const square_matrix& o) const { return square_matrix(*this) *= o; }
-  square_matrix& operator += (const square_matrix& o) {
+  square_matrix operator+(const square_matrix& o) const { return square_matrix(*this) += o; }
+  square_matrix operator-(const square_matrix& o) const { return square_matrix(*this) -= o; }
+  square_matrix operator*(const square_matrix& o) const { return square_matrix(*this) *= o; }
+  square_matrix& operator+=(const square_matrix& o) {
     for (int i = 0; i < n; i++) {
       for (int j = 0; j < n; j++) {
         data[i][j] += o[i][j];
@@ -40,7 +40,7 @@ struct square_matrix {
     }
     return *this;
   }
-  square_matrix& operator -= (const square_matrix& o) {
+  square_matrix& operator-=(const square_matrix& o) {
     for (int i = 0; i < n; i++) {
       for (int j = 0; j < n; j++) {
         data[i][j] -= o[i][j];
@@ -48,7 +48,7 @@ struct square_matrix {
     }
     return *this;
   }
-  square_matrix& operator *= (const square_matrix& o) {
+  square_matrix& operator*=(const square_matrix& o) {
     array<array<T, N>, N> res;
     for (int i = 0; i < n; i++) {
       for (int j = 0; j < n; j++) {
@@ -70,7 +70,7 @@ struct square_matrix {
     }
     return res;
   }
-  friend ostream& operator << (ostream& os, const square_matrix& mat) {
+  friend ostream& operator<<(ostream& os, const square_matrix& mat) {
     os << '[';
     for (int i = 0; i < mat.n; i++) {
       if (i > 0) os << ", ";

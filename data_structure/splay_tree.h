@@ -623,6 +623,7 @@ struct splay_tree : splay_tree_memory_base<_node_t, max_size> {
     return range(at(l - 1), at(r + 1));
   }
 
+  // ranges are inclusive
   template <typename index_t, class... Args>
   void update_range(index_t l, index_t r, const Args&... args) {
     node_t* x = range(l, r);
@@ -630,6 +631,7 @@ struct splay_tree : splay_tree_memory_base<_node_t, max_size> {
     splay(x); // pull to root
   }
 
+  // ranges are inclusive
   template <typename index_t, class... Args>
   auto query_range(index_t l, index_t r, const Args&... args) {
     return range(l, r)->get(args...);

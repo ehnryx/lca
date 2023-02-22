@@ -75,6 +75,8 @@ struct nd_array {
   T& operator()(Args... is) { return data[indexer.get(is...)]; }
   template <typename... Args>
   const T& operator()(Args... is) const { return data[indexer.get(is...)]; }
+  template <typename... Args>
+  size_t index(Args... is) const { return indexer.get(is...); }
 
   // access with bounds checking
   template <typename... Args>

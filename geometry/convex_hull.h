@@ -28,7 +28,7 @@ std::vector<point<T>> convex_hull(
     while (top - bot > 1) {
       point<T> current = points[i] - hull[top - 1];
       point<T> previous = hull[top - 1] - hull[top - 2];
-      T turn = cross(previous, current);
+      auto turn = cross(previous, current);
       auto norm_eps = previous.abs() * eps;
       if (turn > norm_eps ||
           (keep && turn >= -norm_eps && dot(previous, current) > 0)) {
@@ -57,7 +57,7 @@ std::vector<point<T>> convex_hull(
     while (top - bot > 1) {
       point<T> current = points[i] - hull[top - 1];
       point<T> previous = hull[top - 1] - hull[top - 2];
-      T turn = cross(previous, current);
+      auto turn = cross(previous, current);
       if (turn > 0 || (keep && turn >= 0 && dot(previous, current) > 0)) {
         break;
       }

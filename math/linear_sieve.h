@@ -38,21 +38,22 @@ struct linear_sieve : linear_sieve_base<Func> {
   static constexpr bool has_function = !is_same_v<Func, void>;
   using prime_t = conditional_t<store_powers, vector<int>, int>;
   vector<bool> composite;
-  vector<prime_t> prime;
+  vector<prime_t> primes;
+  bool is_prime(int n) const { return not composite[n]; }
   linear_sieve(int n): linear_sieve_base<Func>(n), composite(n) {
-    prime.reserve(n);
+    primes.reserve(n);
     if constexpr (has_function) base::f[1] = Func::one();
     for (int i = 2; i < n; i++) {
       if (!composite[i]) {
-        if constexpr (store_powers) prime.emplace_back(1, i);
-        else prime.push_back(i);
+        if constexpr (store_powers) primes.emplace_back(1, i);
+        else primes.push_back(i);
         if constexpr (has_function) {
           base::f[i] = Func::prime(i);
           base::cnt[i] = 1;
         }
       }
       if constexpr (store_powers) {
-        for (auto& p : prime) {
+        for (auto& p : primes) {
           int ip = i * p.front();
           if (ip >= n) break;
           composite[ip] = true;
@@ -76,7 +77,7 @@ struct linear_sieve : linear_sieve_base<Func> {
           }
         }
       } else {
-        for (int p : prime) {
+        for (int p : primes) {
           int ip = i * p;
           if (ip >= n) break;
           composite[ip] = true;

@@ -14,6 +14,8 @@
 template <typename T, bool> struct fraction;
 
 namespace geo {
+struct strict {};
+
 template <typename T>
 struct type_info {
   using bigger_type = T;
@@ -40,14 +42,29 @@ struct is_constructible {
   static constexpr bool value = std::is_same_v<T, U> ||
     std::is_same_v<T, typename type_info<U>::intersection_type>;
 };
+
+template <typename T>
+struct circle_info {
+  using intersection_type = T;
+};
+
+template <>
+struct circle_info<int> {
+  using intersection_type = double;
+};
+
+template <>
+struct circle_info<long long> {
+  using intersection_type = long double;
+};
 }
 
 template <typename T>
 struct point {
   static constexpr bool floating = std::is_floating_point_v<T>;
-  using Type = T;
-  using Bigger = typename geo::type_info<T>::bigger_type;
-  using Inter = typename geo::type_info<T>::intersection_type;
+  using type = T;
+  using bigger_t = typename geo::type_info<T>::bigger_type;
+  using inter_t = typename geo::type_info<T>::intersection_type;
   T x, y;
   point(): x(0), y(0) {}
   point(const T& c): x(c), y(0) {}
@@ -57,6 +74,10 @@ struct point {
   point(const point<U>& v): x(v.x), y(v.y) {}
   template <typename U, std::enable_if_t<not geo::is_constructible<T, U>::value, bool> = true>
   explicit point(const point<U>& v): x(v.x), y(v.y) {}
+  template <typename U = T>
+  std::complex<U> to_complex() const { return std::complex<U>(x, y); }
+  template <typename U = T>
+  explicit operator std::complex<U>() const { return to_complex<U>(); }
   friend std::ostream& operator<<(std::ostream& os, const point& v) {
     return os << v.x << ' ' << v.y;
   }
@@ -93,13 +114,13 @@ struct point {
   T imag() const { return y; }
   void real(const T& v) { x = v; }
   void imag(const T& v) { y = v; }
-  template <typename U = Bigger> auto norm() const { return U(x)*x + U(y)*y; }
-  template <typename U = Bigger> auto dot(const point& v) const { return U(x)*v.x + U(y)*v.y; }
-  template <typename U = Bigger> auto cross(const point& v) const { return U(x)*v.y - U(y)*v.x; }
+  template <typename U = bigger_t> auto norm() const { return U(x)*x + U(y)*y; }
+  template <typename U = bigger_t> auto dot(const point& v) const { return U(x)*v.x + U(y)*v.y; }
+  template <typename U = bigger_t> auto cross(const point& v) const { return U(x)*v.y - U(y)*v.x; }
   template <typename U = T> auto arg() const { return atan2(U(y), U(x)); }
-  template <typename U = Bigger> auto abs() const { return sqrt(norm<U>()); }
+  template <typename U = bigger_t> auto abs() const { return sqrt(norm<U>()); }
   template <typename U = T> auto argl() const { return atan2l(U(y), U(x)); }
-  template <typename U = Bigger> auto absl() const { return sqrtl(norm<U>()); }
+  template <typename U = bigger_t> auto absl() const { return sqrtl(norm<U>()); }
   template <typename U, typename V, bool F = floating>
   static std::enable_if_t<F, point> polar(const U& radius, const V& angle) {
     return point(radius * cos(angle), radius * sin(angle));
@@ -147,12 +168,12 @@ template <typename T> auto dot(const point<T>& a, const point<T>& b) { return a.
 template <typename T> auto cross(const point<T>& a, const point<T>& b) { return a.cross(b); }
 
 template <typename T, typename U>
-std::enable_if_t<std::is_same_v<U, typename point<T>::Inter>, point<U>>
+std::enable_if_t<std::is_same_v<U, typename point<T>::inter_t>, point<U>>
 operator+(const point<T>& a, const point<U>& b) {
   return point<U>(a) + b;
 }
 template <typename T, typename U>
-std::enable_if_t<std::is_same_v<U, typename point<T>::Inter>, point<U>>
+std::enable_if_t<std::is_same_v<U, typename point<T>::inter_t>, point<U>>
 operator-(const point<T>& a, const point<U>& b) {
   return point<U>(a) - b;
 }

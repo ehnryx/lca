@@ -23,6 +23,34 @@ namespace segment_tree_nodes {
   };
 
   template <typename T, typename Compare = std::less<>>
+  struct point_assign_range_min : custom_update_range_min<T, Compare> {
+    point_assign_range_min() = default;
+    point_assign_range_min(T v): custom_update_range_min<T, Compare>(v) {}
+    void put(T v) { this->min = v; }
+  };
+
+  template <typename T, typename Compare = std::less<>>
+  struct range_assign_range_min : custom_update_range_min<T, Compare> {
+    bool lazy;
+    range_assign_range_min() = default;
+    range_assign_range_min(T v): custom_update_range_min<T, Compare>(v) {}
+    void put(T v) {
+      lazy = true;
+      this->min = v;
+    }
+    void push(range_assign_range_min& left, range_assign_range_min& right) {
+      if (lazy) {
+        left.min = right.min = this->min;
+        left.lazy = right.lazy = true;
+        lazy = false;
+      }
+    }
+    bool contains(T v) {
+      return this->min <= v;
+    }
+  };
+
+  template <typename T, typename Compare = std::less<>>
   struct range_add_range_min : custom_update_range_min<T, Compare> {
     T lazy;
     range_add_range_min() = default;

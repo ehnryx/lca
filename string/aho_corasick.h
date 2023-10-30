@@ -171,7 +171,7 @@ struct aho_corasick {
     });
   }
 
-  // func(node_id, index_of_end);
+  // func(node_id, index_of_end); // return false to break early
   // s just needs size and operator[]
   template <typename container_t>
   void find_ends(const container_t& s, auto&& func) {

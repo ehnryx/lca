@@ -68,7 +68,12 @@ struct nd_array {
   std::vector<T> data;
   template <typename... Args>
   nd_array(Args... ds): indexer(ds...), data(indexer.size(), _get_init(ds...)) {}
+  template <typename... U>
+  nd_array(std::tuple<U...> ds, T init = {})
+    : indexer(std::make_from_tuple<nd_array_indexer<dims>>(ds)), data(indexer.size(), init) {}
   size_t size() const { return indexer.size(); }
+  T& operator[](size_t i) { return data[i]; }
+  const T& operator[](size_t i) const { return data[i]; }
 
   // access
   template <typename... Args>

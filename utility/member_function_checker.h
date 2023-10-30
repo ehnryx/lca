@@ -18,3 +18,13 @@
     static constexpr bool value = type::value; \
   }
 
+#define MEMBER_FUNCTION_CHECKER_ANY_ARGS(FUNCTION) \
+  template <typename __class_t> \
+  struct _has_##FUNCTION##__any_args { \
+    template <typename __class> \
+    static constexpr auto check(decltype(&__class::FUNCTION)) -> std::true_type; \
+    template <typename __dummy> \
+    static constexpr auto check(...) -> std::false_type; \
+    using type = decltype(check<__class_t>(0)); \
+    static constexpr bool value = type::value; \
+  }

@@ -26,9 +26,10 @@ struct mo_solver {
   std::vector<item> events;
   const int start_index;
   const int block_size;
-  mo_solver(int l, int r): start_index(l), block_size(sqrt(r - l + 1)) {}
+  mo_solver(int l, int r, int block=0):
+    start_index(l), block_size(block ? block : sqrt(r - l + 1)) {}
   void add_event(int l, int r, const T&... data) {
-    events.emplace_back(l, r, data...);
+    events.emplace_back(l, r, tuple(data...));
   }
   template <typename update_t, typename query_t>
   void solve(update_t&& update, query_t&& query) {

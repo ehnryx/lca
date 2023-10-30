@@ -66,11 +66,11 @@ struct kmp_matching {
 
 private:
   void build() {
-    for (int i = 0, state = -1; i < (int)pattern.size(); i++) {
+    for (int i = 1, state = -1; i < (int)pattern.size(); i++) {
       while (state != -1 && pattern[i] != pattern[state + 1]) {
         state = fail[state];
       }
-      state += (state + 1 < i && pattern[i] == pattern[state + 1]);
+      state += (pattern[i] == pattern[state + 1]);
       fail[i] = state;
     }
   }

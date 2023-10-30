@@ -26,7 +26,7 @@ struct link_cut_tree : splay_tree<node_t> {
   link_cut_tree(const link_cut_tree& o): base() {
     o.copy_to(*this);
   }
-  link_cut_tree& operator = (const link_cut_tree&) = delete;
+  link_cut_tree& operator=(const link_cut_tree&) = delete;
 
   void copy_to(link_cut_tree& other) const {
     other.data = data;
@@ -47,7 +47,7 @@ struct link_cut_tree : splay_tree<node_t> {
   }
 
   int size() const { return (int)data.size(); }
-  node_t& operator [] (int i) { return data[i]; }
+  node_t& operator[](int i) { return data[i]; }
 
   template <class... Args>
   void init(int i, Args&&... args) {

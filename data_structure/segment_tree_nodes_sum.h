@@ -19,6 +19,7 @@ namespace segment_tree_nodes {
       sum = left.sum + right.sum;
     }
     static out_t merge(out_t left, out_t right) { return left + right; }
+    static constexpr out_t default_value() { return 0; }
   };
 
   template <typename T>

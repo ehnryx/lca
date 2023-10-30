@@ -28,7 +28,7 @@
 
 #include <functional>
 
-template <class DS>
+template <typename DS>
 struct range_query_tree : rooted_tree {
   DS range_ds;
   std::vector<int> top; // top of heavy chains
@@ -82,42 +82,51 @@ struct range_query_tree : rooted_tree {
     }
   }
 
-  template <class... Args>
+  template <typename... Args>
   void update_point(int u, const Args&... args) {
     range_ds.update_point(start[u], args...);
   }
-  template <class... Args>
+  template <typename... Args>
   auto query_point(int u, const Args&... args) {
     return range_ds.query_point(start[u], args...);
   }
 
-  template <class... Args>
+  template <typename... Args>
+  void update_up_point(int u, const Args&... args) {
+    range_ds.update_up(start[u], args...);
+  }
+  template <typename... Args>
+  auto query_up_point(int u, const Args&... args) {
+    return range_ds.query_up(start[u], args...);
+  }
+
+  template <typename... Args>
   void update_subtree(int u, const Args&... args) {
     range_ds.update_range(start[u], start[u] + subtree[u] - 1, args...);
   }
-  template <class... Args>
+  template <typename... Args>
   auto query_subtree(int u, const Args&... args) {
     return range_ds.query_range(start[u], start[u] + subtree[u] - 1, args...);
   }
-  template <class... Args>
+  template <typename... Args>
   int search_subtree(int u, const Args&... args) {
     int idx = range_ds.search_left(start[u], start[u] + subtree[u] - 1, args...);
     return idx < range_ds.lim ? preorder[idx] : -1;
   }
 
-  template <class... Args>
+  template <typename... Args>
   void update_non_subtree(int u, const Args&... args) {
     range_ds.update_range(0, start[u] - 1, args...);
     range_ds.update_range(start[u] + subtree[u], subtree[preorder[0]] - 1, args...);
   }
-  template <typename Combine, class... Args>
+  template <typename Combine, typename... Args>
   auto query_non_subtree(
     int u, Combine&& merge, const Args&... args) {
     return merge(
       range_ds.query_range(0, start[u] - 1, args...),
       range_ds.query_range(start[u] + subtree[u], subtree[preorder[0]] - 1, args...));
   }
-  template <class... Args>
+  template <typename... Args>
   int search_non_subtree(int u, Args... args) {
     int idx = range_ds.search_left(0, start[u] - 1, args...);
     if (idx < range_ds.lim) return preorder[idx];
@@ -125,60 +134,65 @@ struct range_query_tree : rooted_tree {
     return idx < range_ds.lim ? preorder[idx] : -1;
   }
 
-  template <class... Args>
-  int update_path(int u, int v, bool include_lca, const Args&... args) {
-    while (top[u] != top[v]) {
-      if (depth[top[u]] < depth[top[v]]) std::swap(u, v);
-      range_ds.update_range(start[top[u]], start[u], args...);
-      u = parent[top[u]];
+  struct path_params {
+    int u, v;
+    bool include_lca;
+  };
+
+  template <typename... Args>
+  int update_path(path_params params, const Args&... args) {
+    while (top[params.u] != top[params.v]) {
+      if (depth[top[params.u]] < depth[top[params.v]]) std::swap(params.u, params.v);
+      range_ds.update_range(start[top[params.u]], start[params.u], args...);
+      params.u = parent[top[params.u]];
     }
-    if (include_lca || u != v) {
-      if (depth[u] < depth[v]) std::swap(u, v);
-      range_ds.update_range(start[v] + !include_lca, start[u], args...);
+    if (params.include_lca || params.u != params.v) {
+      if (depth[params.u] < depth[params.v]) std::swap(params.u, params.v);
+      range_ds.update_range(start[params.v] + !params.include_lca, start[params.u], args...);
     }
-    return v; // return the lowest common ancestor
+    return params.v; // return the lowest common ancestor
   }
-  template <typename out_t, class Combine, class... Args>
-  auto query_path(int u, int v, bool include_lca, out_t res,
-                     Combine&& merge, const Args&... args) {
-    while (top[u] != top[v]) {
-      if (depth[top[u]] < depth[top[v]]) std::swap(u, v);
-      res = merge(res, range_ds.query_range(start[top[u]], start[u], args...));
-      u = parent[top[u]];
+  template <typename out_t, typename Combine, typename... Args>
+  auto query_path(path_params params, out_t init, Combine&& merge, const Args&... args) {
+    auto res = init;
+    while (top[params.u] != top[params.v]) {
+      if (depth[top[params.u]] < depth[top[params.v]]) std::swap(params.u, params.v);
+      res = merge(res, range_ds.query_range(start[top[params.u]], start[params.u], args...));
+      params.u = parent[top[params.u]];
     }
-    if (include_lca || u != v) {
-      if (depth[u] < depth[v]) std::swap(u, v);
-      res = merge(res, range_ds.query_range(start[v] + !include_lca, start[u], args...));
+    if (params.include_lca || params.u != params.v) {
+      if (depth[params.u] < depth[params.v]) std::swap(params.u, params.v);
+      res = merge(res, range_ds.query_range(start[params.v] + !params.include_lca, start[params.u], args...));
     }
     return res;
   }
 
-  template <class... Args>
-  int search_path(int u, int v, bool include_lca, Args... args) {
+  template <typename... Args>
+  int search_path(path_params params, Args... args) {
     bool rev = false;
     std::vector<std::pair<int, int>> down;
-    while (top[u] != top[v]) {
-      if (depth[top[u]] < depth[top[v]]) {
-        std::swap(u, v);
+    while (top[params.u] != top[params.v]) {
+      if (depth[top[params.u]] < depth[top[params.v]]) {
+        std::swap(params.u, params.v);
         rev ^= 1;
       }
-      int left = start[top[u]];
-      int right = start[u];
+      int left = start[top[params.u]];
+      int right = start[params.u];
       if (rev) {
         down.emplace_back(left, right);
       } else {
         int res = range_ds.search_right_mutable(left, right, args...);
         if (res != range_ds.lim) return preorder[res];
       }
-      u = parent[top[u]];
+      params.u = parent[top[params.u]];
     }
-    if (include_lca || u != v) {
-      if (depth[u] < depth[v]) {
-        std::swap(u, v);
+    if (params.include_lca || params.u != params.v) {
+      if (depth[params.u] < depth[params.v]) {
+        std::swap(params.u, params.v);
         rev ^= 1;
       }
-      int left = start[v] + !include_lca;
-      int right = start[u];
+      int left = start[params.v] + !params.include_lca;
+      int right = start[params.u];
       if (rev) {
         down.emplace_back(left, right);
       } else {

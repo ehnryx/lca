@@ -45,6 +45,7 @@ template <typename data_t = void>
 struct union_find : union_find_base {
   std::vector<data_t> data;
   union_find(int n): union_find_base(n), data(n) {}
+  union_find(int n, data_t init): union_find_base(n), data(n, init) {}
   union_find(const std::vector<data_t>& d): union_find_base(d.size()), data(d) {}
   union_find(std::vector<data_t>&& d): union_find_base(d.size()), data(move(d)) {}
   data_t& get(int i) { return data[i]; }

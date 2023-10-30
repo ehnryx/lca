@@ -1,10 +1,12 @@
 /* Segment Tree Nodes
  * USAGE
- *  easy
+ *  inherit
  * STATUS
- *  untested
+ *  doesn't compile
  */
 #pragma once
+
+#include "splay_tree_nodes_common.h"
 
 namespace splay_tree_nodes {
   template <typename derived_t, typename _key_t, typename _value_t>

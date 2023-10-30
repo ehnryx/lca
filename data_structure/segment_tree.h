@@ -6,7 +6,7 @@
  *  Node_t is a class to be implemented, should have the members:
  *    void put(args...); update at node
  *    Query_t get(args...); gets the return value from node
- *    static Query_t merge(const Query_t& l, const Query_t& r); merges the return values
+ *    static Query_t merge(const Query_t& l, const Query_t& r, args...); merges the return values
  *    static Query_t default_value(); default value for return (when node out of range)
  *    void pull(const Node_t& l, const Node_t& r); pulls values from children
  *    void push(Node_t& l, Node_t& r); pushes lazy to l and r
@@ -45,6 +45,7 @@
 
 template <class Node_t, typename __Query_t = void>
 struct segment_tree {
+  using node_t = Node_t;
   MEMBER_TYPE_GETTER(out_t);
   using Query_t = typename _get_type_out_t<Node_t, __Query_t>::type;
   static_assert(std::is_same_v<Query_t, __Query_t> || std::is_void_v<__Query_t>);
@@ -52,13 +53,13 @@ struct segment_tree {
   MEMBER_VARIABLE_CHECKER(length);
   MEMBER_FUNCTION_CHECKER(push);
   MEMBER_FUNCTION_CHECKER(pull);
-  MEMBER_FUNCTION_CHECKER(merge);
+  MEMBER_FUNCTION_CHECKER_ANY_ARGS(merge);
   MEMBER_FUNCTION_CHECKER(default_value);
   MEMBER_FUNCTION_CHECKER(break_condition); // TODO
   MEMBER_FUNCTION_CHECKER(put_condition); // TODO
   static constexpr bool has_push = _has_push<Node_t, Node_t&, Node_t&>::value;
   static constexpr bool has_pull = _has_pull<Node_t, Node_t, Node_t>::value;
-  static constexpr bool has_merge = _has_merge<Node_t, Query_t, Query_t>::value;
+  static constexpr bool has_merge = _has_merge__any_args<Node_t>::value;
   static constexpr bool has_default_value = _has_default_value<Node_t>::value;
   static constexpr bool has_length = _has_length<Node_t>::value;
   // TODO fix this
@@ -115,7 +116,7 @@ struct segment_tree {
     if (l < 0 || lim <= r) throw std::invalid_argument("update range out of bounds");
     __update(l, r, 1, 0, length - 1, args...);
   }
-  template <class... Args>
+  template <class C = segment_tree<node_t>, class... Args>
   void __update(int l, int r, int i, int first, int last, Args&... args) {
     if constexpr (has_break_condition) {
       if (data[i].break_condition(args...)) return;
@@ -167,7 +168,7 @@ struct segment_tree {
     if constexpr (!has_merge && std::is_same_v<Node_t, Query_t>) {
       return Node_t().pull(left, right);
     } else {
-      return Node_t::merge(left, right);
+      return Node_t::merge(left, right, args...);
     }
   }
 
@@ -236,9 +237,9 @@ struct segment_tree {
     if constexpr (has_push) data[i].push(data[2*i], data[2*i + 1]);
     int mid = (first + last) / 2;
     if (x <= mid) {
-      return Node_t::merge(data[i].get(args...), __query_up(x, 2*i, first, mid, args...));
+      return Node_t::merge(data[i].get(args...), __query_up(x, 2*i, first, mid, args...), args...);
     } else {
-      return Node_t::merge(data[i].get(args...), __query_up(x, 2*i + 1, mid + 1, last, args...));
+      return Node_t::merge(data[i].get(args...), __query_up(x, 2*i + 1, mid + 1, last, args...), args...);
     }
   }
 

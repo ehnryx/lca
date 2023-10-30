@@ -27,8 +27,18 @@ bool parallel(const point<T>& a, const point<T>& b, const point<T>& c, const poi
 }
 
 template <typename T>
+auto project(const point<T>& a, const point<T>& b, const point<T>& v) {
+  using I = typename point<T>::inter_t;
+  if constexpr (std::is_same_v<T, I>) {
+    return a + dot(v - a, b - a) / norm(b - a) * (b - a);
+  } else {
+    return point<I>(a) + point<I>(b - a) * dot(v - a, b - a) / norm(b - a);
+  }
+}
+
+template <typename T>
 auto line_inter(const point<T>& a, const point<T>& b, const point<T>& c, const point<T>& d) {
-  using I = typename point<T>::Inter;
+  using I = typename point<T>::inter_t;
   if constexpr (std::is_same_v<T, I>) {
     return a + cross(c - a, d - c) / cross(b - a, d - c) * (b - a);
   } else {
@@ -37,8 +47,8 @@ auto line_inter(const point<T>& a, const point<T>& b, const point<T>& c, const p
 }
 
 template <typename T>
-auto line_point_dist(const point<T>& a, const point<T>& b, const point<T>& c) {
-  return cross(b - a, c - a) / abs(b - a);
+auto line_point_dist(const point<T>& a, const point<T>& b, const point<T>& v) {
+  return cross(b - a, v - a) / abs(b - a);
 }
 
 template <typename T>
@@ -55,7 +65,7 @@ auto segment_closest(const point<T>& a, const point<T>& b, const point<T>& c) {
   if (dot(b - a, c - a) > 0 && dot(a - b, c - b) > 0) {
     return line_inter(a, b, c, c + perp(a - b));
   } else {
-    return point<typename point<T>::Inter>(norm(a - c) < norm(b - c) ? a : b);
+    return point<typename point<T>::inter_t>(norm(a - c) < norm(b - c) ? a : b);
   }
 }
 
@@ -106,4 +116,3 @@ bool seg_x_seg(const point<T>& a, const point<T>& b, const point<T>& c, const po
   int r4 = geo::sign(cross(d - c, b - c), decltype(cross(d-c, b-c))(0));
   return strict ? r1 * r2 < 0 && r3 * r4 < 0 : r1 * r2 <= 0 && r3 * r4 <= 0;
 }
-

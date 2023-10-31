@@ -54,8 +54,8 @@ struct point {
   static_assert(std::is_floating_point_v<T> or std::is_integral_v<T>);
   static bool constexpr floating = std::is_floating_point_v<T>;
   using type = T;
-  using intersection_type = geo::intersection_type<T>;
   using bigger_type = geo::bigger_type<T>;
+  using intersection_type = geo::intersection_type<T>;
 
   T x, y;
   point(): x(0), y(0) {}

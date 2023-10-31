@@ -1,6 +1,6 @@
 /* Lines
  * STATUS
- *  mostly untested
+ *  untested
  */
 #pragma once
 
@@ -9,7 +9,7 @@
 template <typename T, std::enable_if_t<point<T>::floating, bool> = true>
 bool collinear(T const& eps,
     point<T> const& a, point<T> const& b, point<T> const& v) {
-  return geo::equal(eps, a, v) or abs(cross(a - v, b - v)) <= eps * abs(a - v);
+  return geo::equal(eps, a, v) or std::abs(cross(a - v, b - v)) <= eps * abs(a - v);
 }
 template <typename T, std::enable_if_t<not point<T>::floating, bool> = true>
 bool collinear(point<T> const& a, point<T> const& b, point<T> const& v) {
@@ -19,7 +19,7 @@ bool collinear(point<T> const& a, point<T> const& b, point<T> const& v) {
 template <typename T, std::enable_if_t<point<T>::floating, bool> = true>
 bool parallel(T const& eps,
     point<T> const& a, point<T> const& b, point<T> const& c, point<T> const& d) {
-  return geo::equal(eps, a, b) || abs(cross(a - b, c - d)) <= eps * abs(a - b);
+  return geo::equal(eps, a, b) || std::abs(cross(a - b, c - d)) <= eps * abs(a - b);
 }
 template <typename T, std::enable_if_t<not point<T>::floating, bool> = true>
 bool parallel(point<T> const& a, point<T> const& b, point<T> const& c, point<T> const& d) {
@@ -54,7 +54,7 @@ auto line_point_dist(point<T> const& a, point<T> const& b, point<T> const& v) {
 template <typename T>
 auto segment_point_dist(point<T> const& a, point<T> const& b, point<T> const& v) {
   if (dot(b - a, v - a) > 0 && dot(a - b, v - b) > 0) {
-    return abs(line_point_dist(a, b, v));
+    return std::abs(line_point_dist(a, b, v));
   } else {
     return std::min(abs(a - v), abs(b - v));
   }
@@ -71,12 +71,14 @@ auto segment_closest(point<T> const& a, point<T> const& b, point<T> const& v) {
 
 template <typename T, std::enable_if_t<point<T>::floating, bool> = true>
 bool on_segment(T const& eps,
-    point<T> const& a, point<T> const& b, point<T> const& v, geo::strict strict = false) {
+    point<T> const& a, point<T> const& b, point<T> const& v,
+    geo::strict strict = false) {
   if (geo::equal(eps, a, v) || geo::equal(eps, b, v)) return not strict;
   return collinear(eps, a, b, v) && dot(b - a, v - a) > 0 && dot(a - b, v - b) > 0;
 }
 template <typename T, std::enable_if_t<not point<T>::floating, bool> = true>
-bool on_segment(point<T> const& a, point<T> const& b, point<T> const& v, geo::strict strict = false) {
+bool on_segment(point<T> const& a, point<T> const& b, point<T> const& v,
+    geo::strict strict = false) {
   if (a == v || b == v) return not strict;
   return collinear(a, b, v) && dot(b - a, v - a) > 0 && dot(a - b, v - b) > 0;
 }
@@ -93,8 +95,11 @@ bool seg_x_seg(T const& eps,
   int r2 = geo::sign(cross(b - a, d - a), geo::epsilon{eps * ab});
   if (r1 == 0 && r2 == 0) {
     return strict
-      ? geo::less_than(eps, std::min(a, b), std::max(c, d)) && geo::less_than(eps, std::min(c, d), std::max(a, b))
-      : not (geo::less_than(eps, std::max(a, b), std::min(c, d)) || geo::less_than(eps, std::max(c, d), std::min(a, b)));
+      ? geo::less_than(eps, std::min(a, b), std::max(c, d)) &&
+        geo::less_than(eps, std::min(c, d), std::max(a, b))
+      : not (
+          geo::less_than(eps, std::max(a, b), std::min(c, d)) ||
+          geo::less_than(eps, std::max(c, d), std::min(a, b)));
   }
   int r3 = geo::sign(cross(d - c, a - c), geo::epsilon{eps * cd});
   int r4 = geo::sign(cross(d - c, b - c), geo::epsilon{eps * cd});

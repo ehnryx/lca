@@ -20,39 +20,41 @@
  */
 #pragma once
 
+#include "graph.h"
 #include "graph_traversal.h"
 
-template <typename graph_t>
+template <typename weight_t>
 struct bellman_ford : graph_traversal {
-  using weight_t = typename graph_t::weight_t;
+  static weight_t constexpr dist_floor = std::numeric_limits<weight_t>::min() / 2;
   std::vector<weight_t> dist;
   std::vector<int> parent;
   std::vector<bool> in_neg;
   bool has_neg;
-  bellman_ford(const graph_t& graph, int source, weight_t inf,
+  bellman_ford(graph_t<weight_t> const& graph, int source, weight_t inf,
       bool reachable_only = true):
-    dist(graph.size(), inf), parent(graph.size(), -1),
+    graph_traversal(graph.size()), dist(graph.size(), inf), parent(graph.size(), -1),
     in_neg(graph.size(), false), has_neg(false) {
     dist[source] = 0;
     parent[source] = source;
-    auto edge_view = graph.get_edges();
+    auto edges = graph.get_edges();  // expensive
     for (int i = 1; i < graph.size(); i++) {
-      for (auto [a, b, cost] : edge_view) {
-        if ((!reachable_only || dist[a] != inf) && dist[a] + cost < dist[b]) {
-          dist[b] = dist[a] + cost;
-          parent[b] = a;
+      for (auto const& e : edges) {
+        if ((!reachable_only || dist[e.from] != inf) &&
+            (dist[e.to] == inf || dist[e.from] + e.weight < dist[e.to])) {
+          dist[e.to] = std::max(dist[e.from] + e.weight, dist_floor);
+          parent[e.to] = e.from;
         }
       }
     }
-    for (auto [a, b, cost] : edge_view) {
-      if ((!reachable_only || dist[a] != inf) && dist[a] + cost < dist[b]) {
-        in_neg[b] = true;
+    for (auto const& e : edges) {
+      if ((!reachable_only || dist[e.from] != inf) &&
+          (dist[e.to] == dist_floor || dist[e.from] + e.weight < dist[e.to])) {
+        in_neg[e.to] = true;
         has_neg = true;
       }
     }
   }
   const std::vector<weight_t>& get_dists() const { return dist; }
-  const std::vector<int>& get_parents() const override { return parent; }
   const std::vector<bool>& get_negatives() const { return in_neg; }
   bool in_negative_cycle(int u) const { return in_neg[u]; }
   bool has_negative_cycle() const { return has_neg; }

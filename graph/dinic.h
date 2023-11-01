@@ -19,6 +19,8 @@
  */
 #pragma once
 
+#include "../utility/types.h"
+
 #include <cassert>
 #include <limits>
 #include <queue>
@@ -26,6 +28,7 @@
 
 template <typename T>
 struct dinic {
+  using bigger_type = typename utility::bigger_type<T>;
   struct edge {
     int to, rev;
     T cap, flow;
@@ -85,12 +88,12 @@ struct dinic {
     return res;
   }
 
-  T flow(int source, int sink, int max_iters = std::numeric_limits<int>::max()) {
+  bigger_type flow(int source, int sink, int max_iters = std::numeric_limits<int>::max()) {
     if constexpr (!std::is_integral_v<T>) {
       assert(max_iters < std::numeric_limits<int>::max());
     }
     T inf = std::numeric_limits<T>::max();
-    T res = 0;
+    bigger_type res = 0;
     for (int i = 0; i < max_iters && bfs(source, sink); i++) {
       while (T cur_flow = dfs(source, sink, inf)) {
         res += cur_flow;

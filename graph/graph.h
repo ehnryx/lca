@@ -44,6 +44,15 @@ struct graph_base_t {
     }
     return os;
   }
+  std::vector<graph_edge<weight_t>> get_edges() const {
+    std::vector<graph_edge<weight_t>> edges;
+    for (int u = 0; u < size(); u++) {
+      for (auto const& v : adj[u]) {
+        edges.emplace_back(u, v);
+      }
+    }
+    return edges;
+  }
 };
 
 template <typename Weight_t = void>

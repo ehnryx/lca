@@ -5,6 +5,8 @@
  */
 #pragma once
 
+#include <type_traits>
+
 #define MEMBER_TYPE_GETTER(TYPE) \
   template <typename __class_t, typename __default_t, typename = void> \
   struct _get_type_##TYPE { \

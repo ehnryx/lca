@@ -5,6 +5,8 @@
  */
 #pragma once
 
+#include <type_traits>
+
 #define MEMBER_VARIABLE_CHECKER(VARIABLE) \
   template <typename __class_t> \
   struct _has_##VARIABLE { \

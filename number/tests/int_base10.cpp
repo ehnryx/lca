@@ -1,8 +1,8 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-//%:include "utility/fast_input.h"
 #include "../int_base10.h"
+#include "../../utility/fast_input.h"
 
 using ll = long long;
 using ld = long double;
@@ -33,7 +33,7 @@ void f(Int a, Int b) {
   cout << nl;
 }
 
-int main() {
+int main(int argc, char**) {
   cin.tie(0)->sync_with_stdio(0);
   cout << fixed << setprecision(10);
 #ifdef USING_FAST_INPUT
@@ -44,6 +44,11 @@ int main() {
   Int b = 4;
   Int c = -5;
   Int d = 17;
+
+  if(argc > 1) {
+    cout << "READ INPUT: " << flush;
+    cin >> a >> b >> c >> d;
+  }
 
   cout << "a = " << a << nl;
   cout << "b = " << b << nl;

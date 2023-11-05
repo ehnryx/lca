@@ -26,4 +26,17 @@ struct graph_traversal {
   }
   const std::vector<int>& get_parents() const { return parent; }
   bool visited(int u) const { return parent[u] != -1; }
+
+  struct callback_placeholder_t {};
+  template <typename node_func_t = callback_placeholder_t,
+            typename edge_func_t = callback_placeholder_t,
+            typename should_visit_t = callback_placeholder_t>
+  struct callbacks_t {
+    node_func_t const& node_func = {};
+    edge_func_t const& edge_func = {};
+    should_visit_t const& should_visit = {};
+  };
+#define IS_CALLBACK_PLACEHOLDER(var) \
+  std::is_same_v<std::decay_t<decltype(var)>, callback_placeholder_t>
 };
+

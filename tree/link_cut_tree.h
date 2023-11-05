@@ -5,7 +5,7 @@
  *  O(logN) per operation amortized (?)
  *  N = |tree|
  * STATUS
- *  untested untested UNTESTED
+ *  tested: cf/104713k
  */
 #pragma once
 

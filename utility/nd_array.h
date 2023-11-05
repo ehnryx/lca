@@ -43,6 +43,10 @@ struct nd_array_indexer : nd_array_indexer<dims - 1> {
     throw std::invalid_argument("nd_array_indexer<" +
         std::to_string(dims) + "> out of bounds @ " + std::to_string(cur_i));
   }
+  auto from_index(size_t i) const {
+    size_t cur_i = i / nested_indexer::size();
+    return std::tuple_cat(std::tuple(cur_i), nested_indexer::from_index(i - nested_indexer::size() * cur_i));
+  }
 };
 
 template <>
@@ -60,6 +64,7 @@ struct nd_array_indexer<1> {
     throw std::invalid_argument(
         "nd_array_indexer<1> out of bounds @ " + std::to_string(i));
   }
+  auto from_index(size_t i) const { return std::tuple(i); }
 };
 
 template <typename T, size_t dims>
@@ -92,6 +97,9 @@ struct nd_array {
   T& at_slow(Args... is) { return data[indexer.at_slow(is...)]; }
   template <typename... Args>
   const T& at_slow(Args... is) const { return data[indexer.at_slow(is...)]; }
+
+  // get tuple from flattened index
+  auto from_index(size_t i) const { return indexer.from_index(i); }
 
 private:
   template <typename... Args>

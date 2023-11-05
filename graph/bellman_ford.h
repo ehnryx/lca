@@ -16,7 +16,7 @@
  *  O(VE)
  *  V = #vertices, E = #edges
  * STATUS
- *  untested
+ *  tested: boj/11657; kattis/shortestpath3
  */
 #pragma once
 
@@ -32,12 +32,15 @@ struct bellman_ford : graph_traversal {
   bool has_neg;
   bellman_ford(graph_t<weight_t> const& graph, int source, weight_t inf,
       bool reachable_only = true):
-    graph_traversal(graph.size()), dist(graph.size(), inf), parent(graph.size(), -1),
-    in_neg(graph.size(), false), has_neg(false) {
+    bellman_ford(graph.size(), graph.get_edges(), source, inf, reachable_only) {}
+  bellman_ford(
+      int num_nodes, std::vector<graph_edge<weight_t>> const& edges,
+      int source, weight_t inf, bool reachable_only = true):
+    graph_traversal(num_nodes), dist(num_nodes, inf), parent(num_nodes, -1),
+    in_neg(num_nodes), has_neg(false) {
     dist[source] = 0;
     parent[source] = source;
-    auto edges = graph.get_edges();  // expensive
-    for (int i = 1; i < graph.size(); i++) {
+    for (int i = 1; i < num_nodes; i++) {
       for (auto const& e : edges) {
         if ((!reachable_only || dist[e.from] != inf) &&
             (dist[e.to] == inf || dist[e.from] + e.weight < dist[e.to])) {

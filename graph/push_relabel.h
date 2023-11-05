@@ -24,6 +24,7 @@
 template <typename T>
 struct push_relabel {
   static constexpr T inf = std::numeric_limits<T>::max();
+  static constexpr bool is_push_relabel = true;
   struct edge {
     int to, rev;
     T cap, flow;
@@ -86,7 +87,7 @@ struct push_relabel {
     if (excess[e.to] == 0) {
       active[height[e.to]].push_back(e.to);
     }
-    T flow = min(excess[u], e.cap - e.flow);
+    T flow = std::min(excess[u], e.cap - e.flow);
     e.flow += flow;
     adj[e.to][e.rev].flow -= flow;
     excess[e.to] += flow;
@@ -101,10 +102,10 @@ struct push_relabel {
       for (edge& e : adj[u]) {
         if (e.flow == e.cap) continue;
         if (height[e.to] >= height[u]) {
-          relabel_height = min(relabel_height, height[e.to] + 1);
+          relabel_height = std::min(relabel_height, height[e.to] + 1);
         } else {
           push(u, e);
-          max_to = max(max_to, height[e.to]);
+          max_to = std::max(max_to, height[e.to]);
           if (excess[u] == 0) {
             break;
           }

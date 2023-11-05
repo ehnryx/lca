@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "fast_input_read.h"
 #include "member_function_checker.h"
 
 #include <complex>
@@ -18,7 +19,7 @@
 
 #define USING_FAST_INPUT
 
-template <size_t buf_size = 10000>
+template <std::size_t buf_size = 10000>
 struct fast_input {
   char buf[buf_size], *S, *T, c = 0;
   int positive;
@@ -105,7 +106,7 @@ struct fast_input {
     *this >> x.first >> x.second;
   }
 
-  template <size_t index = 0, typename... T>
+  template <std::size_t index = 0, typename... T>
   inline void get(std::tuple<T...>& x) {
     if constexpr (index < sizeof...(T)) {
       *this >> (std::get<index>(x));
@@ -116,11 +117,11 @@ struct fast_input {
   MEMBER_FUNCTION_CHECKER(get);
 
   template <typename T>
-  inline fast_input& operator >> (T& x) {
+  inline fast_input& operator>>(T& x) {
     if constexpr (_has_get<fast_input, T&>::value) {
       get(x);
     } else {
-      x.fast_read(*this);
+      fast_input_read<fast_input<buf_size>, T>::get(*this, x);
     }
     return *this;
   }

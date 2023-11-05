@@ -34,12 +34,6 @@ struct mod_int {
     if (v < 0) v += mod;
   }
   void assign(mod_t c) { v = c; }
-  template <typename fast_input_t>
-  void fast_read(fast_input_t& in) {
-    in >> v;
-    if (abs(v) >= mod) v %= mod;
-    if (v < 0) v += mod;
-  }
   friend std::istream& operator >> (std::istream& is, mod_int& num) {
     is >> num.v;
     if (abs(num.v) >= mod) num.v %= mod;
@@ -112,6 +106,17 @@ struct mod_int {
     }
     // assert(operator * (mod_int(y)) == 1);
     return mod_int(y);
+  }
+};
+
+#include "../utility/fast_input_read.h"
+
+template <typename input_t, long long mod_value, bool is_prime>
+struct fast_input_read<input_t, mod_int<mod_value, is_prime>> {
+  static void get(input_t& in, mod_int<mod_value, is_prime>& num) {
+    in >> num.v;
+    if (abs(num.v) >= mod) num.v %= mod;
+    if (num.v < 0) num.v += mod;
   }
 };
 

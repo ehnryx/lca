@@ -1,8 +1,11 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-#include "../bellman_ford.h"
-#include "../breadth_first.h"
+//#include "../bellman_ford.h"
+//#include "../breadth_first.h"
+
+%:include "graph/bellman_ford.h"
+%:include "graph/breadth_first.h"
 
 //using ll = long long;
 constexpr char nl = '\n';
@@ -11,13 +14,13 @@ int main() {
   cin.tie(0)->sync_with_stdio(0);
 
   for (int n, m, q, s; cin >> n >> m >> q >> s && n; ) {
-    graph_list<int> graph(n);
-    graph_list<void> rev_graph(n);
+    graph_t<int> graph(n);
+    graph_t<void> rev_graph(n);
     for (int i = 0; i < m; i++) {
       int a, b, c;
       cin >> a >> b >> c;
-      graph.add_edge(a, b, c);
-      rev_graph.add_edge(b, a);
+      graph.add_arc(a, b, c);
+      rev_graph.add_arc(b, a);
     }
     const int inf = n * 2000 + 7;
     bellman_ford bf(graph, s, inf, true);
@@ -35,7 +38,7 @@ int main() {
     for (int i = 0; i < q; i++) {
       int v;
       cin >> v;
-      breadth_first bfs(rev_graph, v);
+      auto bfs = breadth_first(rev_graph).run(v);
       auto rev_dist = bfs.get_dists();
       bool neg = false;
       for (int j = 0; j < n; j++) {

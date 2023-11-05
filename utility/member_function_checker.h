@@ -5,6 +5,8 @@
  */
 #pragma once
 
+#include <type_traits>
+
 #define MEMBER_FUNCTION_CHECKER(FUNCTION) \
   template <typename __class_t, typename... __args_t> \
   struct _has_##FUNCTION { \

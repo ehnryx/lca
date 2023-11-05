@@ -78,7 +78,7 @@ struct dinic {
     for (int i = cur_edge[u]; i < (int)adj[u].size() && f != 0; i++) {
       cur_edge[u] = i; // save current edge
       if (layer[u] + 1 != layer[adj[u][i].to]) continue;
-      if (T cur_flow = dfs(adj[u][i].to, t, min(f, adj[u][i].cap - adj[u][i].flow))) {
+      if (T cur_flow = dfs(adj[u][i].to, t, std::min(f, adj[u][i].cap - adj[u][i].flow))) {
         adj[u][i].flow += cur_flow;
         adj[adj[u][i].to][adj[u][i].rev].flow -= cur_flow;
         res += cur_flow;

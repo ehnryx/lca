@@ -12,12 +12,23 @@
  */
 #pragma once
 
-#include "push_relabel.h"
+#include "../utility/member_variable_checker.h"
+#include <limits>
+#include <vector>
 
 template <template <typename> class Flow, typename T>
 struct max_closure : Flow<T> {
+  MEMBER_VARIABLE_CHECKER(is_push_relabel);
+  static constexpr bool is_push_relabel = [] {
+    if constexpr (_has_is_push_relabel<Flow<T>>::value) {
+      return Flow<T>::is_push_relabel;
+    } else {
+      return false;
+    }
+  }();
+
   int n;
-  max_closure(const vector<T>& weights):
+  max_closure(std::vector<T> const& weights):
     Flow<T>((int)size(weights) + 2), n((int)size(weights)) {
     for (int i = 0; i < n; i++) {
       if (weights[i] > 0) {
@@ -28,15 +39,15 @@ struct max_closure : Flow<T> {
     }
   }
   void add_edge(int a, int b) {
-    Flow<T>::add_edge(a, b, numeric_limits<T>::max());
+    Flow<T>::add_edge(a, b, std::numeric_limits<T>::max());
   }
-  vector<int> solve() {
-    if constexpr (is_same_v<Flow<T>, push_relabel<T>>) {
+  std::vector<int> solve() {
+    if constexpr (is_push_relabel) {
       Flow<T>::flow(n, n + 1, true);
     } else {
       Flow<T>::flow(n, n + 1);
     }
-    vector<int> res;
+    std::vector<int> res;
     for (int i = 0; i < n; i++) {
       if (Flow<T>::left_of_min_cut(i)) {
         res.push_back(i);

@@ -17,18 +17,30 @@
 #include "graph_traversal.h"
 #include <queue>
 
-template <typename graph_impl, typename weight_t>
+template <typename weight_t>
 struct dijkstra : graph_traversal {
-  const Graph<graph_impl, weight_t>& graph;
+  const graph_t<weight_t>& graph;
   std::vector<weight_t> dist;
-  std::vector<int> parent;
   const weight_t infinity;
-  dijkstra(const Graph<graph_impl, weight_t>& g, weight_t inf):
-    graph(g), dist(graph.size(), inf), parent(graph.size(), -1), infinity(inf) {}
-
-  template <typename source_t>
-  dijkstra& run(const std::vector<source_t>& sources) {
-    std::priority_queue<Item> to_visit;
+  dijkstra(const graph_t<weight_t>& g, weight_t inf):
+    graph_traversal(g.size()), graph(g), dist(g.size(), inf), infinity(inf) {}
+  const std::vector<weight_t>& get_dists() const { return dist; }
+  dijkstra& run(int source) {
+    return run(std::vector({ graph_adj<weight_t>(source, 0) }));
+  }
+  dijkstra& run(const std::vector<int>& sources) {
+    std::vector<graph_adj<weight_t>>& hacked;
+    hacked.reserve(sources.size());
+    for (int s : sources) {
+      hacked.emplace_back(s, 0);
+    }
+    return run(hacked);
+  }
+  dijkstra& run(const std::vector<graph_adj<weight_t>>& sources) {
+    std::priority_queue<
+      graph_adj<weight_t>,
+      std::vector<graph_adj<weight_t>>,
+      std::greater<graph_adj<weight_t>>> to_visit;
     for (auto [source, dist_to_source] : sources) {
       if (dist[source] == infinity || dist_to_source < dist[source]) {
         dist[source] = dist_to_source;
@@ -49,16 +61,5 @@ struct dijkstra : graph_traversal {
     }
     return *this;
   }
-  dijkstra& run(int source) { return run(std::vector({ std::pair(source, 0) })); }
-  const std::vector<weight_t>& get_dists() const { return dist; }
-  const std::vector<int>& get_parents() const override { return parent; }
-
-  struct Item {
-    int u;
-    weight_t d;
-    Item(int _u, weight_t _d): u(_u), d(_d) {}
-    Item(std::pair<int, weight_t> item): u(item.first), d(item.second) {}
-    bool operator < (const Item& o) const { return d > o.d; }
-  };
 };
 

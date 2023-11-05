@@ -11,6 +11,7 @@
 #pragma once
 
 #include "../math/fast_fourier_transform.h"
+
 #include <cassert>
 #include <iomanip>
 #include <iostream>
@@ -25,13 +26,6 @@ struct int_base10 {
   static constexpr size_t large_div_threshold = 144;
   static constexpr size_t recursive_div_limit = 64;
   static_assert(recursive_div_limit < small_div_threshold);
-
-  template <typename fast_input_t>
-  void fast_read(fast_input_t& in) {
-    std::string s;
-    in >> s;
-    build(s);
-  }
 
   bool negative;
   std::vector<int> digits;
@@ -92,6 +86,7 @@ struct int_base10 {
     build(s);
   }
   void build(const std::string& s) {
+    clear();
     negative = (s.front() == '-');
     int len = (int)s.size() - negative;
     int num_digits = (len + radix_length - 1) / radix_length;
@@ -323,7 +318,7 @@ struct int_base10 {
 
 private:
   int_base10 fft_multiply(const int_base10& o) const {
-    std::vector<long long> num = fft::convolve<long long, double>(digits, o.digits);
+    std::vector<long long> num = fft::convolve<double, long long>(digits, o.digits);
     std::vector<int> res(num.size() + 1);
     for (size_t i = 0; i < num.size(); i++) {
       num[i] += res[i];
@@ -506,6 +501,17 @@ private:
     }
     digits.erase(digits.begin(), digits.begin() + shift);
     return *this;
+  }
+};
+
+#include "../utility/fast_input_read.h"
+
+template <typename input_t>
+struct fast_input_read<input_t, int_base10> {
+  static void get(input_t& in, int_base10& v) {
+    std::string s;
+    in >> s;
+    v.build(s);
   }
 };
 

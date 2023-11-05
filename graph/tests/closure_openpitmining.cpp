@@ -1,15 +1,9 @@
+%:include "graph/max_closure.h"
+%:include "graph/dinic.h"
+%:include "graph/push_relabel.h"
+
 #include <bits/stdc++.h>
 using namespace std;
-
-#ifdef HENRYX
-#include "../dinic.h"
-#include "../max_closure.h"
-#include "../push_relabel.h"
-#else
-#include "dinic.h"
-#include "max_closure.h"
-#include "push_relabel.h"
-#endif
 
 constexpr char nl = '\n';
 
@@ -50,6 +44,7 @@ int main() {
   }
   assert(ans == other);
   cout << ans << nl;
+  //cout << other << nl;
 
   return 0;
 }

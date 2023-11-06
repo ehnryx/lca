@@ -52,3 +52,15 @@ struct graph_adj<void> {
 static_assert(sizeof(graph_adj<void>) == sizeof(int));
 static_assert(sizeof(graph_edge<void>) == sizeof(std::pair<int, int>));
 
+struct graph_callback_placeholder_t {};
+template <typename on_node_t = graph_callback_placeholder_t,
+          typename on_edge_t = graph_callback_placeholder_t,
+          typename should_visit_t = graph_callback_placeholder_t>
+struct graph_callbacks_t {
+  on_node_t const& on_node = {};
+  on_edge_t const& on_edge = {};
+  should_visit_t const& should_visit = {};
+};
+#define IS_GRAPH_CALLBACK_PLACEHOLDER(var) \
+  std::is_same_v<std::decay_t<decltype(var)>, graph_callback_placeholder_t>
+

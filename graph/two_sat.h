@@ -19,12 +19,11 @@
 struct two_sat {
   int n;
   std::vector<bool> truth;
-  std::vector<std::vector<int>> adj;
-  two_sat(int _n): n(_n), truth(n), adj(2*n) {}
-  void add_edge(int a, int b) { adj[a].push_back(b); }
-  bool operator [] (int i) const { return truth[i]; }
+  graph_t<void> graph;
+  two_sat(int _n): n(_n), truth(n), graph(2*n) {}
+  bool operator[](int i) const { return truth[i]; }
   bool solve() {
-    strongly_connected scc(adj);
+    strongly_connected scc(graph);
     for (int i = 0; i < n; i++) {
       if (scc[2*i] == scc[2*i + 1]) return false;
       truth[i] = (scc[2*i] < scc[2*i + 1]);
@@ -33,12 +32,12 @@ struct two_sat {
   }
 
   void or_clause(int a, int b) {
-    add_edge(a^1, b);
-    add_edge(b^1, a);
+    graph.add_arc(a^1, b);
+    graph.add_arc(b^1, a);
   }
   void implies(int a, int b) {
-    add_edge(a, b);
-    add_edge(b^1, a^1);
+    graph.add_arc(a, b);
+    graph.add_arc(b^1, a^1);
   }
   void iff(int a, int b) {
     implies(a, b);

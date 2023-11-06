@@ -15,7 +15,6 @@
 
 #include "graph.h"
 #include "graph_traversal.h"
-#include "../utility/type_conversion_checker.h"
 #include <queue>
 
 template <typename weight_t>
@@ -27,10 +26,10 @@ struct breadth_first : graph_traversal {
   std::vector<int> const& get_dists() const { return dist; }
   // run bfs while avoiding previously visited nodes
   template <typename... CallbackFs>
-  breadth_first& run(std::vector<int> const& sources, callbacks_t<CallbackFs...>&& callbacks) {
-    static constexpr bool has_node_func = not IS_CALLBACK_PLACEHOLDER(callbacks.node_func);
-    static constexpr bool has_edge_func = not IS_CALLBACK_PLACEHOLDER(callbacks.edge_func);
-    static constexpr bool has_should_visit = not IS_CALLBACK_PLACEHOLDER(callbacks.should_visit);
+  breadth_first& run(std::vector<int> const& sources, graph_callbacks_t<CallbackFs...>&& callbacks) {
+    static constexpr bool has_on_node = not IS_GRAPH_CALLBACK_PLACEHOLDER(callbacks.on_node);
+    static constexpr bool has_on_edge = not IS_GRAPH_CALLBACK_PLACEHOLDER(callbacks.on_edge);
+    static constexpr bool has_should_visit = not IS_GRAPH_CALLBACK_PLACEHOLDER(callbacks.should_visit);
     std::deque<int> to_visit;
     for (int source : sources) {
       if (dist[source] == -1) {
@@ -42,12 +41,12 @@ struct breadth_first : graph_traversal {
     while (!to_visit.empty()) {
       int u = to_visit.front();
       to_visit.pop_front();
-      if constexpr (has_node_func) callbacks.node_func(u);
+      if constexpr (has_on_node) callbacks.on_node(u);
       for (const auto& e : graph[u]) {
         if (bool should_visit = [&] {
             if constexpr (has_should_visit) return callbacks.should_visit(graph_edge(u, e));
             else return dist[e.to] == -1; }(); should_visit) {
-          if constexpr (has_edge_func) callbacks.edge_func(graph_edge(u, e));
+          if constexpr (has_on_edge) callbacks.on_edge(graph_edge(u, e));
           parent[e.to] = u;
           dist[e.to] = dist[u] + 1;
           to_visit.push_back(e.to);
@@ -57,10 +56,10 @@ struct breadth_first : graph_traversal {
     return *this;
   }
   template <typename... CallbackFs>
-  breadth_first& run(int source, callbacks_t<CallbackFs...>&& callbacks) {
+  breadth_first& run(int source, graph_callbacks_t<CallbackFs...>&& callbacks) {
     return run(std::vector({ source }), std::move(callbacks));
   }
-  breadth_first& run(std::vector<int> const& sources) { return run(sources, callbacks_t{}); }
-  breadth_first& run(int source) { return run(std::vector({ source }), callbacks_t{}); }
+  breadth_first& run(std::vector<int> const& sources) { return run(sources, graph_callbacks_t{}); }
+  breadth_first& run(int source) { return run(std::vector({ source }), graph_callbacks_t{}); }
 };
 

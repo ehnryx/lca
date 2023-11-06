@@ -2,7 +2,8 @@
 using namespace std;
 #define _USE_MATH_DEFINES
 
-#include "../strongly_connected.h"
+//#include "../strongly_connected.h"
+%:include "graph/strongly_connected.h"
 
 //#define FILENAME sadcactus
 
@@ -55,14 +56,14 @@ int main() {
   int n, m;
   cin >> n >> m;
   vector<vector<pair<int,int>>> adj(n + 1);
-  vector<vector<int>> tarjan(n + 1);
+  graph_t tarjan(n + 1);
   for(int i=0; i<m; i++) {
     int a, b, c;
     cin >> a >> b >> c;
-    tarjan[a].push_back(b);
+    tarjan.add_arc(a, b);
     adj[a].emplace_back(b, c);
   }
-  strongly_connected<true> scc(tarjan);
+  strongly_connected<scc_traits::BUILD_DAG | scc_traits::DEDUP_EDGES> scc(tarjan);
 
   vector<ll> unit(scc.size());
   vector<int> remap(n + 1);

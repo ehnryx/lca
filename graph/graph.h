@@ -15,16 +15,11 @@ struct graph_base_t {
   using weight_t = Weight_t;
   static constexpr bool weighted = not std::is_void_v<weight_t>;
   std::vector<std::vector<graph_adj<weight_t>>> adj;
-  std::vector<int> in_degree, out_degree;
-  graph_base_t(int n): adj(n), in_degree(n), out_degree(n) {}
-  graph_base_t(const std::vector<std::vector<graph_adj<weight_t>>>& g):
-    adj(g), in_degree(g.size()), out_degree(g.size()) {
-    for (int u = 0; u < size(); u++) {
-      out_degree[u] = (int)g[u].size();
-      for (const auto& e : g[u]) {
-        in_degree[e.to]++;
-      }
-    }
+  graph_base_t(int n): adj(n) {}
+  graph_base_t(const std::vector<std::vector<graph_adj<weight_t>>>& g): adj(g) {}
+  void reset(int n) {
+    fill(adj.begin(), adj.end(), std::vector<graph_adj<weight_t>>());
+    adj.resize(n);
   }
   int size() const { return (int)adj.size(); }
   const std::vector<graph_adj<weight_t>>& operator[](int u) const { return adj[u]; }
@@ -65,8 +60,6 @@ struct graph_t : graph_base_t<Weight_t> {
     if (a != b) add_arc(b, a, c);
   }
   void add_arc(int a, int b, Weight_t c) {
-    this->in_degree[b]++;
-    this->out_degree[a]++;
     this->adj[a].emplace_back(b, c);
   }
 };
@@ -81,8 +74,6 @@ struct graph_t<void> : graph_base_t<void> {
     add_arc(b, a);
   }
   void add_arc(int a, int b) {
-    this->in_degree[b]++;
-    this->out_degree[a]++;
     this->adj[a].emplace_back(b);
   }
 };

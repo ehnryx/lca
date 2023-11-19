@@ -46,10 +46,10 @@ struct scc_dag_base<scc_traits::NONE> {
   scc_dag_base(size_t) {}
 };
 
-template <scc_traits what = scc_traits::NONE>
-struct strongly_connected : scc_dag_base<what> {
-  static constexpr bool build_dag = (what & scc_traits::BUILD_DAG) != scc_traits::NONE;
-  static constexpr bool dedup_edges = (what & scc_traits::DEDUP_EDGES) != scc_traits::NONE;
+template <scc_traits traits = scc_traits::NONE>
+struct strongly_connected : scc_dag_base<traits> {
+  static constexpr bool build_dag = (traits & scc_traits::BUILD_DAG) != scc_traits::NONE;
+  static constexpr bool dedup_edges = (traits & scc_traits::DEDUP_EDGES) != scc_traits::NONE;
 
   int components;
   std::vector<int> idx, low, scc;
@@ -58,7 +58,7 @@ struct strongly_connected : scc_dag_base<what> {
 
   template <typename weight_t>
   strongly_connected(graph_t<weight_t> const& graph):
-    scc_dag_base<what>(graph.size()), components(0),
+    scc_dag_base<traits>(graph.size()), components(0),
     idx(graph.size(), -1), low(graph.size(), -1), scc(graph.size(), -1) {
     for (int i = 0, index = 0; i < graph.size(); i++) {
       if (low[i] == -1) {

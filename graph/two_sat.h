@@ -17,21 +17,24 @@
 #include "strongly_connected.h"
 
 struct two_sat {
-  int n;
-  std::vector<bool> truth;
   graph_t<void> graph;
-  two_sat(int _n): n(_n), truth(n), graph(2*n) {}
+  std::vector<char> truth;  // no vector<bool>
+  two_sat(int n): graph(2*n), truth(n) {}
+  void reset(int n) {
+    graph.reset(2*n);
+    truth.resize(n);
+  }
   bool operator[](int i) const { return truth[i]; }
   bool solve() {
     strongly_connected scc(graph);
-    for (int i = 0; i < n; i++) {
+    for (int i = 0; i < truth.size(); i++) {
       if (scc[2*i] == scc[2*i + 1]) return false;
       truth[i] = (scc[2*i] < scc[2*i + 1]);
     }
     return true;
   }
 
-  void or_clause(int a, int b) {
+  void either(int a, int b) {
     graph.add_arc(a^1, b);
     graph.add_arc(b^1, a);
   }
@@ -43,8 +46,8 @@ struct two_sat {
     implies(a, b);
     implies(b, a);
   }
-  void or_clause(int a, bool a_truth, int b, bool b_truth) {
-    or_clause(2*a + !a_truth, 2*b + !b_truth);
+  void either(int a, bool a_truth, int b, bool b_truth) {
+    either(2*a + !a_truth, 2*b + !b_truth);
   }
   void implies(int a, bool a_truth, int b, bool b_truth) {
     implies(2*a + !a_truth, 2*b + !b_truth);

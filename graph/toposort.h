@@ -15,15 +15,20 @@
 
 template <typename weight_t>
 struct toposort {
-  graph_t<weight_t> const& graph;
   std::vector<int> order;
   std::vector<int> rank;
-  toposort(graph_t<weight_t> const& g): graph(g), order(g.size()), rank(g.size(), -1) {
-    std::vector<int> degree = g.in_degree;
+  toposort(graph_t<weight_t> const& graph):
+    order(graph.size()), rank(graph.size(), -1) {
+    std::vector<int> in_degree(graph.size());
+    for (int u = 0; u < graph.size(); u++) {
+      for (auto const& e : graph[u]) {
+        in_degree[e.to] += 1;
+      }
+    }
     std::vector<int> to_visit;
-    to_visit.reserve(g.size());
-    for (int s = 0; s < g.size(); s++) {
-      if (degree[s] == 0) {
+    to_visit.reserve(graph.size());
+    for (int s = 0; s < graph.size(); s++) {
+      if (in_degree[s] == 0) {
         to_visit.push_back(s);
       }
     }
@@ -33,8 +38,8 @@ struct toposort {
       to_visit.pop_back();
       rank[u] = uid;
       order[uid++] = u;
-      for (auto const& e : g[u]) {
-        if (--degree[e.to] == 0) {
+      for (auto const& e : graph[u]) {
+        if (--in_degree[e.to] == 0) {
           to_visit.push_back(e.to);
         }
       }

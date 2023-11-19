@@ -29,36 +29,46 @@ template <typename T>
 using intersection_type = std::conditional_t<
   std::is_floating_point_v<T>, T, INTERSECTION_TYPE>;
 
-#ifdef NO_BIGGER_TYPE
+#if defined(NO_BIGGER_TYPE)
 template <typename T>
 using bigger_type = T;
-#else
+#elif defined(FLOATING_BIGGER_TYPE)
 template <typename T>
 using bigger_type = std::conditional_t<
   std::is_floating_point_v<T>, T,
   std::conditional_t<
     std::is_same_v<T, long long>, INTERSECTION_TYPE, long long>>;
+#else
+template <typename T>
+using bigger_type = std::conditional_t<
+  std::is_floating_point_v<T>, T, long long>;
 #endif
 
 template <typename T, typename From>
 struct is_constructible {
-  static bool constexpr value = std::is_floating_point_v<T> or
+  static constexpr bool value = std::is_floating_point_v<T> or
     (std::is_integral_v<From> and sizeof(From) <= sizeof(T));
 };
 template <typename T, typename From>
-bool constexpr is_constructible_v = is_constructible<T, From>::value;
+constexpr bool is_constructible_v = is_constructible<T, From>::value;
 }  // namespace geo
 
 template <typename T>
 struct point {
   static_assert(std::is_floating_point_v<T> or std::is_integral_v<T>);
-  static bool constexpr floating = std::is_floating_point_v<T>;
+  static constexpr bool floating = std::is_floating_point_v<T>;
   using type = T;
   using bigger_type = geo::bigger_type<T>;
   using intersection_type = geo::intersection_type<T>;
 
   T x, y;
-  point(): x(0), y(0) {}
+  point(): x(0), y(0) {
+#if not (defined(NO_BIGGER_TYPE) or defined(FLOATING_BIGGER_TYPE))
+    if constexpr (std::is_same_v<T, long long>) {
+      static constexpr auto warning = "Do you really want point<long long>? cross/dot etc. can overflow silently";
+    }
+#endif
+  }
   point(T const& _x, T const& _y): x(_x), y(_y) {}
   point(std::complex<T> const& v): x(v.real()), y(v.imag()) {}
   template <typename U, std::enable_if_t<geo::is_constructible_v<T, U>, bool> = true>
@@ -72,10 +82,6 @@ struct point {
   }
   friend std::istream& operator>>(std::istream& is, point& v) {
     return is >> v.x >> v.y;
-  }
-  template <typename fast_input_t>
-  void fast_read(fast_input_t& in) {
-    in >> x >> y;
   }
 
   bool operator<(point const& v) const { return std::tie(x, y) < std::tie(v.x, v.y); }
@@ -129,8 +135,17 @@ struct point {
   static bool by_y(point const& a, point const& b) {
     return a.y < b.y or (a.y == b.y && a.x < b.x);
   }
-  static bool by_slope(point const& a, point const& b) {
-    return a.cross(b) > 0;
+  static auto compare_to_v(point const& split) {
+    return [split](point u, point v) {
+      if (auto c = split.cross(u); c < 0 or (c == 0 and split.dot(u) < 0)) u = -u;
+      if (auto c = split.cross(v); c < 0 or (c == 0 and split.dot(v) < 0)) v = -v;
+      return u.cross(v);
+    };
+  }
+  static auto compare_to(point const& split) {
+    return [cmp=compare_to_v(split)](point const& u, point const& v) {
+      return cmp(u, v) > 0;
+    };
   }
 };
 
@@ -170,4 +185,13 @@ int sign(T x) {
   return x < 0 ? -1 : x > 0 ? 1 : 0;
 }
 }  // namespace geo
+
+#include "../utility/fast_input_read.h"
+
+template <typename input_t, typename T>
+struct fast_input_read<input_t, point<T>> {
+  static void get(input_t& in, point<T>& v) {
+    in >> v.x >> v.y;
+  }
+};
 

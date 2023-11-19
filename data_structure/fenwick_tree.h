@@ -12,7 +12,7 @@
  *  O(logN) per query, update, lower_bound
  *  N = |array|
  * STATUS
- *  tested: cf/1515i
+ *  tested: cf/1515i,104772h
  */
 #pragma once
 

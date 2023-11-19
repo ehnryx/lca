@@ -15,7 +15,7 @@
 
 #include "graph.h"
 #include "graph_traversal.h"
-#include <queue>
+#include <deque>
 
 template <typename weight_t>
 struct breadth_first : graph_traversal {

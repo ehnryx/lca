@@ -8,7 +8,7 @@
  *    long double -> long double
  *    integral -> double
  * STATUS
- *  untested
+ *  tested cf/104772h
  */
 #pragma once
 
@@ -135,15 +135,17 @@ struct point {
   static bool by_y(point const& a, point const& b) {
     return a.y < b.y or (a.y == b.y && a.x < b.x);
   }
-  static auto compare_to_v(point const& split) {
-    return [split](point u, point v) {
-      if (auto c = split.cross(u); c < 0 or (c == 0 and split.dot(u) < 0)) u = -u;
-      if (auto c = split.cross(v); c < 0 or (c == 0 and split.dot(v) < 0)) v = -v;
-      return u.cross(v);
+  static auto by_ref_v(point const& ref) {
+    return [ref](point u, point v) {
+      auto cu = ref.cross(u);
+      auto cv = ref.cross(v);
+      bool u_pos = cu < 0 or (cu == 0 and ref.dot(u) < 0);
+      bool v_pos = cv < 0 or (cv == 0 and ref.dot(v) < 0);
+      return u.cross(v) * (u_pos == v_pos ? 1 : -1);
     };
   }
-  static auto compare_to(point const& split) {
-    return [cmp=compare_to_v(split)](point const& u, point const& v) {
+  static auto by_ref(point const& ref) {
+    return [cmp=by_ref_v(ref)](point const& u, point const& v) {
       return cmp(u, v) > 0;
     };
   }

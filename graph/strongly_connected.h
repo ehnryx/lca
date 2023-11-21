@@ -16,22 +16,15 @@
  */
 #pragma once
 
+#include "../utility/traits.h"
 #include "graph.h"
 #include <vector>
 #include <stack>
 
-enum class scc_traits : int {
-  NONE = 0,
-  BUILD_DAG = 1 << 0,
-  DEDUP_EDGES = 1 << 1,
+MAKE_TRAITS(scc_traits,
+  (BUILD_DAG, DEDUP_EDGES),
   DAG_DEDUP = BUILD_DAG | DEDUP_EDGES,
-};
-constexpr scc_traits operator&(scc_traits a, scc_traits b) {
-  return scc_traits(int(a) & int(b));
-}
-constexpr scc_traits operator|(scc_traits a, scc_traits b) {
-  return scc_traits(int(a) | int(b));
-}
+);
 
 template <scc_traits>
 struct scc_dag_base {
@@ -48,8 +41,8 @@ struct scc_dag_base<scc_traits::NONE> {
 
 template <scc_traits traits = scc_traits::NONE>
 struct strongly_connected : scc_dag_base<traits> {
-  static constexpr bool build_dag = (traits & scc_traits::BUILD_DAG) != scc_traits::NONE;
-  static constexpr bool dedup_edges = (traits & scc_traits::DEDUP_EDGES) != scc_traits::NONE;
+  static constexpr bool build_dag = traits.has_any(scc_traits::BUILD_DAG);
+  static constexpr bool dedup_edges = traits.has_any(scc_traits::DEDUP_EDGES);
 
   int components;
   std::vector<int> idx, low, scc;

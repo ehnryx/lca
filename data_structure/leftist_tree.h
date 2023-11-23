@@ -19,16 +19,15 @@
  */
 #pragma once
 
-#include "../utility/member_function_checker.h"
 #include <functional>
+#include "../utility/member_function_checker.h"
 
 template <typename value_t>
 struct leftist_node {
   leftist_node *left, *right;
   value_t value;
   int size;
-  leftist_node(const value_t& val):
-    left(nullptr), right(nullptr), value(val), size(1) {}
+  leftist_node(const value_t& val) : left(nullptr), right(nullptr), value(val), size(1) {}
 };
 
 template <typename value_t, typename lazy_t = value_t>
@@ -37,8 +36,8 @@ struct leftist_node_lazy {
   value_t value;
   lazy_t lazy;
   int size;
-  leftist_node_lazy(const value_t& val):
-    left(nullptr), right(nullptr), value(val), lazy(0), size(1) {}
+  leftist_node_lazy(const value_t& val)
+      : left(nullptr), right(nullptr), value(val), lazy(0), size(1) {}
   void put(lazy_t add) {
     value += add;
     lazy += add;
@@ -56,20 +55,16 @@ template <typename T, typename node_t = leftist_node<T>, class Compare = std::le
 struct leftist_tree {
   MEMBER_FUNCTION_CHECKER(push);
   static constexpr bool has_push = _has_push<node_t>::value;
-  node_t *root;
-  leftist_tree(): root(nullptr) {}
-  friend void swap(leftist_tree& a, leftist_tree& b) {
-    swap(a.root, b.root);
-  }
+  node_t* root;
+  leftist_tree() : root(nullptr) {}
+  friend void swap(leftist_tree& a, leftist_tree& b) { swap(a.root, b.root); }
   bool empty() const { return root == nullptr; }
   int size() const { return empty() ? 0 : root->size; }
   const T& top() const { return root->value; }
-  void push(const T& v) {
-    root = merge(root, new node_t(v));
-  }
+  void push(const T& v) { root = merge(root, new node_t(v)); }
   void pop() {
     if constexpr (has_push) root->push();
-    node_t *new_root = merge(root->left, root->right);
+    node_t* new_root = merge(root->left, root->right);
     delete root;
     root = new_root;
   }
@@ -77,7 +72,7 @@ struct leftist_tree {
     root = merge(root, o.root);
     o.root = nullptr;
   }
-  node_t* merge(node_t *a, node_t *b) {
+  node_t* merge(node_t* a, node_t* b) {
     if (a == nullptr) return b;
     if (b == nullptr) return a;
     if (Compare()(b->value, a->value)) swap(a, b);
@@ -96,4 +91,3 @@ struct leftist_tree {
     }
   }
 };
-

@@ -16,13 +16,9 @@ struct simple_memory_pool {
   std::vector<T> memory;
   std::vector<int> available;
   int pid;
-  simple_memory_pool(int n): memory(n), available(n), pid(n) {
+  simple_memory_pool(int n) : memory(n), available(n), pid(n) {
     std::iota(begin(available), end(available), 0);
   }
-  T* allocate() {
-    return &memory[available[--pid]];
-  }
-  void deallocate(T* x) {
-    available[pid++] = (int)(x - &memory[0]);
-  }
+  T* allocate() { return &memory[available[--pid]]; }
+  void deallocate(T* x) { available[pid++] = (int)(x - &memory[0]); }
 };

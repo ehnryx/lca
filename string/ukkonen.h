@@ -21,31 +21,33 @@ struct suffix_node {
   static constexpr size_t npos = -1;
   // array
   size_t parent;
-  size_t slink; // suffix link from end of range
-  size_t left, right; // substring range
-  std::array<size_t, to_int::size> to; // children
-  int depth; // depth of node, measured in number of chars before node
+  size_t slink;                         // suffix link from end of range
+  size_t left, right;                   // substring range
+  std::array<size_t, to_int::size> to;  // children
+  int depth;  // depth of node, measured in number of chars before node
   size_t length() const { return right - left; }
-  suffix_node(): parent(-1), slink(-1), left(-1), right(-1), depth(0) {
+  suffix_node() : parent(-1), slink(-1), left(-1), right(-1), depth(0) {
     fill(to.begin(), to.end(), -1);
   }
   bool has_neighbour(int c) const { return to[c] != npos; }
   template <typename T>
-  size_t get(const T& c) const { return to[to_int::toi(c)]; }
+  size_t get(const T& c) const {
+    return to[to_int::toi(c)];
+  }
 
   struct iterator {
     suffix_node const* ref;
     int i;
-    iterator(suffix_node const* _ref, int pos): ref(_ref), i(pos) {
+    iterator(suffix_node const* _ref, int pos) : ref(_ref), i(pos) {
       while (i < to_int::size && ref->to[i] == (size_t)-1) {
         i += 1;
       }
     }
-    auto operator * () const { return pair(to_int::toc(i), ref->to[i]); }
-    iterator& operator ++ () { return *this = iterator(ref, i + 1); }
-    iterator& operator ++ (int) { return *this = iterator(ref, i + 1); }
-    bool operator == (const iterator& o) const { return i == o.i; }
-    bool operator != (const iterator& o) const { return i != o.i; }
+    auto operator*() const { return pair(to_int::toc(i), ref->to[i]); }
+    iterator& operator++() { return *this = iterator(ref, i + 1); }
+    iterator& operator++(int) { return *this = iterator(ref, i + 1); }
+    bool operator==(const iterator& o) const { return i == o.i; }
+    bool operator!=(const iterator& o) const { return i != o.i; }
   };
   iterator begin() const { return iterator(this, 0); }
   iterator end() const { return iterator(this, to_int::size); }
@@ -61,7 +63,7 @@ struct suffix_node<void> {
   std::map<int, size_t> to;
   int depth;
   size_t length() const { return right - left; }
-  suffix_node(): parent(-1), slink(-1), left(-1), right(-1), depth(0) {}
+  suffix_node() : parent(-1), slink(-1), left(-1), right(-1), depth(0) {}
   bool has_neighbour(int c) const { return to.count(c); }
   size_t get(int c) const { return to.at(c); }
 };
@@ -74,14 +76,14 @@ struct ukkonen {
   size_t cur_node, cur_pos;
   std::basic_string<int> t;
 
-  ukkonen(size_t reserve_length = 0): nodes(1), cur_node(0), cur_pos(0) {
-    nodes[0].left = nodes[0].right = 0; // root is 0
+  ukkonen(size_t reserve_length = 0) : nodes(1), cur_node(0), cur_pos(0) {
+    nodes[0].left = nodes[0].right = 0;  // root is 0
     nodes.reserve(2 * reserve_length + 1);
     t.reserve(reserve_length);
   }
 
   template <typename T>
-  ukkonen(const std::basic_string<T>& s): ukkonen(s.size() + 1) {
+  ukkonen(const std::basic_string<T>& s) : ukkonen(s.size() + 1) {
     for (size_t i = 0; i < s.size(); i++) {
       ukk_add(convert(s[i]), i);
     }
@@ -136,7 +138,7 @@ struct ukkonen {
       // extend a leaf
       if (cur_pos == index && cur_node != root()) {
         if (nodes[cur_node].parent == root() && cur_pos == nodes[cur_node].left) {
-          break; // single-char branch means that this phase is done
+          break;  // single-char branch means that this phase is done
         }
         // just go to the next position
         std::tie(cur_node, cur_pos) = get_next_pos(cur_node, cur_pos);
@@ -225,7 +227,7 @@ struct ukkonen {
   // whether a vertex is a leaf
   bool is_leaf(int u) const { return nodes[u].right >= t.size(); }
   // the nodes in order, use .get(char) to match a character
-  const suffix_node<to_int>& operator [] (int i) const { return nodes.at(i); }
+  const suffix_node<to_int>& operator[](int i) const { return nodes.at(i); }
 
   // return: (node, idx in range[node]) of the past-the-end of the match.
   //         (-1, -1) if not matched
@@ -251,4 +253,3 @@ struct ukkonen {
   }
   // END suffix tree functions
 };
-

@@ -18,7 +18,7 @@
 namespace geo {
 struct strict {
   bool value;
-  strict(bool v): value(v) {}
+  strict(bool v) : value(v) {}
   operator bool() const { return value; }
 };
 
@@ -26,8 +26,7 @@ struct strict {
 #define INTERSECTION_TYPE double
 #endif
 template <typename T>
-using intersection_type = std::conditional_t<
-  std::is_floating_point_v<T>, T, INTERSECTION_TYPE>;
+using intersection_type = std::conditional_t<std::is_floating_point_v<T>, T, INTERSECTION_TYPE>;
 
 #if defined(NO_BIGGER_TYPE)
 template <typename T>
@@ -35,24 +34,23 @@ using bigger_type = T;
 #elif defined(FLOATING_BIGGER_TYPE)
 template <typename T>
 using bigger_type = std::conditional_t<
-  std::is_floating_point_v<T>, T,
-  std::conditional_t<
-    std::is_same_v<T, long long>, INTERSECTION_TYPE, long long>>;
+    std::is_floating_point_v<T>, T,
+    std::conditional_t<std::is_same_v<T, long long>, INTERSECTION_TYPE, long long>>;
 #else
 template <typename T>
-using bigger_type = std::conditional_t<
-  std::is_floating_point_v<T>, T, long long>;
+using bigger_type = std::conditional_t<std::is_floating_point_v<T>, T, long long>;
 #endif
 
 template <typename T, typename From>
 struct is_constructible {
-  static constexpr bool value = std::is_floating_point_v<T> or
-    (std::is_integral_v<From> and sizeof(From) <= sizeof(T));
+  static constexpr bool value =
+      std::is_floating_point_v<T> or (std::is_integral_v<From> and sizeof(From) <= sizeof(T));
 };
 template <typename T, typename From>
 constexpr bool is_constructible_v = is_constructible<T, From>::value;
 }  // namespace geo
 
+// clang-format off
 template <typename T>
 struct point {
   static_assert(std::is_floating_point_v<T> or std::is_integral_v<T>);
@@ -62,19 +60,19 @@ struct point {
   using intersection_type = geo::intersection_type<T>;
 
   T x, y;
-  point(): x(0), y(0) {
-#if not (defined(NO_BIGGER_TYPE) or defined(FLOATING_BIGGER_TYPE))
+  point() : x(0), y(0) {
+#if not(defined(NO_BIGGER_TYPE) or defined(FLOATING_BIGGER_TYPE))
     if constexpr (std::is_same_v<T, long long>) {
       static constexpr auto warning = "Do you really want point<long long>? cross/dot etc. can overflow silently";
     }
 #endif
   }
-  point(T const& _x, T const& _y): x(_x), y(_y) {}
-  point(std::complex<T> const& v): x(v.real()), y(v.imag()) {}
+  point(T const& _x, T const& _y) : x(_x), y(_y) {}
+  point(std::complex<T> const& v) : x(v.real()), y(v.imag()) {}
   template <typename U, std::enable_if_t<geo::is_constructible_v<T, U>, bool> = true>
-  point(point<U> const& v): x(v.x), y(v.y) {}
+  point(point<U> const& v) : x(v.x), y(v.y) {}
   template <typename U, std::enable_if_t<not geo::is_constructible_v<T, U>, bool> = true>
-  explicit point(point<U> const& v): x(v.x), y(v.y) {}
+  explicit point(point<U> const& v) : x(v.x), y(v.y) {}
   template <typename U = T>
   explicit operator std::complex<U>() const { return std::complex<U>(x, y); }
   friend std::ostream& operator<<(std::ostream& os, point const& v) {
@@ -162,10 +160,13 @@ template <typename T> auto argl(point<T> const& v) { return v.argl(); }
 template <typename T> auto absl(point<T> const& v) { return v.absl(); }
 template <typename T> auto dot(point<T> const& a, point<T> const& b) { return a.dot(b); }
 template <typename T> auto cross(point<T> const& a, point<T> const& b) { return a.cross(b); }
+// clang-format on
 
 namespace geo {
 template <typename T, std::enable_if_t<point<T>::floating, bool> = true>
-bool equal(T eps, point<T> const& a, point<T> const& b) { return abs(a - b) <= eps; }
+bool equal(T eps, point<T> const& a, point<T> const& b) {
+  return abs(a - b) <= eps;
+}
 
 template <typename T, std::enable_if_t<point<T>::floating, bool> = true>
 bool less_than(T eps, point<T> const& a, point<T> const& b) {
@@ -175,7 +176,7 @@ bool less_than(T eps, point<T> const& a, point<T> const& b) {
 template <typename T>
 struct epsilon {
   T value;
-  explicit epsilon(T const& v): value(v) {}
+  explicit epsilon(T const& v) : value(v) {}
   operator T const&() const { return value; }
 };
 template <typename T, std::enable_if_t<point<T>::floating, bool> = true>
@@ -192,8 +193,5 @@ int sign(T x) {
 
 template <typename input_t, typename T>
 struct fast_input_read<input_t, point<T>> {
-  static void get(input_t& in, point<T>& v) {
-    in >> v.x >> v.y;
-  }
+  static void get(input_t& in, point<T>& v) { in >> v.x >> v.y; }
 };
-

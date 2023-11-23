@@ -4,11 +4,13 @@
  */
 #pragma once
 
-#include "lines.h"
-#include "point.h"
 #include <variant>
 
-template <typename> struct circle;
+#include "lines.h"
+#include "point.h"
+
+template <typename>
+struct circle;
 
 namespace geo {
 template <typename T>
@@ -18,12 +20,11 @@ struct circle_intersection_type {
   using two = std::tuple<point<T>, point<T>>;
   std::variant<bool, one, two> it;
   auto count() const -> int {
-    return std::holds_alternative<bool>(it)
-      ? (std::get<bool>(it) ? -1 : 0)
-      : (std::holds_alternative<one>(it) ? 1 : 2);
+    return std::holds_alternative<bool>(it) ? (std::get<bool>(it) ? -1 : 0)
+                                            : (std::holds_alternative<one>(it) ? 1 : 2);
   }
   auto get_one() const -> point<T> { return get<one>(it); }
-  auto get_two() const -> tuple<point<T>, point<T>> { return get<two>(it); }
+  auto get_two() const -> std::tuple<point<T>, point<T>> { return get<two>(it); }
 };
 
 template <typename T, typename U>
@@ -52,12 +53,12 @@ struct circle {
   point<T> center;
   T radius;
 
-  circle(point<T> const& c, T const& r): center(c), radius(r) {}
-  circle(T x, T y, T r): center(x, y), radius(r) {}
+  circle(point<T> const& c, T const& r) : center(c), radius(r) {}
+  circle(T x, T y, T r) : center(x, y), radius(r) {}
   template <typename U, std::enable_if_t<geo::is_constructible_v<T, U>, bool> = true>
-  circle(circle<U> const& c): center(c.center), radius(c.radius) {}
+  circle(circle<U> const& c) : center(c.center), radius(c.radius) {}
   template <typename U, std::enable_if_t<not geo::is_constructible_v<T, U>, bool> = true>
-  explicit circle(circle<U> const& c): center(c.center), radius(c.radius) {}
+  explicit circle(circle<U> const& c) : center(c.center), radius(c.radius) {}
 
   bool operator==(const circle& o) const { return center == o.center and radius == o.radius; }
 
@@ -116,7 +117,7 @@ struct circle {
     }
   }
 
-private:
+ private:
   inter_t<T> _intersect_impl(circle<T> const& b) const {
     auto d2 = norm(b.center - center);
     if (d2 == 0) return {radius == b.radius};
@@ -126,9 +127,8 @@ private:
     auto d_r2 = (radius + b.radius) * (radius - b.radius);
     auto it = ((center + b.center) + (b.center - center) * (d_r2 / d2)) / 2;
     if (d2 == sum_r2 or d2 == dif_r2) return {it};
-    auto h2d2 = radius < b.radius
-      ? d2 * radius * radius - (d2 + d_r2) * (d2 + d_r2) / 4
-      : d2 * b.radius * b.radius - (d2 - d_r2) * (d2 - d_r2) / 4;
+    auto h2d2 = radius < b.radius ? d2 * radius * radius - (d2 + d_r2) * (d2 + d_r2) / 4
+                                  : d2 * b.radius * b.radius - (d2 - d_r2) * (d2 - d_r2) / 4;
     if (h2d2 <= 0) return {it};
     auto shift = std::sqrt(h2d2) / d2 * perp(b.center - center);
     return {std::tuple(it - shift, it + shift)};
@@ -141,8 +141,8 @@ private:
     const auto d_r2 = (radius + b.radius) * (radius - b.radius);
     const auto it = ((center + b.center) + (b.center - center) * (d_r2 / d2)) / 2;
     const auto h2d2 = radius < b.radius
-      ? d2 * radius * radius - (d2 + d_r2) * (d2 + d_r2) / 4
-      : d2 * b.radius * b.radius - (d2 - d_r2) * (d2 - d_r2) / 4;
+                          ? d2 * radius * radius - (d2 + d_r2) * (d2 + d_r2) / 4
+                          : d2 * b.radius * b.radius - (d2 - d_r2) * (d2 - d_r2) / 4;
     if (const auto d2eps2 = d2 * eps2; h2d2 < -d2eps2) return {false};
     else if (h2d2 < d2eps2) return {it};
     const auto shift = std::sqrt(h2d2) / d2 * perp(b.center - center);
@@ -165,4 +165,3 @@ bool equal(T eps, circle<T> const& a, circle<T> const& b) {
   return equal(eps, a.center, b.center) && std::abs(a.radius - b.radius) <= eps;
 }
 }  // namespace geo
-

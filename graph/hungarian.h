@@ -19,17 +19,15 @@ template <class T>
 struct hungarian {
   int n, m;
   std::vector<std::vector<T>> weight;
-  std::vector<int> match; // match[l] = r
-  hungarian(int _n, int _m): n(_n), m(_m), weight(n, std::vector<T>(m)), match(n, -1) {
+  std::vector<int> match;  // match[l] = r
+  hungarian(int _n, int _m) : n(_n), m(_m), weight(n, std::vector<T>(m)), match(n, -1) {
     if (n > m) throw std::invalid_argument("expected n <= m");
   }
-  void add_weight(int a, int b, const T& w) {
-    weight[a][b] = max(weight[a][b], w);
-  }
+  void add_weight(int a, int b, const T& w) { weight[a][b] = max(weight[a][b], w); }
 
   T run() {
-    std::vector<int> inv(m, -1); // inverse of match
-    std::vector<T> left(n), right(m); // labels
+    std::vector<int> inv(m, -1);       // inverse of match
+    std::vector<T> left(n), right(m);  // labels
     for (int i = 0; i < n; i++) {
       left[i] = *max_element(weight[i].begin(), weight[i].end());
     }
@@ -37,7 +35,7 @@ struct hungarian {
     for (int i = 0; i < n; i++) {
       // adding i into the matching
       std::vector<bool> in_s(n), in_tree(m);
-      std::vector<int> parent(m, -1); // parent in alt-tree
+      std::vector<int> parent(m, -1);  // parent in alt-tree
       std::vector<T> slack(m);
       in_s[i] = true;
       for (int j = 0; j < m; j++) {
@@ -46,7 +44,7 @@ struct hungarian {
 
       while (true) {
         // find non-slack non-tree vertex
-        int add = -1; // on the right
+        int add = -1;  // on the right
         for (int j = 0; j < m; j++) {
           if (!in_tree[j] && slack[j] == 0) {
             add = j;
@@ -118,4 +116,3 @@ struct hungarian {
     return out;
   }
 };
-

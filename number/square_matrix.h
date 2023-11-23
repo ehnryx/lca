@@ -6,10 +6,15 @@
  */
 #pragma once
 
+#include <array>
+#include <cassert>
+#include <ostream>
+#include <vector>
+
 template <class T, int N>
 struct square_matrix {
   static constexpr int n = N;
-  array<array<T, N>, N> data;
+  std::array<std::array<T, N>, N> data;
   square_matrix(const T& v = 0) {
     for (int i = 0; i < n; i++) {
       for (int j = 0; j < n; j++) {
@@ -17,7 +22,7 @@ struct square_matrix {
       }
     }
   }
-  square_matrix(const vector<vector<T>>& v) {
+  square_matrix(const std::vector<std::vector<T>>& v) {
     assert((int)v.size() == n);
     for (int i = 0; i < n; i++) {
       assert((int)v[i].size() == n);
@@ -26,8 +31,8 @@ struct square_matrix {
       }
     }
   }
-  array<T, N>& operator[](int i) { return data[i]; }
-  const array<T, N>& operator[](int i) const { return data[i]; }
+  std::array<T, N>& operator[](int i) { return data[i]; }
+  const std::array<T, N>& operator[](int i) const { return data[i]; }
   int size() const { return n; }
   square_matrix operator+(const square_matrix& o) const { return square_matrix(*this) += o; }
   square_matrix operator-(const square_matrix& o) const { return square_matrix(*this) -= o; }
@@ -49,7 +54,7 @@ struct square_matrix {
     return *this;
   }
   square_matrix& operator*=(const square_matrix& o) {
-    array<array<T, N>, N> res;
+    std::array<std::array<T, N>, N> res;
     for (int i = 0; i < n; i++) {
       for (int j = 0; j < n; j++) {
         res[i][j] = 0;
@@ -61,16 +66,16 @@ struct square_matrix {
     data = move(res);
     return *this;
   }
-  template <typename exp_t, typename = enable_if_t<is_integral_v<exp_t>>>
+  template <typename exp_t, typename = std::enable_if_t<std::is_integral_v<exp_t>>>
   square_matrix pow(exp_t exponent) const {
     square_matrix res(1), base(*this);
-    for ( ; exponent > 0; exponent /= 2) {
+    for (; exponent > 0; exponent /= 2) {
       if (exponent % 2) res *= base;
       base *= base;
     }
     return res;
   }
-  friend ostream& operator<<(ostream& os, const square_matrix& mat) {
+  friend std::ostream& operator<<(std::ostream& os, const square_matrix& mat) {
     os << '[';
     for (int i = 0; i < mat.n; i++) {
       if (i > 0) os << ", ";
@@ -84,4 +89,3 @@ struct square_matrix {
     return os << ']';
   }
 };
-

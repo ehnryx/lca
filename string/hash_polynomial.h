@@ -18,12 +18,13 @@
 #include "../number/mod_int.h"
 
 #include <string>
+#include <vector>
 
 template <int mod, int prime>
 struct hash_polynomial {
   std::vector<mod_int<mod>> sum, invp;
   template <typename T>
-  hash_polynomial(const std::basic_string<T>& s): sum(s.size() + 1), invp(s.size() + 1) {
+  hash_polynomial(const std::basic_string<T>& s) : sum(s.size() + 1), invp(s.size() + 1) {
     mod_int<mod> prime_inverse = mod_int<mod>(prime).inverse();
     mod_int<mod> x = invp[0] = 1;
     for (size_t i = 0; i < s.size(); i++) {
@@ -32,8 +33,5 @@ struct hash_polynomial {
       invp[i + 1] = invp[i] * prime_inverse;
     }
   }
-  int get(int i, int len) {
-    return ((sum[i + len] - sum[i]) * invp[i]).value();
-  }
+  int get(int i, int len) { return ((sum[i + len] - sum[i]) * invp[i]).value(); }
 };
-

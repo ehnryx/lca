@@ -19,7 +19,7 @@ T integrate2(const Function& f, T left, T right, int steps) {
     T x = ((steps - i) * left + i * right) / steps;
     T f1 = f(x - h);
     T f2 = f(x);
-    ans += f0 + 4*f1 + f2;
+    ans += f0 + 4 * f1 + f2;
     f0 = f2;
   }
   return ans * h / 3;
@@ -37,7 +37,7 @@ T integrate4(const Function& f, T left, T right, int steps) {
     T f2 = f(x - h * 2);
     T f3 = f(x - h);
     T f4 = f(x);
-    ans += 7*(f0 + f4) + 32*(f1 + f3) + 12*f2;
+    ans += 7 * (f0 + f4) + 32 * (f1 + f3) + 12 * f2;
     f0 = f4;
   }
   return ans * h * 2 / 45;

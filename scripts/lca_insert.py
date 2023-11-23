@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
-import sys, os
+import os
 
 
 def parse_args():
@@ -12,13 +12,14 @@ def parse_args():
   return parser.parse_args()
 
 
-def main(args):
-  PATH_TO_LCA = args.lca
+def main_impl(*, input_f, output_f, lca_root):
+  PATH_TO_LCA = lca_root
   if PATH_TO_LCA[-1] != '/':
     PATH_TO_LCA += '/'
 
   have = set()
-  def expand(filename, ouf, wait = False, digraphs = False):
+
+  def expand(filename, ouf, wait=False, digraphs=False):
     realname = os.path.realpath(filename)
     if realname in have:
       ouf.write("// already included\n")
@@ -40,8 +41,9 @@ def main(args):
             ouf.write(f"// START {line}")
             expand(PATH_TO_LCA + line.strip()[11:-1], ouf, True, True)
             ouf.write(f"// END {line}")
-          elif digraphs and False: # this is stupid
-            ouf.write(line.replace("[", "<:")
+          elif digraphs and False:  # this is stupid
+            ouf.write(
+                line.replace("[", "<:")
                 .replace("]", ":>")
                 .replace("{", "<%")
                 .replace("}", "%>")
@@ -53,9 +55,13 @@ def main(args):
             ouf.write(line)
     os.chdir(cwd)
 
-  ouf = open(args.output, "w")
-  expand(args.input, ouf)
+  ouf = open(output_f, "w")
+  expand(input_f, ouf)
   ouf.close()
+
+
+def main(args):
+  return main_impl(input_f=args.input, output_f=args.output, lca_root=args.lca)
 
 
 """ how to use

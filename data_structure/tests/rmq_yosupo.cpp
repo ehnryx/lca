@@ -1,7 +1,7 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-#include "../range_minimum_query.h"
+%:include "data_structure/range_minimum_query.h"
 
 int main() {
   cin.tie(0)->sync_with_stdio(0);
@@ -13,7 +13,7 @@ int main() {
     cin >> a[i];
   }
 
-  range_minimum_query rmq(a);
+  auto rmq = make_rmq(a);
   for(int i=0; i<q; i++) {
     int l, r;
     cin >> l >> r;

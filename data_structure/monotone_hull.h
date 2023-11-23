@@ -16,22 +16,24 @@
 
 #include <limits>
 #include <set>
+#include <vector>
 
 template <typename T>
 struct monotone_hull_line {
   T m, b;
   mutable T last;
-  monotone_hull_line(const T& _m, const T& _b, const T& r): m(_m), b(_b), last(r) {}
-  bool operator < (const monotone_hull_line& o) const { return m < o.m; }
-  bool operator < (const T& x) const { return last < x; }
+  monotone_hull_line(const T& _m, const T& _b, const T& r) : m(_m), b(_b), last(r) {}
+  bool operator<(const monotone_hull_line& o) const { return m < o.m; }
+  bool operator<(const T& x) const { return last < x; }
 };
 
 template <typename T>
 struct monotone_hull {
   std::vector<monotone_hull_line<T>> hull;
   using base_it = typename decltype(hull)::iterator;
-  static constexpr T inf = std::numeric_limits<T>::has_infinity ?
-    std::numeric_limits<T>::infinity() : std::numeric_limits<T>::max();
+  static constexpr T inf = std::numeric_limits<T>::has_infinity
+                               ? std::numeric_limits<T>::infinity()
+                               : std::numeric_limits<T>::max();
   static T div(const T& a, const T& b) {
     if constexpr (std::is_integral_v<T>) {
       return a / b - ((a ^ b) < 0 && a % b != 0);
@@ -72,11 +74,6 @@ using monotone_hull_max = monotone_hull<T>;
 
 template <typename T>
 struct monotone_hull_min : monotone_hull<T> {
-  void insert(const T& m, const T& b) {
-    return monotone_hull<T>::insert(-m, -b);
-  }
-  T query(const T& x) const {
-    return -monotone_hull<T>::query(x);
-  }
+  void insert(const T& m, const T& b) { return monotone_hull<T>::insert(-m, -b); }
+  T query(const T& x) const { return -monotone_hull<T>::query(x); }
 };
-

@@ -28,8 +28,6 @@ struct min_stack {
   T top() const { return stk.back().value; }
   void pop() { stk.pop_back(); }
   void push(const T& v) {
-    stk.emplace_back(v,
-        stk.empty() ? v : std::min(v, stk.back().min, Compare()));
+    stk.emplace_back(v, stk.empty() ? v : std::min(v, stk.back().min, Compare()));
   }
 };
-

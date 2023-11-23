@@ -27,20 +27,20 @@ struct rooted_tree {
   std::vector<int> parent, depth, subtree, start, preorder, in, out;
   int root;
 
-  rooted_tree(const std::vector<std::vector<int>>& adj_list, int r): adj(adj_list),
-    parent(size(), -1), depth(size()), subtree(size()), start(size()),
-    in(size()), out(size()), root(r) {
+  rooted_tree(const std::vector<std::vector<int>>& adj_list, int r)
+      : adj(adj_list), parent(size(), -1), depth(size()), subtree(size()), start(size()),
+        in(size()), out(size()), root(r) {
     preorder.reserve(size());
     build(root, -1, 0);
   }
-  rooted_tree(std::vector<std::vector<int>>&& adj_list, int r): adj(move(adj_list)),
-    parent(size(), -1), depth(size()), subtree(size()), start(size()),
-    in(size()), out(size()), root(r) {
+  rooted_tree(std::vector<std::vector<int>>&& adj_list, int r)
+      : adj(std::move(adj_list)), parent(size(), -1), depth(size()), subtree(size()),
+        start(size()), in(size()), out(size()), root(r) {
     preorder.reserve(size());
     build(root, -1, 0);
   }
 
-  const std::vector<int>& operator [] (int i) const { return adj[i]; }
+  const std::vector<int>& operator[](int i) const { return adj[i]; }
   size_t size() const { return adj.size(); }
 
   bool is_ancestor_of(int anc, int v, bool strict = true) const {
@@ -48,7 +48,7 @@ struct rooted_tree {
     else return in[anc] <= in[v] && out[anc] >= out[v];
   }
 
-private:
+ private:
   int build(int u, int par, int idx) {
     in[u] = idx++;
     start[u] = (int)preorder.size();
@@ -70,4 +70,3 @@ private:
     return idx;
   }
 };
-

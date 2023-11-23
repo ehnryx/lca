@@ -17,19 +17,20 @@
 
 #include "suffix_array.h"
 
-template <template<typename> typename container_t, typename T>
+template <template <typename> typename container_t, typename T>
 struct suffix_tree {
   container_t<T> t;
   // suffix_node ranges are [inclusive, exclusive)
   struct suffix_node_item {
-    T value; int to;
-    suffix_node_item(T v, int t): value(v), to(t) {}
+    T value;
+    int to;
+    suffix_node_item(T v, int t) : value(v), to(t) {}
     bool operator<(T c) const { return value < c; }
   };
   struct suffix_node : std::vector<suffix_node_item> {
     int parent, depth, left, right;
     suffix_node() = default;
-    suffix_node(int p, int d, int l, int r): parent(p), depth(d), left(l), right(r) {}
+    suffix_node(int p, int d, int l, int r) : parent(p), depth(d), left(l), right(r) {}
     int get(const T& c) const {
       auto res = std::lower_bound(this->begin(), this->end(), c);
       return res != this->end() && res->value == c ? res->to : -1;
@@ -38,8 +39,8 @@ struct suffix_tree {
   std::vector<suffix_node> nodes;
   suffix_array<T> sa;
 
-  suffix_tree(const container_t<T>& s): t(s), sa(t) { build(); }
-  suffix_tree(container_t<T>&& s): t(move(s)), sa(t) { build(); }
+  suffix_tree(const container_t<T>& s) : t(s), sa(t) { build(); }
+  suffix_tree(container_t<T>&& s) : t(move(s)), sa(t) { build(); }
 
   // BEGIN suffix tree functions
   // size of suffix tree
@@ -57,11 +58,11 @@ struct suffix_tree {
   // whether a vertex is a leaf
   bool is_leaf(int u) const { return u < root(); }
   // the nodes in order, use .get(char) to match a character
-  const suffix_node& operator [] (int i) const { return nodes.at(i); };
+  const suffix_node& operator[](int i) const { return nodes.at(i); };
 
   // return: (node, idx in range[node]) of the past-the-end of the match.
   //         (-1, -1) if not matched
-  template <template<typename> typename container_u>
+  template <template <typename> typename container_u>
   std::pair<int, int> match(const container_u<T>& s) const {
     int u = root();
     int idx = 0;
@@ -83,7 +84,7 @@ struct suffix_tree {
   }
   // END suffix tree functions
 
-private:
+ private:
   void build() {
     int n = (int)t.size();
     nodes.reserve(2 * n);
@@ -114,4 +115,3 @@ private:
     }
   }
 };
-

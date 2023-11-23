@@ -12,16 +12,16 @@
  */
 #pragma once
 
-#include "../utility/minmax.h"
 #include <functional>
 #include <iostream>
+#include "../utility/minmax.h"
 
 template <typename weight_t, class Smaller = utility::min<>>
 struct floyd_warshall {
   std::vector<std::vector<weight_t>> adj;
   const weight_t inf;
-  floyd_warshall(int n, weight_t _inf, bool self_zero = true):
-    adj(n, std::vector<weight_t>(n, _inf)), inf(_inf) {
+  floyd_warshall(int n, weight_t _inf, bool self_zero = true)
+      : adj(n, std::vector<weight_t>(n, _inf)), inf(_inf) {
     if (self_zero) {
       for (int i = 0; i < n; i++) {
         adj[i][i] = weight_t();
@@ -32,9 +32,7 @@ struct floyd_warshall {
     add_arc(a, b, c);
     add_arc(b, a, c);
   }
-  void add_arc(int a, int b, weight_t c) {
-    adj[a][b] = Smaller()(adj[a][b], c);
-  }
+  void add_arc(int a, int b, weight_t c) { adj[a][b] = Smaller()(adj[a][b], c); }
   template <typename add_t>
   void run(const add_t& add) {
     for (size_t k = 0; k < adj.size(); k++) {
@@ -59,4 +57,3 @@ struct floyd_warshall {
     return os;
   }
 };
-

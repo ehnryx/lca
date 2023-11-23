@@ -13,23 +13,21 @@
  */
 #pragma once
 
+#include <queue>
 #include "graph.h"
 #include "graph_traversal.h"
-#include <queue>
 
 template <typename weight_t>
 struct dijkstra : graph_traversal {
   const graph_t<weight_t>& graph;
   std::vector<weight_t> dist;
   const weight_t infinity;
-  dijkstra(const graph_t<weight_t>& g, weight_t inf):
-    graph_traversal(g.size()), graph(g), dist(g.size(), inf), infinity(inf) {}
+  dijkstra(const graph_t<weight_t>& g, weight_t inf)
+      : graph_traversal(g.size()), graph(g), dist(g.size(), inf), infinity(inf) {}
   const std::vector<weight_t>& get_dists() const { return dist; }
-  dijkstra& run(int source) {
-    return run(std::vector({ graph_adj<weight_t>(source, 0) }));
-  }
+  dijkstra& run(int source) { return run(std::vector({graph_adj<weight_t>(source, 0)})); }
   dijkstra& run(const std::vector<int>& sources) {
-    std::vector<graph_adj<weight_t>>& hacked;
+    std::vector<graph_adj<weight_t>> hacked;
     hacked.reserve(sources.size());
     for (int s : sources) {
       hacked.emplace_back(s, 0);
@@ -38,9 +36,9 @@ struct dijkstra : graph_traversal {
   }
   dijkstra& run(const std::vector<graph_adj<weight_t>>& sources) {
     std::priority_queue<
-      graph_adj<weight_t>,
-      std::vector<graph_adj<weight_t>>,
-      std::greater<graph_adj<weight_t>>> to_visit;
+        graph_adj<weight_t>, std::vector<graph_adj<weight_t>>,
+        std::greater<graph_adj<weight_t>>>
+        to_visit;
     for (auto [source, dist_to_source] : sources) {
       if (dist[source] == infinity || dist_to_source < dist[source]) {
         dist[source] = dist_to_source;
@@ -62,4 +60,3 @@ struct dijkstra : graph_traversal {
     return *this;
   }
 };
-

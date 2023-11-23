@@ -11,8 +11,7 @@
   template <typename __class_t, typename... __args_t> \
   struct _has_##FUNCTION { \
     template <typename __class> \
-    static constexpr auto check(__class*) -> \
-      typename std::is_void<std::void_t< \
+    static constexpr auto check(__class*) -> typename std::is_void<std::void_t< \
         decltype(std::declval<__class&>().FUNCTION(std::declval<__args_t>()...))>>::type; \
     template <typename __dummy> \
     static constexpr auto check(...) -> std::false_type; \

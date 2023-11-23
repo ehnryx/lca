@@ -12,6 +12,9 @@
  */
 #pragma once
 
+#include <cstdint>
+#include <functional>
+#include <stdexcept>
 #include <vector>
 
 template <typename T, typename Compare = std::less<T>>
@@ -20,8 +23,7 @@ struct range_minimum_query_linear {
   std::vector<std::vector<T>> block_rmq;
   std::vector<T> values;
   std::vector<uint32_t> block_mask;
-  range_minimum_query_linear(const std::vector<T>& arr)
-    : values(arr), block_mask(arr.size()) {
+  range_minimum_query_linear(const std::vector<T>& arr) : values(arr), block_mask(arr.size()) {
     const int n = (int)arr.size();
     const int n_blocks = (n + S - 1) / S;
     const int L = 32 - __builtin_clz(n_blocks);
@@ -45,9 +47,9 @@ struct range_minimum_query_linear {
       block_mask[i] |= 1;
     }
     for (int j = 1; j < L; j++) {
-      for (int i = 0; i + (1<<j) <= n_blocks; i++) {
-        block_rmq[j][i] = std::min(
-            block_rmq[j-1][i], block_rmq[j-1][i + (1<<(j-1))], Compare());
+      for (int i = 0; i + (1 << j) <= n_blocks; i++) {
+        block_rmq[j][i] =
+            std::min(block_rmq[j - 1][i], block_rmq[j - 1][i + (1 << (j - 1))], Compare());
       }
     }
   }
@@ -61,10 +63,10 @@ struct range_minimum_query_linear {
       case 1:
         return std::min(query_small(l, rb * S - 1), query_small(rb * S, r), Compare());
       default:
-        return std::min({
-            query_big(lb + 1, rb - 1),
-            query_small(l, (lb + 1) * S - 1),
-            query_small(rb * S, r)}, Compare());
+        return std::min(
+            {query_big(lb + 1, rb - 1), query_small(l, (lb + 1) * S - 1),
+             query_small(rb * S, r)},
+            Compare());
     }
   }
   T query_small(int l, int r) const {
@@ -73,7 +75,6 @@ struct range_minimum_query_linear {
   }
   T query_big(int l, int r) const {
     const int j = 31 - __builtin_clz(r + 1 - l);
-    return std::min(block_rmq[j][l], block_rmq[j][r + 1 - (1<<j)], Compare());
+    return std::min(block_rmq[j][l], block_rmq[j][r + 1 - (1 << j)], Compare());
   }
 };
-

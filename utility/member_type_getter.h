@@ -16,4 +16,3 @@
   struct _get_type_##TYPE<__class_t, __default_t, std::void_t<typename __class_t::TYPE>> { \
     using type = typename __class_t::TYPE; \
   }
-

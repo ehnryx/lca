@@ -1,7 +1,7 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-#include "../range_minimum_query.h"
+%:include "data_structure/range_minimum_query.h"
 
 constexpr char nl = '\n';
 
@@ -17,8 +17,8 @@ int main() {
     for (int i = 0; i < n; i++) {
       cin >> a[i];
     }
-    range_minimum_query rmq_min(a);
-    range_minimum_query<int, greater<>> rmq_max(a);
+    auto rmq_min = make_rmq(a);
+    auto rmq_max = make_rmq<greater<>>(a);
 
     bool ok = false;
     for (int i = 1; !ok && i <= n - 2; i++) {

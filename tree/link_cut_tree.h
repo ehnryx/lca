@@ -17,15 +17,13 @@ struct link_cut_tree : splay_tree<node_t> {
   using base::nil, base::splay, base::set_child, base::walk_left, base::pull;
   using base::splay_prev, base::splay_next;
   std::vector<node_t> data;
-  link_cut_tree(int n): base(), data(n) {
+  link_cut_tree(int n) : base(), data(n) {
     for (int i = 0; i < n; i++) {
       data[i].size = 1;
     }
   }
   ~link_cut_tree() { base::root = nil; }
-  link_cut_tree(const link_cut_tree& o): base() {
-    o.copy_to(*this);
-  }
+  link_cut_tree(const link_cut_tree& o) : base() { o.copy_to(*this); }
   link_cut_tree& operator=(const link_cut_tree&) = delete;
 
   void copy_to(link_cut_tree& other) const {
@@ -74,37 +72,29 @@ struct link_cut_tree : splay_tree<node_t> {
 
   // link reroots the second tree to v, but does not modify the first tree
   void link(int u, int v) { return link(&data[u], &data[v]); }
-  void link(node_t* u, node_t* v) {
-    set_child(access(u), reroot(v), false);
-  }
+  void link(node_t* u, node_t* v) { set_child(access(u), reroot(v), false); }
 
   void cut(int u, int v) { return cut(&data[u], &data[v]); }
   void cut(node_t* u, node_t* v) {
     access(u);
     if (node_t* w = splay_prev(u); w == v) {
       w->right = u->parent = nil;
-      u->chain_parent = nil; // disconnect u
+      u->chain_parent = nil;  // disconnect u
       pull(w);
     } else {
-      splay(v)->chain_parent = nil; // disconnect v
+      splay(v)->chain_parent = nil;  // disconnect v
     }
   }
 
-  int lca(int u, int v) {
-    return (int)(lca(&data[u], &data[v]) - &data[0]);
-  }
+  int lca(int u, int v) { return (int)(lca(&data[u], &data[v]) - &data[0]); }
   node_t* lca(node_t* u, node_t* v) {
     access(u);
     access(v);
     return u->chain_parent == nil ? u : u->chain_parent;
   }
 
-  int find_root(int u) {
-    return (int)(find_root(&data[u]) - &data[0]);
-  }
-  node_t* find_root(node_t* u) {
-    return splay(walk_left(access(u)));
-  }
+  int find_root(int u) { return (int)(find_root(&data[u]) - &data[0]); }
+  node_t* find_root(node_t* u) { return splay(walk_left(access(u))); }
 
   node_t* reroot(int u) { return reroot(&data[u]); }
   node_t* reroot(node_t* u) {
@@ -117,9 +107,7 @@ struct link_cut_tree : splay_tree<node_t> {
     node_t* x = parent(&data[u]);
     return x == nil ? -1 : (int)(x - &data[0]);
   }
-  node_t* parent(node_t* u) {
-    return splay_prev(access(u));
-  }
+  node_t* parent(node_t* u) { return splay_prev(access(u)); }
 
   int step_down_towards(int r, int u) {
     return (int)(step_down_towards(&data[r], &data[u]) - &data[0]);
@@ -178,8 +166,8 @@ struct link_cut_node : splay_node_base<derived_t, void, value_t> {
   using base::nil, base::left, base::right;
   derived_t* chain_parent;
   bool rev;
-  link_cut_node(): base(), chain_parent(nil), rev(false) {}
-  link_cut_node(const value_t& v): base(v), chain_parent(nil), rev(false) {}
+  link_cut_node() : base(), chain_parent(nil), rev(false) {}
+  link_cut_node(const value_t& v) : base(v), chain_parent(nil), rev(false) {}
   void reverse() {
     std::swap(left, right);
     rev ^= 1;
@@ -202,7 +190,7 @@ struct simple_link_cut_node final : splay_node_base<simple_link_cut_node, void, 
   using base::nil, base::left, base::right;
   simple_link_cut_node* chain_parent;
   bool rev;
-  simple_link_cut_node(): base(), chain_parent(nil), rev(false) {}
+  simple_link_cut_node() : base(), chain_parent(nil), rev(false) {}
   void reverse() {
     std::swap(left, right);
     rev ^= 1;
@@ -219,4 +207,3 @@ struct simple_link_cut_node final : splay_node_base<simple_link_cut_node, void, 
     rev = false;
   }
 };
-

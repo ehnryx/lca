@@ -12,7 +12,7 @@ for arg; do
     echo "  $arg"
     echo "#include \"$arg\"" >> $temp.cpp
   else
-    cpp_files+=($arg)
+    cpp_files+=("$arg")
   fi
 done
 
@@ -21,9 +21,9 @@ g++-11 -Wall -Wextra -Wshadow -Wfatal-errors -Wpedantic -Wconversion \
   -D HENRYX -std=c++20 $temp.cpp -o $temp && rm $temp
 rm $temp.cpp
 
-for f in ${cpp_files[@]}; do
-  printf "\ncompiling $f\n"
+for f in "${cpp_files[@]}"; do
+  printf "\ncompiling %s\n" "$f"
   g++-11 -Wall -Wextra -Wshadow -Wfatal-errors -Wpedantic -Wconversion \
-    -D HENRYX -std=c++20 $f -o $temp && rm $temp
+    -D HENRYX -std=c++20 "$f" -o $temp && rm $temp
 done
 

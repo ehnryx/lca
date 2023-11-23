@@ -28,14 +28,14 @@ struct push_relabel {
   struct edge {
     int to, rev;
     T cap, flow;
-    edge(int t, int r, const T& c, const T& f): to(t), rev(r), cap(c), flow(f) {}
+    edge(int t, int r, const T& c, const T& f) : to(t), rev(r), cap(c), flow(f) {}
   };
   std::vector<std::vector<edge>> adj;
   std::vector<std::vector<int>> active;
   std::vector<int> height, layer;
   std::vector<T> excess;
   int work;
-  push_relabel(int n): adj(n), active(n), height(n), layer(n), excess(n) {}
+  push_relabel(int n) : adj(n), active(n), height(n), layer(n), excess(n) {}
   void add_edge(int a, int b, const T& c, bool bidirectional = false) {
     adj[a].emplace_back(b, (int)adj[b].size(), c, 0);
     adj[b].emplace_back(a, (int)adj[a].size() - 1, bidirectional ? c : 0, 0);
@@ -113,7 +113,7 @@ struct push_relabel {
       }
       if (excess[u] == 0) break;
       if (!backward && layer[height[u]] == 0) {
-        height[u] = size(); // disconnected from the sink
+        height[u] = size();  // disconnected from the sink
       } else {
         height[u] = relabel_height;
       }
@@ -169,4 +169,3 @@ struct push_relabel {
     return res;
   }
 };
-

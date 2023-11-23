@@ -20,11 +20,15 @@
  */
 #pragma once
 
+#include <cassert>
+#include <vector>
+
 template <bool vertices = true>
-vector<int> euler_trail(const vector<vector<pair<int, int>>>& graph, int num_edges, int source) {
-  vector<bool> used(num_edges);
-  vector<int> diff(size(graph)), cur_edge(size(graph)), trail;
-  vector<conditional_t<vertices, int, pair<int, int>>> stk;
+std::vector<int> euler_trail(
+    const std::vector<std::vector<std::pair<int, int>>>& graph, int num_edges, int source) {
+  std::vector<bool> used(num_edges);
+  std::vector<int> diff(size(graph)), cur_edge(size(graph)), trail;
+  std::vector<std::conditional_t<vertices, int, std::pair<int, int>>> stk;
   stk.reserve(size(graph));
   diff[source]++;
   if constexpr (vertices) stk.push_back(source);
@@ -49,10 +53,8 @@ vector<int> euler_trail(const vector<vector<pair<int, int>>>& graph, int num_edg
     }
   }
   assert((int)size(trail) <= num_edges + vertices);
-  if ((int)size(trail) != num_edges + vertices
-      || *min_element(begin(diff), end(diff)) < 0) {
+  if ((int)size(trail) != num_edges + vertices || *min_element(begin(diff), end(diff)) < 0) {
     return {};
   }
-  return vector(rbegin(trail), rend(trail));
+  return std::vector(rbegin(trail), rend(trail));
 }
-

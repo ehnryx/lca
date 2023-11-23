@@ -31,8 +31,8 @@ struct persistent_li_chao_tree {
   std::vector<int> roots;
   std::vector<int> freei;
 
-  persistent_li_chao_tree(const std::vector<T>& qp, int reserve = 0):
-    query_points(_clean_query_points(qp)), data(1, Node{init_line}), roots(1, 0) {
+  persistent_li_chao_tree(const std::vector<T>& qp, int reserve = 0)
+      : query_points(_clean_query_points(qp)), data(1, Node{init_line}), roots(1, 0) {
     if (reserve) {
       data.reserve(reserve);
       freei.reserve(reserve);
@@ -76,7 +76,8 @@ struct persistent_li_chao_tree {
       return make_node(Node{data[i].v}, version_nodes...);
     }
     int mid = (left + right) / 2;
-    bool left_better = Compare()(v.eval(query_points[left]), data[i].v.eval(query_points[left]));
+    bool left_better =
+        Compare()(v.eval(query_points[left]), data[i].v.eval(query_points[left]));
     bool mid_better = Compare()(v.eval(query_points[mid]), data[i].v.eval(query_points[mid]));
     int ni = make_node(Node{data[i]}, version_nodes...);
     if (mid_better) std::swap(data[ni].v, v);
@@ -90,28 +91,33 @@ struct persistent_li_chao_tree {
 
   T query(int id, T x) {
     auto it = std::lower_bound(query_points.begin(), query_points.end(), x);
-    if (it == query_points.end() or *it != x) throw std::invalid_argument("query(x) is not at a query_point");
-    if (id >= roots.size()) throw std::invalid_argument("query(x) for a version that does not exist");
-    return _query(std::distance(query_points.begin(), it), roots[id], 0, query_points.size() - 1);
+    if (it == query_points.end() or *it != x)
+      throw std::invalid_argument("query(x) is not at a query_point");
+    if (id >= roots.size())
+      throw std::invalid_argument("query(x) for a version that does not exist");
+    return _query(
+        std::distance(query_points.begin(), it), roots[id], 0, query_points.size() - 1);
   }
   T _query(int x, int i, int left, int right) {
     if (i == -1) return init_line.b;
     if (left == right) return data[i].v.eval(query_points[x]);
     int mid = (left + right) / 2;
     if (x <= mid) {
-      return std::min(data[i].v.eval(query_points[x]), _query(x, data[i].li, left, mid), Compare());
+      return std::min(
+          data[i].v.eval(query_points[x]), _query(x, data[i].li, left, mid), Compare());
     } else {
-      return std::min(data[i].v.eval(query_points[x]), _query(x, data[i].ri, mid + 1, right), Compare());
+      return std::min(
+          data[i].v.eval(query_points[x]), _query(x, data[i].ri, mid + 1, right), Compare());
     }
   }
 
-private:
+ private:
   static constexpr Line _get_init_line() {
     return Line{
-      T(0),
-      Compare()(std::numeric_limits<T>::min(), std::numeric_limits<T>::max())
-        ? std::numeric_limits<T>::max()
-        : std::numeric_limits<T>::min(),
+        T(0),
+        Compare()(std::numeric_limits<T>::min(), std::numeric_limits<T>::max())
+            ? std::numeric_limits<T>::max()
+            : std::numeric_limits<T>::min(),
     };
   }
   static std::vector<T> _clean_query_points(std::vector<T> v) {
@@ -120,7 +126,6 @@ private:
     return v;
   }
 
-public:
+ public:
   static constexpr Line init_line = _get_init_line();
 };
-

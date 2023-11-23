@@ -20,20 +20,20 @@ struct euler_tour_tree : splay_tree<node_t> {
   using base::walk_left, base::walk_right, base::rank;
 
   using edge_node_t = splay_node<int, node_t*>;
-  using node_memory_t = std::conditional_t<use_memory_pool,
-        simple_memory_pool<node_t>, fake_memory_pool<node_t>>;
-  using edge_node_memory_t = std::conditional_t<use_memory_pool,
-        simple_memory_pool<edge_node_t>, fake_memory_pool<edge_node_t>>;
-  using edge_set_t = std::conditional_t<use_memory_pool,
-        splay_tree_shared_memory<edge_node_t>, splay_tree<edge_node_t>>;
+  using node_memory_t =
+      std::conditional_t<use_memory_pool, simple_memory_pool<node_t>, fake_memory_pool<node_t>>;
+  using edge_node_memory_t = std::conditional_t<
+      use_memory_pool, simple_memory_pool<edge_node_t>, fake_memory_pool<edge_node_t>>;
+  using edge_set_t = std::conditional_t<
+      use_memory_pool, splay_tree_shared_memory<edge_node_t>, splay_tree<edge_node_t>>;
 
   node_memory_t memory;
   edge_node_memory_t edge_memory;
   std::vector<node_t> data;
   std::vector<edge_set_t> edges;
   node_t dummy;
-  euler_tour_tree(int n): base(), memory(2 * n), edge_memory(2 * n),
-    data(n), edges(n), dummy(*nil) {
+  euler_tour_tree(int n)
+      : base(), memory(2 * n), edge_memory(2 * n), data(n), edges(n), dummy(*nil) {
     for (int i = 0; i < n; i++) {
       data[i] = node_t();
       data[i].set_ref(true);
@@ -45,7 +45,7 @@ struct euler_tour_tree : splay_tree<node_t> {
   }
   ~euler_tour_tree() { base::root = nil; }
   euler_tour_tree(const euler_tour_tree&) = delete;
-  euler_tour_tree& operator = (const euler_tour_tree&) = delete;
+  euler_tour_tree& operator=(const euler_tour_tree&) = delete;
 
   node_t* new_ett_node() {
     node_t* x = new (memory.allocate()) node_t();
@@ -56,7 +56,7 @@ struct euler_tour_tree : splay_tree<node_t> {
 
   int size() const { return (int)edges.size(); }
   int size(int i) { return splay(&data[i])->ref_cnt(); }
-  node_t& operator [] (int i) { return data[i]; }
+  node_t& operator[](int i) { return data[i]; }
   node_t* ptr(int i) { return &data[i]; }
 
   template <class... Args>
@@ -65,32 +65,24 @@ struct euler_tour_tree : splay_tree<node_t> {
     data[i].set_ref(true);
   }
 
-  node_t* splay(int u) {
-    return splay(&data[u]);
-  }
+  node_t* splay(int u) { return splay(&data[u]); }
 
-  int find_root(int u) {
-    return (int)(find_root(&data[u]) - &data[0]);
-  }
-  node_t* find_root(node_t* u) {
-    return splay(walk_left(splay(u)));
-  }
+  int find_root(int u) { return (int)(find_root(&data[u]) - &data[0]); }
+  node_t* find_root(node_t* u) { return splay(walk_left(splay(u))); }
 
   bool is_connected(int u, int v) {
-    return find_root(u) == find_root(v); // is this slow ?
+    return find_root(u) == find_root(v);  // is this slow ?
   }
 
   node_t* next_ref(node_t* u) {
-    return base::find_first_after(u,
-      [](node_t* x) -> bool { return x->ref_cnt() > 0; },
-      [](node_t* x) -> bool { return x->ref(); });
+    return base::find_first_after(
+        u, [](node_t* x) -> bool { return x->ref_cnt() > 0; },
+        [](node_t* x) -> bool { return x->ref(); });
   }
 
-  void reroot(int u) {
-    _reroot(&data[u]);
-  }
+  void reroot(int u) { _reroot(&data[u]); }
   node_t* _reroot(node_t* u) {
-    if (splay(u)->left == nil) return u; // nothing to do
+    if (splay(u)->left == nil) return u;  // nothing to do
     // disconnect left side
     node_t* v = u->left;
     v->parent = u->left = nil;
@@ -99,7 +91,7 @@ struct euler_tour_tree : splay_tree<node_t> {
     v = splay(walk_left(v));
     set_child(v, u, true);
     pull(v);
-    return v; // root of splay tree != root of tree
+    return v;  // root of splay tree != root of tree
   }
 
   void link(int u_id, int v_id) {
@@ -120,7 +112,7 @@ struct euler_tour_tree : splay_tree<node_t> {
 
   void cut(int u_id, int v_id) {
     auto e_uv = edges[u_id].find(v_id);
-    if (e_uv == edges[u_id].nil) return; // edge does not exist
+    if (e_uv == edges[u_id].nil) return;  // edge does not exist
     auto e_vu = edges[v_id].find(u_id);
     node_t* a = e_uv->value;
     node_t* b = e_vu->value;
@@ -143,7 +135,7 @@ struct euler_tour_tree : splay_tree<node_t> {
     if (top != nil && bot != nil) {
       bot = splay(walk_left(bot));
       set_child(bot, top, true);
-      pull(bot); // uhh this is actually root
+      pull(bot);  // uhh this is actually root
     }
   }
 
@@ -174,7 +166,7 @@ struct euler_tour_tree : splay_tree<node_t> {
     node_t* e_xp = edges[x][p];
     node_t* e_px = edges[p][x];
     if (rank(e_px) < rank(e_xp)) {
-      return base::query_range(e_px, e_xp);
+      return base::query_range(e_px, e_xp, args...);
     } else {
       e_px = base::range(e_px, nil);
       e_xp = base::range(nil, e_xp);
@@ -188,7 +180,7 @@ struct euler_tour_tree : splay_tree<node_t> {
 
 struct euler_tour_node_ref {
   int _ref;
-  euler_tour_node_ref(): _ref(0) {}
+  euler_tour_node_ref() : _ref(0) {}
   void set_ref(bool r) { _ref = r ? 0b11 : 0; }
   bool ref() const { return _ref & 1; }
   int ref_cnt() const { return _ref >> 1; }
@@ -197,24 +189,23 @@ struct euler_tour_node_ref {
 template <typename derived_t, typename value_t, typename = void>
 struct euler_tour_node : splay_node_base<derived_t, void, value_t>, euler_tour_node_ref {
   using base = splay_node_base<derived_t, void, value_t>;
-  euler_tour_node(): base(), euler_tour_node_ref() {}
-  euler_tour_node(const value_t& v): base(v), euler_tour_node_ref() {}
+  euler_tour_node() : base(), euler_tour_node_ref() {}
+  euler_tour_node(const value_t& v) : base(v), euler_tour_node_ref() {}
   void pull() {
     static constexpr int mask = ~(int)1;
-    _ref = (_ref & 1) + ((_ref & 1) << 1)
-        + (base::left->_ref & mask) + (base::right->_ref & mask);
+    _ref =
+        (_ref & 1) + ((_ref & 1) << 1) + (base::left->_ref & mask) + (base::right->_ref & mask);
   }
 };
 
 template <typename derived_t, typename value_t>
 struct euler_tour_node<derived_t, value_t, std::enable_if_t<std::is_void_v<value_t>>>
-  : splay_node_base<derived_t, void, value_t>, euler_tour_node_ref {
+    : splay_node_base<derived_t, void, value_t>, euler_tour_node_ref {
   using base = splay_node_base<derived_t, void, value_t>;
-  euler_tour_node(): base(), euler_tour_node_ref() {}
+  euler_tour_node() : base(), euler_tour_node_ref() {}
   void pull() {
     static constexpr int mask = ~(int)1;
-    _ref = (_ref & 1) + ((_ref & 1) << 1)
-        + (base::left->_ref & mask) + (base::right->_ref & mask);
+    _ref =
+        (_ref & 1) + ((_ref & 1) << 1) + (base::left->_ref & mask) + (base::right->_ref & mask);
   }
 };
-

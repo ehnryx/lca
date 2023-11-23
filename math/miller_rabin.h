@@ -10,18 +10,19 @@
 #pragma once
 
 #include <array>
+#include <cstdint>
 
 namespace miller_rabin {
 template <typename value_t, std::enable_if_t<std::is_unsigned_v<value_t>, bool> = true>
 bool is_prime(value_t n) {
   static_assert(std::is_integral_v<value_t>);
-  using larger_t = std::conditional_t<
-    std::is_same_v<value_t, uint32_t>, uint64_t, unsigned __int128>;
-  static constexpr auto witnesses = []{
+  using larger_t =
+      std::conditional_t<std::is_same_v<value_t, uint32_t>, uint64_t, unsigned __int128>;
+  static constexpr auto witnesses = [] {
     if constexpr (std::is_same_v<value_t, uint32_t>) {
-      return std::array{ 2, 7, 61 };
+      return std::array{2, 7, 61};
     } else {
-      return std::array{ 2ull, 325ull, 9375ull, 28178ull, 450775ull, 9780504ull, 1795265022ull };
+      return std::array{2ull, 325ull, 9375ull, 28178ull, 450775ull, 9780504ull, 1795265022ull};
     }
   }();
   if (n < 2) return false;
@@ -50,5 +51,4 @@ bool is_prime(value_t n) {
   }
   return true;
 }
-}
-
+}  // namespace miller_rabin

@@ -15,4 +15,3 @@ constexpr std::tuple<T, T, T> extended_gcd(T a, T b) {
   auto [g, y, x] = extended_gcd(b, a % b);
   return std::tuple(g, x, y - x * (a / b));
 }
-

@@ -11,6 +11,7 @@
 #pragma once
 
 #include "number_theoretic_transform.h"
+
 #include <iostream>
 
 template <long long mod, typename T = long long>
@@ -19,12 +20,15 @@ struct polynomial_mod {
   std::vector<T> coeffs;
 
   polynomial_mod() {}
-  polynomial_mod(int deg, T leading = 1): coeffs(deg + 1) { coeffs[deg] = leading; }
-  polynomial_mod(const polynomial_mod& v): coeffs(v.coeffs) {}
-  polynomial_mod(polynomial_mod&& v): coeffs(std::move(v.coeffs)) {}
-  polynomial_mod(const std::vector<T>& v): coeffs(v) { mod_all_coeffs(); }
-  polynomial_mod(std::vector<T>&& v): coeffs(std::move(v)) { mod_all_coeffs(); }
-  polynomial_mod& operator = (const polynomial_mod& v) { coeffs = v.coeffs; return *this; }
+  polynomial_mod(int deg, T leading = 1) : coeffs(deg + 1) { coeffs[deg] = leading; }
+  polynomial_mod(const polynomial_mod& v) : coeffs(v.coeffs) {}
+  polynomial_mod(polynomial_mod&& v) : coeffs(std::move(v.coeffs)) {}
+  polynomial_mod(const std::vector<T>& v) : coeffs(v) { mod_all_coeffs(); }
+  polynomial_mod(std::vector<T>&& v) : coeffs(std::move(v)) { mod_all_coeffs(); }
+  polynomial_mod& operator=(const polynomial_mod& v) {
+    coeffs = v.coeffs;
+    return *this;
+  }
   void mod_all_coeffs() {
     if constexpr (std::is_integral_v<T>) {
       for (size_t i = 0; i < size(); i++) {
@@ -35,14 +39,17 @@ struct polynomial_mod {
   }
 
   size_t size() const { return coeffs.size(); }
-  polynomial_mod& resize(size_t s) { coeffs.resize(s); return *this; }
+  polynomial_mod& resize(size_t s) {
+    coeffs.resize(s);
+    return *this;
+  }
   int degree() const { return (int)coeffs.size() - 1; }
   bool zero() const { return coeffs.empty(); }
   T at(size_t i) const { return i < coeffs.size() ? coeffs[i] : T(0); }
-  T operator [] (size_t i) const { return at(i); }
+  T operator[](size_t i) const { return at(i); }
   T leading_coeff() const { return zero() ? T(0) : coeffs.back(); }
 
-  friend std::ostream& operator << (std::ostream& os, const polynomial_mod& v) {
+  friend std::ostream& operator<<(std::ostream& os, const polynomial_mod& v) {
     if (v.zero()) return os << '0';
     os << v.coeffs.front();
     for (size_t i = 1; i < v.size(); i++) {
@@ -84,7 +91,7 @@ struct polynomial_mod {
 
   // scalar
 
-  polynomial_mod& operator *= (T c) {
+  polynomial_mod& operator*=(T c) {
     if (c == 0) return make_zero();
     if (c == 1) return *this;
     for (size_t i = 0; i < size(); i++) {
@@ -96,21 +103,15 @@ struct polynomial_mod {
     }
     return *this;
   }
-  polynomial_mod& operator /= (T c) {
-    return operator *= (ntt::get_inverse<mod, T>(c));
-  }
-  polynomial_mod operator * (T c) const {
+  polynomial_mod& operator/=(T c) { return operator*=(ntt::get_inverse<mod, T>(c)); }
+  polynomial_mod operator*(T c) const {
     return c == 0 ? polynomial_mod() : polynomial_mod(*this) *= c;
   }
-  polynomial_mod operator / (T c) const {
-    return polynomial_mod(*this) /= c;
-  }
+  polynomial_mod operator/(T c) const { return polynomial_mod(*this) /= c; }
 
   // negation
 
-  polynomial_mod operator - () const {
-    return polynomial_mod(*this).negate();
-  }
+  polynomial_mod operator-() const { return polynomial_mod(*this).negate(); }
   polynomial_mod& negate() {
     for (size_t i = 0; i < size(); i++) {
       coeffs[i] = -coeffs[i];
@@ -145,42 +146,32 @@ struct polynomial_mod {
     return *this;
   }
 
-  polynomial_mod operator + (const polynomial_mod& o) const {
-    return polynomial_mod(*this) += o;
-  }
-  polynomial_mod operator - (const polynomial_mod& o) const {
-    return polynomial_mod(*this) -= o;
-  }
-  polynomial_mod& operator += (const polynomial_mod& o) {
-    return _add(o).remove_leading_zeros();
-  }
-  polynomial_mod& operator -= (const polynomial_mod& o) {
+  polynomial_mod operator+(const polynomial_mod& o) const { return polynomial_mod(*this) += o; }
+  polynomial_mod operator-(const polynomial_mod& o) const { return polynomial_mod(*this) -= o; }
+  polynomial_mod& operator+=(const polynomial_mod& o) { return _add(o).remove_leading_zeros(); }
+  polynomial_mod& operator-=(const polynomial_mod& o) {
     return _subtract(o).remove_leading_zeros();
   }
 
   // multiplication
 
-  polynomial_mod operator * (const polynomial_mod& o) const {
+  polynomial_mod operator*(const polynomial_mod& o) const {
     if (zero() || o.zero()) return polynomial_mod();
     return ntt::convolve<mod>(coeffs, o.coeffs);
   }
-  polynomial_mod& operator *= (const polynomial_mod& o) {
+  polynomial_mod& operator*=(const polynomial_mod& o) {
     if (zero() || o.zero()) return make_zero();
     return *this = ntt::convolve<mod>(coeffs, o.coeffs);
   }
 
   // division
 
-  polynomial_mod operator / (const polynomial_mod& o) const {
-    return divide_remainder(o).first;
-  }
-  polynomial_mod operator % (const polynomial_mod& o) const {
-    return divide_remainder(o).second;
-  }
-  polynomial_mod& operator /= (const polynomial_mod& o) {
+  polynomial_mod operator/(const polynomial_mod& o) const { return divide_remainder(o).first; }
+  polynomial_mod operator%(const polynomial_mod& o) const { return divide_remainder(o).second; }
+  polynomial_mod& operator/=(const polynomial_mod& o) {
     return *this = divide_remainder(o).first;
   }
-  polynomial_mod& operator %= (const polynomial_mod& o) {
+  polynomial_mod& operator%=(const polynomial_mod& o) {
     return *this = divide_remainder(o).second;
   }
 
@@ -244,8 +235,11 @@ struct polynomial_mod {
   // log, exp
 
   polynomial_mod log(size_t cut) const {
-    return (derivative() * reciprocal(cut))._truncate(cut)
-      .integral()._truncate(cut).remove_leading_zeros();
+    return (derivative() * reciprocal(cut))
+        ._truncate(cut)
+        .integral()
+        ._truncate(cut)
+        .remove_leading_zeros();
   }
 
   polynomial_mod exp(size_t cut) const {
@@ -260,7 +254,7 @@ struct polynomial_mod {
 
   // evaluation
 
-  T operator () (T x) const { return evaluate(x); }
+  T operator()(T x) const { return evaluate(x); }
   T evaluate(T x) const {
     T res = 0;
     T xn = 1;
@@ -274,23 +268,24 @@ struct polynomial_mod {
   // multipoint
   std::vector<T> evaluate(std::vector<T> xs) const {
     if (xs.empty()) return {};
-    if (xs.size() == 1) return { evaluate(xs[0]) };
+    if (xs.size() == 1) return {evaluate(xs[0])};
     int lg = 32 - __builtin_clz(xs.size() - 1);
     int n = 1 << lg;
     std::vector<polynomial_mod> blocks(2 * n), modded(2 * n);
     for (size_t i = 0; i < xs.size(); i++) {
-      blocks[i + n].coeffs = { -xs[i], 1 };
+      blocks[i + n].coeffs = {-xs[i], 1};
     }
     for (size_t i = n - 1; i > 0; i--) {
-      blocks[i] = (blocks[2*i + 1].zero() ? blocks[2*i] : blocks[2*i] * blocks[2*i + 1]);
+      blocks[i] =
+          (blocks[2 * i + 1].zero() ? blocks[2 * i] : blocks[2 * i] * blocks[2 * i + 1]);
     }
     modded[1] = *this;
     for (size_t i = 1; i < n; i++) {
-      if (!blocks[2*i].zero()) {
-        modded[2*i] = modded[i] % blocks[2*i];
+      if (!blocks[2 * i].zero()) {
+        modded[2 * i] = modded[i] % blocks[2 * i];
       }
-      if (!blocks[2*i + 1].zero()) {
-        modded[2*i + 1] = modded[i] % blocks[2*i + 1];
+      if (!blocks[2 * i + 1].zero()) {
+        modded[2 * i + 1] = modded[i] % blocks[2 * i + 1];
       }
     }
     std::vector<T> res(xs.size());
@@ -299,5 +294,4 @@ struct polynomial_mod {
     }
     return res;
   }
-
 };

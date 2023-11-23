@@ -26,10 +26,10 @@
 template <typename T>
 struct suffix_array {
   std::vector<int> sa, rank, height;
-  int operator [] (int i) const { return sa[i]; }
+  int operator[](int i) const { return sa[i]; }
   int size() const { return (int)sa.size(); }
 
-  template <template<typename> typename container_t>
+  template <template <typename> typename container_t>
   suffix_array(const container_t<T>& s) {
     int n = (int)s.size() + 1;
     std::vector<int> t(n);
@@ -81,13 +81,14 @@ struct suffix_array {
     suf[n - 1] = 0;
     for (int i = 1; i < (int)lms.size(); i++) {
       bool diff = false;
-      for (int j = 0; ; j++) {
-        if (s[lms_order[i] + j] != s[lms_order[i - 1] + j]
-            || ltype[lms_order[i] + j] != ltype[lms_order[i - 1] + j]) {
+      for (int j = 0;; j++) {
+        if (s[lms_order[i] + j] != s[lms_order[i - 1] + j] ||
+            ltype[lms_order[i] + j] != ltype[lms_order[i - 1] + j]) {
           diff = true;
           break;
-        } else if (j > 0 && ((ltype[lms_order[i] + j - 1] && !ltype[lms_order[i] + j])
-              || (ltype[lms_order[i - 1] + j - 1] && !ltype[lms_order[i - 1] + j]))) {
+        } else if (
+            j > 0 && ((ltype[lms_order[i] + j - 1] && !ltype[lms_order[i] + j]) ||
+                      (ltype[lms_order[i - 1] + j - 1] && !ltype[lms_order[i - 1] + j]))) {
           break;
         }
       }
@@ -110,8 +111,8 @@ struct suffix_array {
   }
 
   std::vector<int> induced_sort(
-      const std::vector<int>& s, const std::vector<bool>& ltype,
-      const std::vector<int>& idx, int A) {
+      const std::vector<int>& s, const std::vector<bool>& ltype, const std::vector<int>& idx,
+      int A) {
     std::vector<int> suf(s.size(), -1);
     std::vector<int> left(A), right(A), r2(A);
     for (int c : s) {
@@ -136,4 +137,3 @@ struct suffix_array {
     return suf;
   }
 };
-

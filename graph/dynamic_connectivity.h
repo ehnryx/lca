@@ -14,7 +14,7 @@
 struct dynamic_connectivity_node_base {
   splay_tree<splay_node<int, void>> edges, tree_edges;
   int edge_incidents, tree_incidents;
-  dynamic_connectivity_node_base(): edges(), edge_incidents(0), tree_incidents(0) {}
+  dynamic_connectivity_node_base() : edges(), edge_incidents(0), tree_incidents(0) {}
   void add_edge(int v) {
     if (v & 1) {
       tree_edges.insert(v);
@@ -33,9 +33,7 @@ struct dynamic_connectivity_node_base {
       edges.erase(it);
     }
   }
-  void del_edge_to(int v) {
-    del_edge(get_edge(v));
-  }
+  void del_edge_to(int v) { del_edge(get_edge(v)); }
   splay_node<int, void>* get_edge(int v) {
     auto e = edges.lower_bound(v << 1);
     if (e == e->nil || (e->key >> 1) != v) {
@@ -46,32 +44,33 @@ struct dynamic_connectivity_node_base {
 };
 
 template <typename derived_t, typename value_t>
-struct dynamic_connectivity_node
-  : euler_tour_node<derived_t, value_t>, dynamic_connectivity_node_base {
+struct dynamic_connectivity_node : euler_tour_node<derived_t, value_t>,
+                                   dynamic_connectivity_node_base {
   using base = euler_tour_node<derived_t, value_t>;
   using dc_base = dynamic_connectivity_node_base;
-  dynamic_connectivity_node(): base(), dc_base() {}
-  dynamic_connectivity_node(const value_t& v): base(v), dc_base() {}
+  dynamic_connectivity_node() : base(), dc_base() {}
+  dynamic_connectivity_node(const value_t& v) : base(v), dc_base() {}
   void pull() {
     base::pull();
-    dc_base::edge_incidents = dc_base::edges.size()
-        + base::left->edge_incidents + base::right->edge_incidents;
-    dc_base::tree_incidents = dc_base::tree_edges.size()
-        + base::left->tree_incidents + base::right->tree_incidents;
+    dc_base::edge_incidents =
+        dc_base::edges.size() + base::left->edge_incidents + base::right->edge_incidents;
+    dc_base::tree_incidents =
+        dc_base::tree_edges.size() + base::left->tree_incidents + base::right->tree_incidents;
   }
 };
 
 struct dynamic_connectivity_node_simple final
-  : euler_tour_node<dynamic_connectivity_node_simple, void>, dynamic_connectivity_node_base {
+    : euler_tour_node<dynamic_connectivity_node_simple, void>,
+      dynamic_connectivity_node_base {
   using base = euler_tour_node<dynamic_connectivity_node_simple, void>;
   using dc_base = dynamic_connectivity_node_base;
-  dynamic_connectivity_node_simple(): base(), dc_base() {}
+  dynamic_connectivity_node_simple() : base(), dc_base() {}
   void pull() {
     base::pull();
-    dc_base::edge_incidents = dc_base::edges.size()
-        + base::left->edge_incidents + base::right->edge_incidents;
-    dc_base::tree_incidents = dc_base::tree_edges.size()
-        + base::left->tree_incidents + base::right->tree_incidents;
+    dc_base::edge_incidents =
+        dc_base::edges.size() + base::left->edge_incidents + base::right->edge_incidents;
+    dc_base::tree_incidents =
+        dc_base::tree_edges.size() + base::left->tree_incidents + base::right->tree_incidents;
   }
 };
 
@@ -79,7 +78,7 @@ template <class node_t, bool use_memory_pool>
 struct dynamic_forest_layer : euler_tour_tree<node_t, use_memory_pool> {
   using base = euler_tour_tree<node_t, use_memory_pool>;
   using base::nil, base::splay, base::size;
-  dynamic_forest_layer(int n): base(n) {}
+  dynamic_forest_layer(int n) : base(n) {}
 
   void add_edge(int u, int v, bool separated) {
     splay(v)->add_edge(u << 1 | (int)separated);
@@ -103,12 +102,10 @@ struct dynamic_forest_layer : euler_tour_tree<node_t, use_memory_pool> {
   template <typename T, bool B>
   std::pair<int, int> reconnect(int u, int v, dynamic_forest_layer<T, B>* forest) {
     if (size(u) > size(v)) std::swap(u, v);
-    splay(u); // for the iteration
+    splay(u);  // for the iteration
     // push all tree edges
-    for (auto it = base::find_first_after(nil,
-          _has_tree_incidents, _has_tree_incidents);
-        it != nil;
-        it = base::find_first_after(it, _has_tree_incidents, _has_tree_incidents)) {
+    for (auto it = base::find_first_after(nil, _has_tree_incidents, _has_tree_incidents);
+         it != nil; it = base::find_first_after(it, _has_tree_incidents, _has_tree_incidents)) {
       int cur = it - &(base::data[0]);
       for (int neighbour : it->tree_edges) {
         neighbour >>= 1;
@@ -121,10 +118,8 @@ struct dynamic_forest_layer : euler_tour_tree<node_t, use_memory_pool> {
       splay(it);
     }
     // try to reconnect
-    for (auto it = base::find_first_after(nil,
-          _has_edge_incidents, _has_edge_incidents);
-        it != nil;
-        it = base::find_first_after(it, _has_edge_incidents, _has_edge_incidents)) {
+    for (auto it = base::find_first_after(nil, _has_edge_incidents, _has_edge_incidents);
+         it != nil; it = base::find_first_after(it, _has_edge_incidents, _has_edge_incidents)) {
       int cur = it - &(base::data[0]);
       while (!it->edges.empty()) {
         auto e = it->edges.first();
@@ -142,10 +137,11 @@ struct dynamic_forest_layer : euler_tour_tree<node_t, use_memory_pool> {
         }
       }
     }
-    return std::pair(-1, -1);;
+    return std::pair(-1, -1);
+    ;
   }
 
-private:
+ private:
   static bool _has_edge_incidents(dynamic_connectivity_node_base* x) {
     return x->edge_incidents > 0;
   };
@@ -154,17 +150,15 @@ private:
   };
 };
 
-template <class node_t = dynamic_connectivity_node_simple,
-         bool use_memory_pool = false>
+template <class node_t = dynamic_connectivity_node_simple, bool use_memory_pool = false>
 struct dynamic_connectivity : dynamic_forest_layer<node_t, use_memory_pool> {
   using base = dynamic_forest_layer<node_t, use_memory_pool>;
   using base::nil, base::size;
 
-  using forest_t = dynamic_forest_layer<
-    dynamic_connectivity_node_simple, use_memory_pool>;
+  using forest_t = dynamic_forest_layer<dynamic_connectivity_node_simple, use_memory_pool>;
   std::vector<forest_t*> forest;
-  dynamic_connectivity(int n): base(n) {
-    int lg_n = (n ? 32 - __builtin_clz(n) : 0); // C++17 (int)bit_width((unsigned int)n);
+  dynamic_connectivity(int n) : base(n) {
+    int lg_n = (n ? 32 - __builtin_clz(n) : 0);  // C++17 (int)bit_width((unsigned int)n);
     if (lg_n > 1) {
       forest.reserve(lg_n - 1);
       for (int i = 1; i < lg_n; i++) {
@@ -229,4 +223,3 @@ struct dynamic_connectivity : dynamic_forest_layer<node_t, use_memory_pool> {
     return base::query_all(v, args...);
   }
 };
-

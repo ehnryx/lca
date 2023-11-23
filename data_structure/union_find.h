@@ -20,7 +20,7 @@
 
 struct union_find_base {
   std::vector<int> parent, _size;
-  union_find_base(int n): parent(n, -1), _size(n, 1) {}
+  union_find_base(int n) : parent(n, -1), _size(n, 1) {}
   int operator[](int i) { return find(i); }
   int size() const { return (int)parent.size(); }
   int size(int i) { return _size[find(i)]; }
@@ -44,10 +44,10 @@ struct union_find_base {
 template <typename data_t = void>
 struct union_find : union_find_base {
   std::vector<data_t> data;
-  union_find(int n): union_find_base(n), data(n) {}
-  union_find(int n, data_t init): union_find_base(n), data(n, init) {}
-  union_find(const std::vector<data_t>& d): union_find_base(d.size()), data(d) {}
-  union_find(std::vector<data_t>&& d): union_find_base(d.size()), data(move(d)) {}
+  union_find(int n) : union_find_base(n), data(n) {}
+  union_find(int n, data_t init) : union_find_base(n), data(n, init) {}
+  union_find(const std::vector<data_t>& d) : union_find_base(d.size()), data(d) {}
+  union_find(std::vector<data_t>&& d) : union_find_base(d.size()), data(move(d)) {}
   data_t& get(int i) { return data[i]; }
   template <typename... Args>
   bool link(int from, int to, Args&&... args) {
@@ -77,4 +77,3 @@ struct union_find<void> : union_find_base {
     return true;
   }
 };
-

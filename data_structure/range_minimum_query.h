@@ -13,11 +13,12 @@
 #pragma once
 
 #include "../utility/minmax.h"
+
 #include <functional>
 #include <stdexcept>
 #include <vector>
 
-template <typename T, class Func>
+template <typename T, typename Func>
 struct rmq_functional {
   std::vector<std::vector<T>> rmq;
   rmq_functional() = default;
@@ -38,18 +39,29 @@ struct rmq_functional {
   T query(int l, int r) const {
     if (l > r) throw std::invalid_argument("The range is empty, ie. l > r");
     int j = 31 - __builtin_clz(r + 1 - l);
-    return Func()(rmq[j][l], rmq[j][r + 1 - (1<<j)]);
+    return Func()(rmq[j][l], rmq[j][r + 1 - (1 << j)]);
   }
   void build(int n, int L) {
     for (int j = 1; j < L; j++) {
       rmq[j].resize(n - (1 << j) + 1);
       for (int i = 0; i + (1 << j) <= n; i++) {
-        rmq[j][i] = Func()(rmq[j-1][i], rmq[j-1][i + (1<<(j-1))]);
+        rmq[j][i] = Func()(rmq[j - 1][i], rmq[j - 1][i + (1 << (j - 1))]);
       }
     }
   }
 };
 
-template <typename T, class Compare = std::less<T>>
-using range_minimum_query = rmq_functional<T, utility::min<T, Compare>>;
+template <typename T, typename Compare = std::less<T>>
+using range_minimum_query = rmq_functional<
+    T, utility::min<T, std::conditional_t<std::is_void_v<Compare>, std::less<T>, Compare>>>;
+// no alias template argument deduction
 
+template <typename Compare = void, typename T>
+auto make_rmq(std::vector<T> const& arr) -> range_minimum_query<T, Compare> {
+  return {arr};
+}
+
+template <typename Compare = void, typename T>
+auto make_rmq(std::vector<T>&& arr) -> range_minimum_query<T, Compare> {
+  return {std::move(arr)};
+}

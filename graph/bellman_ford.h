@@ -30,14 +30,14 @@ struct bellman_ford : graph_traversal {
   std::vector<int> parent;
   std::vector<bool> in_neg;
   bool has_neg;
-  bellman_ford(graph_t<weight_t> const& graph, int source, weight_t inf,
-      bool reachable_only = true):
-    bellman_ford(graph.size(), graph.get_edges(), source, inf, reachable_only) {}
   bellman_ford(
-      int num_nodes, std::vector<graph_edge<weight_t>> const& edges,
-      int source, weight_t inf, bool reachable_only = true):
-    graph_traversal(num_nodes), dist(num_nodes, inf), parent(num_nodes, -1),
-    in_neg(num_nodes), has_neg(false) {
+      graph_t<weight_t> const& graph, int source, weight_t inf, bool reachable_only = true)
+      : bellman_ford(graph.size(), graph.get_edges(), source, inf, reachable_only) {}
+  bellman_ford(
+      int num_nodes, std::vector<graph_edge<weight_t>> const& edges, int source, weight_t inf,
+      bool reachable_only = true)
+      : graph_traversal(num_nodes), dist(num_nodes, inf), parent(num_nodes, -1),
+        in_neg(num_nodes), has_neg(false) {
     dist[source] = 0;
     parent[source] = source;
     for (int i = 1; i < num_nodes; i++) {
@@ -62,4 +62,3 @@ struct bellman_ford : graph_traversal {
   bool in_negative_cycle(int u) const { return in_neg[u]; }
   bool has_negative_cycle() const { return has_neg; }
 };
-

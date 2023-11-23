@@ -14,6 +14,7 @@
 
 #include <map>
 #include <stdexcept>
+#include <vector>
 
 struct compressed_tree {
   std::vector<int> vertices;
@@ -59,7 +60,6 @@ struct compressed_tree {
     }
   }
 
-  const std::vector<std::pair<int, int>>& operator [] (int i) const { return adj[i]; }
+  const std::vector<std::pair<int, int>>& operator[](int i) const { return adj[i]; }
   int size() const { return (int)adj.size(); }
 };
-

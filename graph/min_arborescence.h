@@ -25,15 +25,9 @@ struct min_arborescence {
   struct Edge {
     int from, to;
     T cost, orig;
-    auto operator <=> (const Edge& o) const {
-      return cost <=> o.cost;
-    }
-    void operator += (T v) {
-      cost += v;
-    }
-    bool invalid() const {
-      return from == to;
-    }
+    auto operator<=>(const Edge& o) const { return cost <=> o.cost; }
+    void operator+=(T v) { cost += v; }
+    bool invalid() const { return from == to; }
   };
 
   union_find<> weak;
@@ -43,22 +37,23 @@ struct min_arborescence {
   std::vector<int> parent, rep;
 
   struct dense_data_t : std::vector<std::vector<Edge>> {
-    dense_data_t(int n): std::vector<std::vector<Edge>>(
-        n, std::vector(n, Edge(-1, -1, 0, 0))) {}
+    dense_data_t(int n)
+        : std::vector<std::vector<Edge>>(n, std::vector(n, Edge(-1, -1, 0, 0))) {}
     // store reverse edges for cache goodness
   };
 
-  using heap_t = std::conditional_t<sparse,
-    std::vector<leftist_tree<Edge, leftist_node_lazy<Edge, T>, Compare>>,
-    dense_data_t>;
+  using heap_t = std::conditional_t<
+      sparse, std::vector<leftist_tree<Edge, leftist_node_lazy<Edge, T>, Compare>>,
+      dense_data_t>;
   heap_t adj;
 
-  min_arborescence(int n):
-    weak(n), strong(n), enter(2 * n, Edge(-1, -1, 0, 0)),
-    children(2 * n), parent(2 * n, -1), rep(n), adj(n) {}
+  min_arborescence(int n)
+      : weak(n), strong(n), enter(2 * n, Edge(-1, -1, 0, 0)), children(2 * n),
+        parent(2 * n, -1), rep(n), adj(n) {}
 
   void add_edge(int a, int b, T cost) {
-    if (a == b) [[unlikely]] return;  // ignore self-loops
+    if (a == b) [[unlikely]]
+      return;  // ignore self-loops
     if constexpr (sparse) {
       adj[b].push(Edge(a, b, cost, cost));
     } else {  // dense
@@ -139,7 +134,7 @@ struct min_arborescence {
 
       // time to grow the scc
       Edge min_edge = Edge(s, t, cost, orig);
-      for (int to = strong.find(s); to != r; ) {
+      for (int to = strong.find(s); to != r;) {
         const Edge& e = enter[rep[to]];
         if (Compare()(e, min_edge)) {
           min_edge = e;
@@ -147,7 +142,7 @@ struct min_arborescence {
         to = strong.find(e.from);
       }
       lazy_add(r, min_edge.cost - cost);
-      for (int to = strong.find(s); to != r; ) {
+      for (int to = strong.find(s); to != r;) {
         const Edge& e = enter[rep[to]];
         lazy_add(to, min_edge.cost - e.cost);
         parent[rep[to]] = uid;
@@ -194,4 +189,3 @@ struct min_arborescence {
     return sum;
   }
 };
-

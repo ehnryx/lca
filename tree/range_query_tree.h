@@ -27,19 +27,20 @@
 #include "rooted_tree.h"
 
 #include <functional>
+#include <stdexcept>
 
 template <typename DS>
 struct range_query_tree : rooted_tree {
   DS range_ds;
-  std::vector<int> top; // top of heavy chains
-  range_query_tree(const std::vector<std::vector<int>>& adj_list, int r):
-    rooted_tree(adj_list, r), range_ds((int)adj.size()), top(adj.size()) {
+  std::vector<int> top;  // top of heavy chains
+  range_query_tree(const std::vector<std::vector<int>>& adj_list, int r)
+      : rooted_tree(adj_list, r), range_ds((int)adj.size()), top(adj.size()) {
     preorder.clear();
     top[root] = root;
     build_hld(root, 0);
   }
-  range_query_tree(std::vector<std::vector<int>>&& adj_list, int r):
-    rooted_tree(move(adj_list), r), range_ds((int)adj.size()), top(adj.size()) {
+  range_query_tree(std::vector<std::vector<int>>&& adj_list, int r)
+      : rooted_tree(std::move(adj_list), r), range_ds((int)adj.size()), top(adj.size()) {
     preorder.clear();
     top[root] = root;
     build_hld(root, 0);
@@ -120,11 +121,10 @@ struct range_query_tree : rooted_tree {
     range_ds.update_range(start[u] + subtree[u], subtree[preorder[0]] - 1, args...);
   }
   template <typename Combine, typename... Args>
-  auto query_non_subtree(
-    int u, Combine&& merge, const Args&... args) {
+  auto query_non_subtree(int u, Combine&& merge, const Args&... args) {
     return merge(
-      range_ds.query_range(0, start[u] - 1, args...),
-      range_ds.query_range(start[u] + subtree[u], subtree[preorder[0]] - 1, args...));
+        range_ds.query_range(0, start[u] - 1, args...),
+        range_ds.query_range(start[u] + subtree[u], subtree[preorder[0]] - 1, args...));
   }
   template <typename... Args>
   int search_non_subtree(int u, Args... args) {
@@ -150,7 +150,7 @@ struct range_query_tree : rooted_tree {
       if (depth[params.u] < depth[params.v]) std::swap(params.u, params.v);
       range_ds.update_range(start[params.v] + !params.include_lca, start[params.u], args...);
     }
-    return params.v; // return the lowest common ancestor
+    return params.v;  // return the lowest common ancestor
   }
   template <typename out_t, typename Combine, typename... Args>
   auto query_path(path_params params, out_t init, Combine&& merge, const Args&... args) {
@@ -162,7 +162,9 @@ struct range_query_tree : rooted_tree {
     }
     if (params.include_lca || params.u != params.v) {
       if (depth[params.u] < depth[params.v]) std::swap(params.u, params.v);
-      res = merge(res, range_ds.query_range(start[params.v] + !params.include_lca, start[params.u], args...));
+      res = merge(
+          res, range_ds.query_range(
+                   start[params.v] + !params.include_lca, start[params.u], args...));
     }
     return res;
   }
@@ -207,7 +209,7 @@ struct range_query_tree : rooted_tree {
     return -1;
   }
 
-private:
+ private:
   int build_hld(int u, int idx) {
     in[u] = idx++;
     start[u] = (int)preorder.size();
@@ -234,4 +236,3 @@ private:
     return idx;
   }
 };
-

@@ -17,16 +17,20 @@
  */
 #pragma once
 
+#include <cassert>
+#include <limits>
+#include <vector>
+
 template <typename T>
 struct ford_fulkerson {
   struct edge {
     int to, rev;
     T cap, flow;
-    edge(int t, int r, const T& c, const T& f): to(t), rev(r), cap(c), flow(f) {}
+    edge(int t, int r, const T& c, const T& f) : to(t), rev(r), cap(c), flow(f) {}
   };
   std::vector<std::vector<edge>> adj;
-  vector<bool> visited;
-  ford_fulkerson(int n): adj(n), visited(n) {}
+  std::vector<bool> visited;
+  ford_fulkerson(int n) : adj(n), visited(n) {}
 
   int size() const { return (int)adj.size(); }
   void add_edge(int a, int b, const T& c = 1, bool bidirectional = false) {
@@ -73,4 +77,3 @@ struct ford_fulkerson {
     return res;
   }
 };
-

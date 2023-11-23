@@ -10,5 +10,6 @@
 #include <utility>
 
 template <typename... Fs>
-struct overload : Fs... { using Fs::operator()...; };
-
+struct overload : Fs... {
+  using Fs::operator()...;
+};

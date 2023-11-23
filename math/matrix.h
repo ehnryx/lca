@@ -8,27 +8,31 @@
  */
 #pragma once
 
-template <typename T>
-struct matrix : vector<vector<T>> {
-  using vector<vector<T>>::data, vector<vector<T>>::at;
-  using vector<vector<T>>::size, vector<vector<T>>::empty;
+#include <iomanip>
+#include <stdexcept>
+#include <vector>
 
-  vector<bool> is_free;
-  vector<T> ans;
+template <typename T>
+struct matrix : std::vector<std::vector<T>> {
+  using std::vector<std::vector<T>>::data, std::vector<std::vector<T>>::at;
+  using std::vector<std::vector<T>>::size, std::vector<std::vector<T>>::empty;
+
+  std::vector<bool> is_free;
+  std::vector<T> ans;
   int n, m;
 
-  matrix(): vector<vector<T>>() {}
-  matrix(int _n, int _m): vector<vector<T>>(_n, vector<T>(_m)) {}
-  matrix(const vector<vector<T>>& v): vector<vector<T>>(v) {
+  matrix() : std::vector<std::vector<T>>() {}
+  matrix(int _n, int _m) : std::vector<std::vector<T>>(_n, std::vector<T>(_m)) {}
+  matrix(const std::vector<std::vector<T>>& v) : std::vector<std::vector<T>>(v) {
     check_dimensions();
   }
-  matrix(vector<vector<T>>&& v): vector<vector<T>>(move(v)) {
+  matrix(std::vector<std::vector<T>>&& v) : std::vector<std::vector<T>>(move(v)) {
     check_dimensions();
   }
   void check_dimensions() {
     for (size_t i = 1; i < size(); i++) {
-      if (data()[i].size() != data()[i-1].size()) {
-        throw invalid_argument("matrix rows must have the same size");
+      if (data()[i].size() != data()[i - 1].size()) {
+        throw std::invalid_argument("matrix rows must have the same size");
       }
     }
   }
@@ -59,7 +63,7 @@ struct matrix : vector<vector<T>> {
           data()[i][k] -= data()[rank][k] * mul;
         }
         if (data()[i][j] != 0) {
-          throw runtime_error("could not zero out value with pivot");
+          throw std::runtime_error("could not zero out value with pivot");
         }
       }
       rank++;
@@ -84,7 +88,7 @@ struct matrix : vector<vector<T>> {
         return -1;  // could not solve!!
       }
       if (pivot == -1) {
-        throw runtime_error("could not find pivot");
+        throw std::runtime_error("could not find pivot");
       }
       ans[pivot] = data()[i].back() / data()[i][pivot];
       is_free[pivot] = false;
@@ -92,24 +96,23 @@ struct matrix : vector<vector<T>> {
     return rank;
   }
 
-  friend ostream& operator << (ostream& os, const matrix& mat) {
+  friend std::ostream& operator<<(std::ostream& os, const matrix& mat) {
     if (mat.empty()) return os << "[]";
-    vector<size_t> col_width(mat[0].size());
-    for (const vector<T>& row : mat) {
+    std::vector<size_t> col_width(mat[0].size());
+    for (const std::vector<T>& row : mat) {
       for (size_t i = 0; i < row.size(); i++) {
-        ostringstream test_os;
+        std::ostringstream test_os;
         test_os << row[i];
-        col_width[i] = max(col_width[i], test_os.str().size());
+        col_width[i] = std::max(col_width[i], test_os.str().size());
       }
     }
     os << "[\n";
-    for (const vector<T>& row : mat) {
+    for (const std::vector<T>& row : mat) {
       for (size_t i = 0; i < row.size(); i++) {
-        os << setw((int)col_width[i] + 2) << row[i];
+        os << std::setw((int)col_width[i] + 2) << row[i];
       }
       os << "\n";
     }
     return os << "]";
   }
 };
-

@@ -29,7 +29,7 @@ struct int_base10 {
 
   bool negative;
   std::vector<int> digits;
-  int operator [] (size_t i) const { return i < digits.size() ? digits[i] : 0; }
+  int operator[](size_t i) const { return i < digits.size() ? digits[i] : 0; }
   bool is_zero() const { return digits.size() == 1 && digits[0] == 0; }
   bool is_one() const { return digits.size() == 1 && digits[0] == 1; }
   int_base10& clear() {
@@ -39,11 +39,11 @@ struct int_base10 {
     return *this;
   }
 
-  int_base10(): negative(false), digits(1, 0) {}
-  int_base10(std::vector<int>&& v, bool neg = false): negative(neg), digits(std::move(v)) {
+  int_base10() : negative(false), digits(1, 0) {}
+  int_base10(std::vector<int>&& v, bool neg = false) : negative(neg), digits(std::move(v)) {
     fix_leading_zeros();
   }
-  int_base10(const std::vector<int>& v, bool neg = false): negative(neg), digits(v) {
+  int_base10(const std::vector<int>& v, bool neg = false) : negative(neg), digits(v) {
     fix_leading_zeros();
     for (int d : digits) {
       if (d < 0 || radix <= d) {
@@ -51,7 +51,7 @@ struct int_base10 {
       }
     }
   }
-  int_base10(int n): negative(n < 0) {
+  int_base10(int n) : negative(n < 0) {
     if (negative) {
       while (n <= -radix) {
         digits.push_back(-(n % radix));
@@ -66,7 +66,7 @@ struct int_base10 {
       digits.push_back(n);
     }
   }
-  int_base10(long long n): negative(n < 0) {
+  int_base10(long long n) : negative(n < 0) {
     if (negative) {
       while (n <= -radix) {
         digits.push_back(-(int)(n % radix));
@@ -82,9 +82,7 @@ struct int_base10 {
     }
   }
 
-  int_base10(const std::string& s) {
-    build(s);
-  }
+  int_base10(const std::string& s) { build(s); }
   void build(const std::string& s) {
     clear();
     negative = (s.front() == '-');
@@ -110,7 +108,7 @@ struct int_base10 {
     }
     return i + ((int)digits.size() - 1) * radix_length;
   }
-  friend std::ostream& operator << (std::ostream& os, const int_base10& v) {
+  friend std::ostream& operator<<(std::ostream& os, const int_base10& v) {
     assert(!v.digits.empty());
     std::ostringstream out;
     if (v.negative) out << '-';
@@ -120,7 +118,7 @@ struct int_base10 {
     }
     return os << out.str();
   }
-  friend std::istream& operator >> (std::istream& is, int_base10& v) {
+  friend std::istream& operator>>(std::istream& is, int_base10& v) {
     std::string s;
     is >> s;
     v.build(s);
@@ -136,7 +134,7 @@ struct int_base10 {
   template <typename T>
   T value() const {
     T res(0), mul(1);
-    for (int i = 0; i < digits.size(); i++) {
+    for (int i = 0; i < (int)digits.size(); i++) {
       if (i > 0) mul *= radix;
       res += digits[i] * mul;
     }
@@ -151,48 +149,44 @@ struct int_base10 {
     }
     return false;
   }
-  bool operator == (const int_base10& o) const {
+  bool operator==(const int_base10& o) const {
     return negative == o.negative && digits == o.digits;
   }
-  bool operator < (const int_base10& o) const {
+  bool operator<(const int_base10& o) const {
     if (negative != o.negative) return negative;
     return negative ? o.abs_less(*this) : abs_less(o);
   }
-  bool operator != (const int_base10& o) const { return !operator == (o); }
-  bool operator > (const int_base10& o) const { return o.operator < (*this); }
-  bool operator <= (const int_base10& o) const { return !o.operator < (*this); }
-  bool operator >= (const int_base10& o) const { return !operator < (o); }
+  bool operator!=(const int_base10& o) const { return !operator==(o); }
+  bool operator>(const int_base10& o) const { return o.operator<(*this); }
+  bool operator<=(const int_base10& o) const { return !o.operator<(*this); }
+  bool operator>=(const int_base10& o) const { return !operator<(o); }
 
-  friend int_base10 abs(const int_base10& v) {
-    return v.negative ? int_base10(v).negate() : v;
-  }
+  friend int_base10 abs(const int_base10& v) { return v.negative ? int_base10(v).negate() : v; }
   friend int_base10 gcd(const int_base10& a, const int_base10& b) {
     if (a.is_zero()) return abs(b);
     return gcd(b % a, a);
   }
-  friend int_base10 lcm(const int_base10& a, const int_base10& b) {
-    return a * b / gcd(a, b);
-  }
+  friend int_base10 lcm(const int_base10& a, const int_base10& b) { return a * b / gcd(a, b); }
 
-  int_base10 operator + (const int_base10& o) const { return int_base10(*this) += o; }
-  int_base10 operator - (const int_base10& o) const { return int_base10(*this) -= o; }
-  int_base10& operator *= (const int_base10& o) { return *this = operator * (o); }
-  int_base10& operator /= (const int_base10& o) { return *this = operator / (o); }
-  int_base10& operator %= (const int_base10& o) { return *this = operator % (o); }
-  int_base10 operator - () const { return int_base10(*this).negate(); }
+  int_base10 operator+(const int_base10& o) const { return int_base10(*this) += o; }
+  int_base10 operator-(const int_base10& o) const { return int_base10(*this) -= o; }
+  int_base10& operator*=(const int_base10& o) { return *this = operator*(o); }
+  int_base10& operator/=(const int_base10& o) { return *this = operator/(o); }
+  int_base10& operator%=(const int_base10& o) { return *this = operator%(o); }
+  int_base10 operator-() const { return int_base10(*this).negate(); }
   int_base10& negate() {
     negative = !negative;
     return *this;
   }
 
   // shift by radix
-  int_base10& operator <<= (int shift) { return left_shift(shift); }
-  int_base10& operator >>= (int shift) { return right_shift(shift); }
-  int_base10 operator << (int shift) const { return int_base10(*this) <<= shift; }
-  int_base10 operator >> (int shift) const { return int_base10(*this) >>= shift; }
+  int_base10& operator<<=(int shift) { return left_shift(shift); }
+  int_base10& operator>>=(int shift) { return right_shift(shift); }
+  int_base10 operator<<(int shift) const { return int_base10(*this) <<= shift; }
+  int_base10 operator>>(int shift) const { return int_base10(*this) >>= shift; }
 
-  int_base10& operator += (const int_base10& o) {
-    if (negative != o.negative) return operator -= (-o);
+  int_base10& operator+=(const int_base10& o) {
+    if (negative != o.negative) return operator-=(-o);
     size_t len = std::max(digits.size(), o.digits.size());
     digits.resize(len);
     int carry = 0;
@@ -216,8 +210,8 @@ struct int_base10 {
     return *this;
   }
 
-  int_base10& operator -= (const int_base10& o) {
-    if (negative != o.negative) return operator += (-o);
+  int_base10& operator-=(const int_base10& o) {
+    if (negative != o.negative) return operator+=(-o);
     if (abs_less(o)) return *this = (o - *this).negate();
     int borrow = 0;
     for (size_t i = 0; i < o.digits.size(); i++) {
@@ -239,7 +233,7 @@ struct int_base10 {
     return *this;
   }
 
-  int_base10 operator * (const int_base10& o) const {
+  int_base10 operator*(const int_base10& o) const {
     if (is_zero() || o.is_zero()) return int_base10(0);
     if (is_one()) return negative ? -o : o;
     if (o.is_one()) return o.negative ? -*this : *this;
@@ -289,13 +283,13 @@ struct int_base10 {
     return res;
   }
 
-  int_base10 operator / (const int_base10& o) const {
+  int_base10 operator/(const int_base10& o) const {
     int_base10 res = divide_remainder(o).first;
     assert(!res.negative);
     res.negative = (!res.is_zero()) & (negative ^ o.negative);
     return res;
   }
-  int_base10 operator % (const int_base10& o) const {
+  int_base10 operator%(const int_base10& o) const {
     //if (o.negative) throw std::invalid_argument("mod should not be negative");
     int_base10 res = divide_remainder(o).second;
     assert(!res.negative);
@@ -308,15 +302,15 @@ struct int_base10 {
     if (o.is_zero()) throw std::invalid_argument("division by zero");
     if (is_zero()) return std::pair(int_base10(0), int_base10(0));
     if (abs_less(o)) return std::pair(int_base10(0), abs(*this));
-    if (o.digits.size() > small_div_threshold
-        && digits.size() - o.digits.size() > large_div_threshold) {
+    if (o.digits.size() > small_div_threshold &&
+        digits.size() - o.digits.size() > large_div_threshold) {
       return burnikel_ziegler(o);
     } else {
       return long_division(o);
     }
   }
 
-private:
+ private:
   int_base10 fft_multiply(const int_base10& o) const {
     std::vector<long long> num = fft::convolve<double, long long>(digits, o.digits);
     std::vector<int> res(num.size() + 1);
@@ -338,7 +332,7 @@ private:
       return long_division_digit(digits, o.digits[0]);
     }
     int normalize = (radix / 2 + o.digits.back() - 1) / o.digits.back();
-    std::vector<int> top = (operator * (normalize)).digits;
+    std::vector<int> top = (operator*(normalize)).digits;
     std::vector<int> div = (o * normalize).digits;
     assert(div.size() == o.digits.size());
     size_t n = div.size();
@@ -350,8 +344,8 @@ private:
       int quotient = (int)(val / div.back());
       int remainder = (int)(val - (long long)quotient * div.back());
       while (remainder < radix &&
-             (quotient == radix ||
-              (long long)quotient * div[n - 2] > (long long)radix * remainder + top[i + n - 2])) {
+             (quotient == radix || (long long)quotient * div[n - 2] >
+                                       (long long)radix * remainder + top[i + n - 2])) {
         quotient -= 1;
         remainder += div.back();
       }
@@ -380,13 +374,13 @@ private:
       res[i] = quotient;
     }
     return std::pair(
-      std::move(int_base10(std::move(res))),
-      std::move(long_division_digit(top, normalize).first));
+        int_base10(std::move(res)), std::move(long_division_digit(top, normalize).first));
   }
 
   // long_division_digit requires the numerator to be nonzero.
-  std::pair<int_base10, int_base10> long_division_digit(const std::vector<int>& top, int div) const {
-    if (div == 1) return std::pair(std::move(top), std::move(std::vector<int>(1, 0)));
+  std::pair<int_base10, int_base10> long_division_digit(
+      const std::vector<int>& top, int div) const {
+    if (div == 1) return std::pair(std::move(top), std::vector<int>(1, 0));
     std::vector<int> res(top.size());
     int remainder = 0;
     for (size_t i = 0; i < top.size(); i++) {
@@ -395,9 +389,7 @@ private:
       remainder = (int)(val - (long long)quotient * div);
       res[top.size() - 1 - i] = quotient;
     }
-    return std::pair(
-      std::move(int_base10(std::move(res))),
-      std::move(int_base10(remainder)));
+    return std::pair(int_base10(std::move(res)), int_base10(remainder));
   }
 
   // burnikel-ziegler division
@@ -405,7 +397,7 @@ private:
     int normalize = (radix / 2 + o.digits.back() - 1) / o.digits.back();
     size_t n = o.digits.size() == 1 ? 1 : 1 << (32 - __builtin_clz((int)o.digits.size() - 1));
     size_t shift = n - o.digits.size();
-    std::vector<int> top = (operator * (normalize)).left_shift(shift).digits;
+    std::vector<int> top = (operator*(normalize)).left_shift(shift).digits;
     int_base10 div = (o * normalize).left_shift(shift);
     div.negative = false;
     size_t blocks = (top.size() + n - 1) / n;
@@ -422,12 +414,11 @@ private:
       copy(quotient.digits.begin(), quotient.digits.end(), res.begin() + i * n);
     }
     return std::pair(
-      std::move(int_base10(std::move(res))),
-      std::move(int_base10(std::move(upper)).right_shift(shift)));
+        int_base10(std::move(res)), std::move(int_base10(std::move(upper)).right_shift(shift)));
   }
 
   std::pair<int_base10, int_base10> divide_2by1(
-    std::vector<int>& upper, std::vector<int>& lower, const int_base10& div) const {
+      std::vector<int>& upper, std::vector<int>& lower, const int_base10& div) const {
     if (div.digits.size() <= recursive_div_limit) {
       assert(lower.size() == div.digits.size());
       lower.insert(lower.end(), upper.begin(), upper.end());
@@ -445,7 +436,7 @@ private:
   }
 
   std::pair<int_base10, int_base10> divide_3by2(
-    std::vector<int>& upper, std::vector<int>& lower, const int_base10& div) const {
+      std::vector<int>& upper, std::vector<int>& lower, const int_base10& div) const {
     size_t n = div.digits.size() / 2;
     int_base10 div_hi(std::vector(div.digits.begin() + n, div.digits.end()));
     assert(div_hi.digits.size() == n);
@@ -461,7 +452,8 @@ private:
       }
     }
     if (less_than) {
-      std::vector<int> upper_hi((upper.size() <= n ? upper.end() : upper.begin() + n), upper.end());
+      std::vector<int> upper_hi(
+          (upper.size() <= n ? upper.end() : upper.begin() + n), upper.end());
       upper.resize(n);
       std::tie(quotient, remainder) = divide_2by1(upper_hi, upper, div_hi);
     } else {
@@ -514,4 +506,3 @@ struct fast_input_read<input_t, int_base10> {
     v.build(s);
   }
 };
-

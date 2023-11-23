@@ -23,7 +23,7 @@ def main(args):
   for f in contents:
     res = SequenceMatcher(a=args.pattern, b=f).ratio()
     for i in range(len(f) - L + 1):
-      res = max(res, SequenceMatcher(a=args.pattern, b=f[i:i+L]).ratio())
+      res = max(res, SequenceMatcher(a=args.pattern, b=f[i:i + L]).ratio())
     if res > args.tolerance:
       matches.append((f, res))
 

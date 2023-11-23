@@ -13,6 +13,7 @@
 #pragma once
 
 #include "graph.h"
+
 #include <vector>
 
 template <typename weight_t>
@@ -21,8 +22,8 @@ struct biconnected_components {
   std::vector<int> degree, depth, low, childcnt;
   std::vector<bool> articulation;
   biconnected_components(const graph_t<weight_t>& g)
-    : graph(g), degree(graph.size()), depth(graph.size(), -1),
-    low(graph.size()), childcnt(graph.size()), articulation(graph.size()) {
+      : graph(g), degree(graph.size()), depth(graph.size(), -1), low(graph.size()),
+        childcnt(graph.size()), articulation(graph.size()) {
     for (int i = 0; i < graph.size(); i++) {
       if (depth[i] == -1) {
         build(i, -1, 0);
@@ -31,15 +32,13 @@ struct biconnected_components {
     }
   }
 
-  bool is_cut_vertex(int u) const {
-    return articulation[u];
-  }
+  bool is_cut_vertex(int u) const { return articulation[u]; }
 
   bool is_cut_edge(int u, int v) const {
     return (articulation[u] || degree[u] == 1) && (articulation[v] || degree[v] == 1);
   }
 
-private:
+ private:
   void build(int u, int parent, int cur_depth) {
     depth[u] = low[u] = cur_depth;
     for (const auto& e : graph[u]) {
@@ -58,4 +57,3 @@ private:
     }
   }
 };
-

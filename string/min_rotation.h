@@ -11,6 +11,9 @@
 
 #include "lyndon_factors.h"
 
+#include <cassert>
+#include <ranges>
+
 template <template <typename> typename container_t, typename T>
 int min_rotation(const container_t<T>& a) {
   container_t<T> a2;
@@ -18,11 +21,10 @@ int min_rotation(const container_t<T>& a) {
   a2.insert(a2.end(), a.begin(), a.end());
   a2.insert(a2.end(), a.begin(), a.end());
   auto starts = lyndon_factors(a2);
-  for (int i : starts | views::reverse) {
+  for (int i : starts | std::views::reverse) {
     if (i < a.size()) {
       return i;
     }
   }
   assert(false);
 }
-

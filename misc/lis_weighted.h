@@ -15,15 +15,18 @@
  */
 #pragma once
 
+#include <map>
+#include <vector>
+
 template <typename T, typename U>
-vector<int> lis_weighted(const vector<pair<T, U>>& arr, bool strict = true) {
+std::vector<int> lis_weighted(const std::vector<std::pair<T, U>>& arr, bool strict = true) {
   if (arr.empty()) return {};
-  map<pair<T, int>, U> inc;
-  vector<int> previous(size(arr), -1);
+  std::map<std::pair<T, int>, U> inc;
+  std::vector<int> previous(size(arr), -1);
   for (int i = 0; i < (int)size(arr); i++) {
-    pair<T, int> key(arr[i].first, strict ? -i : i);
+    std::pair<T, int> key(arr[i].first, strict ? -i : i);
     auto it = inc.lower_bound(key);
-    for (U cur = arr[i].second; cur > 0 && it != end(inc); ) {
+    for (U cur = arr[i].second; cur > 0 && it != end(inc);) {
       if (it->second <= cur) {
         cur -= it->second;
         it = inc.erase(it);
@@ -32,16 +35,15 @@ vector<int> lis_weighted(const vector<pair<T, U>>& arr, bool strict = true) {
         cur = 0;
       }
     }
-    it = inc.insert(pair(key, arr[i].second)).first;
+    it = inc.insert(std::pair(key, arr[i].second)).first;
     if (it != begin(inc)) {
       previous[i] = abs(prev(it)->first.second);
     }
   }
-  vector<int> lis;
+  std::vector<int> lis;
   for (int i = abs(inc.rbegin()->first.second); i != -1; i = previous[i]) {
     lis.push_back(i);
   }
   reverse(begin(lis), end(lis));
   return lis;
 }
-

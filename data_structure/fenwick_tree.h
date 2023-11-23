@@ -16,17 +16,17 @@
  */
 #pragma once
 
-#include <vector>
 #include <stdexcept>
+#include <vector>
 
 template <typename T>
 struct fenwick_tree {
   int n, logn;
   std::vector<T> data;
   T& operator[](int i) { return data[i]; }
-  fenwick_tree(int _n): n(_n), logn(31 - __builtin_clz(n)), data(n + 1) {}
-  fenwick_tree(const std::vector<T>& arr):
-    n((int)arr.size()), logn(31 - __builtin_clz(n)), data(n + 1) {
+  fenwick_tree(int _n) : n(_n), logn(31 - __builtin_clz(n)), data(n + 1) {}
+  fenwick_tree(const std::vector<T>& arr)
+      : n((int)arr.size()), logn(31 - __builtin_clz(n)), data(n + 1) {
     for (int i = 0; i < n; i++) {
       update(i, arr[i]);
     }
@@ -63,4 +63,3 @@ struct fenwick_tree {
     return res;
   }
 };
-

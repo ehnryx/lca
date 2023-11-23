@@ -41,10 +41,9 @@ struct circular_buffer_data_N final : circular_buffer_data<T> {
   static constexpr int length = 1 << N;
   std::array<T, length> data;
   int fp, bp;  // [inclusive, exclusive)
-  circular_buffer_data_N(): fp(0), bp(0) {}
+  circular_buffer_data_N() : fp(0), bp(0) {}
   template <int M>
-  circular_buffer_data_N(const circular_buffer_data_N<T, M>& old):
-    fp(0), bp(old.size()) {
+  circular_buffer_data_N(const circular_buffer_data_N<T, M>& old) : fp(0), bp(old.size()) {
     if (old.bp < old.fp) {
       memcpy(&data[0], &old.data[old.fp], (old.capacity() - old.fp) * sizeof(T));
       memcpy(&data[old.capacity() - old.fp], &old.data[0], old.bp * sizeof(T));
@@ -66,21 +65,11 @@ struct circular_buffer_data_N final : circular_buffer_data<T> {
   void pop_back() override {
     if (--bp == -1) bp = capacity() - 1;
   }
-  const T& front() const override {
-    return data[fp];
-  }
-  const T& back() const override {
-    return bp ? data[bp - 1] : data[capacity() - 1];
-  }
-  bool empty() const override {
-    return fp == bp;
-  }
-  int size() const override {
-    return bp < fp ? bp - fp + capacity() : bp - fp;
-  }
-  bool full() const override {
-    return (bp + 1 == fp || (fp == 0 && bp == capacity() - 1));
-  }
+  const T& front() const override { return data[fp]; }
+  const T& back() const override { return bp ? data[bp - 1] : data[capacity() - 1]; }
+  bool empty() const override { return fp == bp; }
+  int size() const override { return bp < fp ? bp - fp + capacity() : bp - fp; }
+  bool full() const override { return (bp + 1 == fp || (fp == 0 && bp == capacity() - 1)); }
   circular_buffer_data<T>* reallocate() override {
     if constexpr (N < circular_buffer_data<T>::max_size_N) {
       return new circular_buffer_data_N<T, N + 1>(*this);
@@ -88,11 +77,10 @@ struct circular_buffer_data_N final : circular_buffer_data<T> {
       throw std::runtime_error("can't increase circular buffer size");
     }
   }
-  int capacity() const override {
-    return length;
-  }
+  int capacity() const override { return length; }
 };
 
+// clang-format off
 template <typename T>
 circular_buffer_data<T>* make_circular_buffer_data(int n) {
   switch (n ? 32 - __builtin_clz(n) : 0) { // C++17 (int)bit_width((unsigned int)n);
@@ -130,11 +118,12 @@ circular_buffer_data<T>* make_circular_buffer_data(int n) {
                  "can't allocate circular buffer of size " + std::to_string(n));
   }
 }
+// clang-format on
 
 template <typename T>
 struct circular_buffer {
   circular_buffer_data<T>* data;
-  circular_buffer(int n = 0): data(make_circular_buffer_data<T>(n)) {}
+  circular_buffer(int n = 0) : data(make_circular_buffer_data<T>(n)) {}
   void reallocate() {
     circular_buffer_data<T>* new_data = data->reallocate();
     delete data;
@@ -156,4 +145,3 @@ struct circular_buffer {
   int size() const { return data->size(); }
   int capacity() const { return data->capacity(); }
 };
-

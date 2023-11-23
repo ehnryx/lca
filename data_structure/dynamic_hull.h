@@ -20,17 +20,18 @@ template <typename T>
 struct dynamic_hull_line {
   T m, b;
   mutable T last;
-  dynamic_hull_line(const T& _m, const T& _b): m(_m), b(_b), last(0) {}
-  bool operator < (const dynamic_hull_line& o) const { return m < o.m; }
-  bool operator < (const T& x) const { return last < x; }
+  dynamic_hull_line(const T& _m, const T& _b) : m(_m), b(_b), last(0) {}
+  bool operator<(const dynamic_hull_line& o) const { return m < o.m; }
+  bool operator<(const T& x) const { return last < x; }
 };
 
 template <typename T>
 struct dynamic_hull : std::multiset<dynamic_hull_line<T>, std::less<>> {
   using base = std::multiset<dynamic_hull_line<T>, std::less<>>;
   using base_it = typename base::iterator;
-  static constexpr T inf = std::numeric_limits<T>::has_infinity ?
-    std::numeric_limits<T>::infinity() : std::numeric_limits<T>::max();
+  static constexpr T inf = std::numeric_limits<T>::has_infinity
+                               ? std::numeric_limits<T>::infinity()
+                               : std::numeric_limits<T>::max();
   static T div(const T& a, const T& b) {
     if constexpr (std::is_integral_v<T>) {
       return a / b - ((a ^ b) < 0 && a % b != 0);
@@ -83,11 +84,6 @@ using dynamic_hull_max = dynamic_hull<T>;
 
 template <typename T>
 struct dynamic_hull_min : dynamic_hull<T> {
-  void insert(const T& m, const T& b) {
-    return dynamic_hull<T>::insert(-m, -b);
-  }
-  T query(const T& x) const {
-    return -dynamic_hull<T>::query(x);
-  }
+  void insert(const T& m, const T& b) { return dynamic_hull<T>::insert(-m, -b); }
+  T query(const T& x) const { return -dynamic_hull<T>::query(x); }
 };
-

@@ -37,4 +37,3 @@ std::vector<int> longest_inc_subseq(const std::vector<T>& arr, bool strict = tru
   reverse(begin(lis), end(lis));
   return lis;
 }
-

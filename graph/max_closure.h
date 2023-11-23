@@ -13,6 +13,7 @@
 #pragma once
 
 #include "../utility/member_variable_checker.h"
+
 #include <limits>
 #include <vector>
 
@@ -28,8 +29,8 @@ struct max_closure : Flow<T> {
   }();
 
   int n;
-  max_closure(std::vector<T> const& weights):
-    Flow<T>((int)size(weights) + 2), n((int)size(weights)) {
+  max_closure(std::vector<T> const& weights)
+      : Flow<T>((int)size(weights) + 2), n((int)size(weights)) {
     for (int i = 0; i < n; i++) {
       if (weights[i] > 0) {
         Flow<T>::add_edge(n, i, weights[i]);
@@ -38,9 +39,7 @@ struct max_closure : Flow<T> {
       }
     }
   }
-  void add_edge(int a, int b) {
-    Flow<T>::add_edge(a, b, std::numeric_limits<T>::max());
-  }
+  void add_edge(int a, int b) { Flow<T>::add_edge(a, b, std::numeric_limits<T>::max()); }
   std::vector<int> solve() {
     if constexpr (is_push_relabel) {
       Flow<T>::flow(n, n + 1, true);
@@ -56,4 +55,3 @@ struct max_closure : Flow<T> {
     return res;
   }
 };
-

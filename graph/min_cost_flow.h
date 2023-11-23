@@ -28,15 +28,14 @@ struct min_cost_flow {
     int to, rev;
     Flow_t cap, flow;
     Cost_t cost;
-    edge(int t, int r, const Flow_t& c, const Flow_t& f, const Cost_t& d):
-      to(t), rev(r), cap(c), flow(f), cost(d) {}
+    edge(int t, int r, const Flow_t& c, const Flow_t& f, const Cost_t& d)
+        : to(t), rev(r), cap(c), flow(f), cost(d) {}
   };
   std::vector<std::vector<edge>> adj;
   std::vector<Cost_t> pot, dist;
   std::vector<int> vis, path;
   bool has_negative;
-  min_cost_flow(int n):
-    adj(n), pot(n), dist(n), vis(n), path(n), has_negative(false) {}
+  min_cost_flow(int n) : adj(n), pot(n), dist(n), vis(n), path(n), has_negative(false) {}
 
   void add_edge(int a, int b, const Flow_t& cap, const Cost_t& cost) {
     adj[a].emplace_back(b, (int)size(adj[b]), cap, 0, cost);
@@ -71,9 +70,8 @@ struct min_cost_flow {
     dist[source] = 0;
     if constexpr (sparse) {
       std::priority_queue<
-        std::pair<Cost_t, int>,
-        std::vector<std::pair<Cost_t, int>>,
-        std::greater<>> dijk;
+          std::pair<Cost_t, int>, std::vector<std::pair<Cost_t, int>>, std::greater<>>
+          dijk;
       dijk.emplace(0, source);
       while (!empty(dijk)) {
         auto [d, u] = dijk.top();
@@ -89,7 +87,7 @@ struct min_cost_flow {
           }
         }
       }
-    } else { // dense O(V^2 + E) dijkstra instead of O(ElogV)
+    } else {  // dense O(V^2 + E) dijkstra instead of O(ElogV)
       while (true) {
         std::pair<Cost_t, int> best(cost_inf, -1);
         for (int i = 0; i < (int)adj.size(); i++) {
@@ -146,4 +144,3 @@ struct min_cost_flow {
     return std::pair(res, cost);
   }
 };
-

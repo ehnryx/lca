@@ -7,6 +7,7 @@
 #pragma once
 
 #include "graph_utility.h"
+
 #include <ostream>
 #include <vector>
 
@@ -15,8 +16,8 @@ struct graph_base_t {
   using weight_t = Weight_t;
   static constexpr bool weighted = not std::is_void_v<weight_t>;
   std::vector<std::vector<graph_adj<weight_t>>> adj;
-  graph_base_t(int n): adj(n) {}
-  graph_base_t(const std::vector<std::vector<graph_adj<weight_t>>>& g): adj(g) {}
+  graph_base_t(int n) : adj(n) {}
+  graph_base_t(const std::vector<std::vector<graph_adj<weight_t>>>& g) : adj(g) {}
   void reset(int n) {
     fill(adj.begin(), adj.end(), std::vector<graph_adj<weight_t>>());
     adj.resize(n);
@@ -52,29 +53,22 @@ struct graph_base_t {
 
 template <typename Weight_t = void>
 struct graph_t : graph_base_t<Weight_t> {
-  graph_t(int n): graph_base_t<Weight_t>(n) {}
-  graph_t(const std::vector<std::vector<graph_adj<Weight_t>>>& g):
-    graph_base_t<Weight_t>(g) {}
+  graph_t(int n) : graph_base_t<Weight_t>(n) {}
+  graph_t(const std::vector<std::vector<graph_adj<Weight_t>>>& g) : graph_base_t<Weight_t>(g) {}
   void add_edge(int a, int b, Weight_t c) {
     add_arc(a, b, c);
     if (a != b) add_arc(b, a, c);
   }
-  void add_arc(int a, int b, Weight_t c) {
-    this->adj[a].emplace_back(b, c);
-  }
+  void add_arc(int a, int b, Weight_t c) { this->adj[a].emplace_back(b, c); }
 };
 
 template <>
 struct graph_t<void> : graph_base_t<void> {
-  graph_t(int n): graph_base_t<void>(n) {}
-  graph_t(const std::vector<std::vector<graph_adj<void>>>& g):
-    graph_base_t<void>(g) {}
+  graph_t(int n) : graph_base_t<void>(n) {}
+  graph_t(const std::vector<std::vector<graph_adj<void>>>& g) : graph_base_t<void>(g) {}
   void add_edge(int a, int b) {
     add_arc(a, b);
     add_arc(b, a);
   }
-  void add_arc(int a, int b) {
-    this->adj[a].emplace_back(b);
-  }
+  void add_arc(int a, int b) { this->adj[a].emplace_back(b); }
 };
-

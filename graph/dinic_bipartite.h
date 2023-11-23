@@ -7,6 +7,7 @@
 #pragma once
 
 #include "dinic.h"
+
 #include <algorithm>
 
 template <typename T>
@@ -42,8 +43,7 @@ std::vector<int> max_independent_set(const dinic<T>& graph, int source, int sink
   }
   sort(begin(rem), end(rem));
   sort(begin(all), end(all));
-  all.resize(distance(begin(all),
-        set_difference(begin(all), end(all), begin(rem), end(rem), begin(all))));
+  all.resize(distance(
+      begin(all), set_difference(begin(all), end(all), begin(rem), end(rem), begin(all))));
   return all;
 }
-

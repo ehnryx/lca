@@ -18,12 +18,15 @@
  */
 #pragma once
 
+#include <cmath>
+#include <vector>
+
 template <class Func>
 struct linear_sieve_base {
   using T = typename Func::T;
-  vector<T> f;
-  vector<int> cnt;
-  linear_sieve_base(int n): f(n), cnt(n) {}
+  std::vector<T> f;
+  std::vector<int> cnt;
+  linear_sieve_base(int n) : f(n), cnt(n) {}
   T operator[](int i) const { return f[i]; }
 };
 
@@ -35,12 +38,12 @@ struct linear_sieve_base<void> {
 template <class Func = void, bool store_powers = false>
 struct linear_sieve : linear_sieve_base<Func> {
   using base = linear_sieve_base<Func>;
-  static constexpr bool has_function = !is_same_v<Func, void>;
-  using prime_t = conditional_t<store_powers, vector<int>, int>;
-  vector<bool> composite;
-  vector<prime_t> primes;
+  static constexpr bool has_function = !std::is_same_v<Func, void>;
+  using prime_t = std::conditional_t<store_powers, std::vector<int>, int>;
+  std::vector<bool> composite;
+  std::vector<prime_t> primes;
   bool is_prime(int n) const { return not composite[n]; }
-  linear_sieve(int n): linear_sieve_base<Func>(n), composite(n) {
+  linear_sieve(int n) : linear_sieve_base<Func>(n), composite(n) {
     primes.reserve(n);
     if constexpr (has_function) base::f[1] = Func::one();
     for (int i = 2; i < n; i++) {
@@ -66,8 +69,8 @@ struct linear_sieve : linear_sieve_base<Func> {
               }
             } else {
               if constexpr (has_function) {
-                base::f[ip] = Func::coprime(
-                  base::f[i / p[base::cnt[i] - 1]], base::f[p[base::cnt[i]]]);
+                base::f[ip] =
+                    Func::coprime(base::f[i / p[base::cnt[i] - 1]], base::f[p[base::cnt[i]]]);
               }
             }
             break;
@@ -98,40 +101,40 @@ struct linear_sieve : linear_sieve_base<Func> {
 };
 
 namespace multiplicative_functions {
-  struct totient {
-    using T = int;
-    static constexpr bool store_powers = false;
-    static T one() { return 1; }
-    static T coprime(T fv, T fp) { return fv * fp; }
-    static T prime(int p) { return p - 1; }
-    static T noncoprime(int fp, int p, int) { return fp * p; }
-  };
+struct totient {
+  using T = int;
+  static constexpr bool store_powers = false;
+  static T one() { return 1; }
+  static T coprime(T fv, T fp) { return fv * fp; }
+  static T prime(int p) { return p - 1; }
+  static T noncoprime(int fp, int p, int) { return fp * p; }
+};
 
-  struct mobius {
-    using T = int;
-    static constexpr bool store_powers = false;
-    static T one() { return 1; }
-    static T coprime(T fv, T fp) { return fv * fp; }
-    static T prime(int) { return -1; }
-    static T noncoprime(int, int, int) { return 0; }
-  };
+struct mobius {
+  using T = int;
+  static constexpr bool store_powers = false;
+  static T one() { return 1; }
+  static T coprime(T fv, T fp) { return fv * fp; }
+  static T prime(int) { return -1; }
+  static T noncoprime(int, int, int) { return 0; }
+};
 
-  struct divisor_num {
-    using T = int;
-    static constexpr bool store_powers = false;
-    static T one() { return 1; }
-    static T coprime(T fv, T fp) { return fv * fp; }
-    static T prime(int) { return 2; }
-    static T noncoprime(int fp, int, int k) { return fp / k * (k + 1); }
-  };
+struct divisor_num {
+  using T = int;
+  static constexpr bool store_powers = false;
+  static T one() { return 1; }
+  static T coprime(T fv, T fp) { return fv * fp; }
+  static T prime(int) { return 2; }
+  static T noncoprime(int fp, int, int k) { return fp / k * (k + 1); }
+};
 
-  template <int power = 1, typename sum_t = int>
-  struct divisor {
-    using T = sum_t;
-    static constexpr bool store_powers = true;
-    static T one() { return 1; }
-    static T coprime(T fv, T fp) { return fv * fp; }
-    static T prime(int p) { return 1 + (T)powl(p, power); }
-    static T prime_power(int fp, int p, int k) { return fp + (T)powl(p, k * power); }
-  };
-}
+template <int power = 1, typename sum_t = int>
+struct divisor {
+  using T = sum_t;
+  static constexpr bool store_powers = true;
+  static T one() { return 1; }
+  static T coprime(T fv, T fp) { return fv * fp; }
+  static T prime(int p) { return 1 + (T)powl(p, power); }
+  static T prime_power(int fp, int p, int k) { return fp + (T)powl(p, k * power); }
+};
+}  // namespace multiplicative_functions

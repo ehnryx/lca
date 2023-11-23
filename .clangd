@@ -1,0 +1,13 @@
+CompileFlags:
+  Add: [
+    "-I", "/home/henryx/Documents/lca",
+    "-Wall",
+    "-Wextra",
+    "-Wpedantic",
+    "-Wshadow",
+    "-Wconversion",
+    #"-Wno-sign-compare",
+    #"-Wno-sign-conversion",
+    "-std=c++20",
+  ]
+  Compiler: "/usr/bin/g++-11"

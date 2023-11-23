@@ -19,7 +19,7 @@ template <typename T, class Compare = std::less<>>
 struct min_queue {
   min_stack<T, Compare> in, out;
   min_queue() = default;
-  min_queue(int n): in(n), out(n) {}
+  min_queue(int n) : in(n), out(n) {}
   void refill() {
     while (!in.empty()) {
       out.push(in.top());
@@ -39,8 +39,5 @@ struct min_queue {
     if (out.empty()) refill();
     out.pop();
   }
-  void push(const T& v) {
-    in.push(v);
-  }
+  void push(const T& v) { in.push(v); }
 };
-

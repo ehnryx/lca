@@ -14,7 +14,7 @@
 template <template <typename> typename container_t, typename T>
 std::vector<int> lyndon_factors(const container_t<T>& a) {
   std::vector<int> factors;
-  for (int start = 0; start < (int)a.size(); ) {
+  for (int start = 0; start < (int)a.size();) {
     int compare = start;
     int i = start + 1;
     while (i < (int)a.size() and a[compare] <= a[i]) {
@@ -32,4 +32,3 @@ std::vector<int> lyndon_factors(const container_t<T>& a) {
   }
   return factors;
 }
-

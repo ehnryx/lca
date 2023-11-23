@@ -19,12 +19,11 @@
 template <typename node_t>
 struct rooted_tree_memo_base : rooted_tree {
   std::vector<node_t> data;
-  rooted_tree_memo_base(const std::vector<std::vector<int>>& adj_list, int r):
-    rooted_tree(adj_list, r), data(size()) {}
+  rooted_tree_memo_base(const std::vector<std::vector<int>>& adj_list, int r)
+      : rooted_tree(adj_list, r), data(size()) {}
   rooted_tree_memo_base(
-      const std::vector<std::vector<int>>& adj_list, int r,
-      const std::vector<node_t>& init):
-    rooted_tree(adj_list, r), data(init) {}
+      const std::vector<std::vector<int>>& adj_list, int r, const std::vector<node_t>& init)
+      : rooted_tree(adj_list, r), data(init) {}
 
   node_t& get(int u) { return data[u]; }
   const node_t& get(int u) const { return data[u]; }
@@ -41,13 +40,13 @@ struct rooted_tree_memo_base : rooted_tree {
 template <typename node_t, typename temp_t = void>
 struct rooted_tree_memo : rooted_tree_memo_base<node_t> {
   using base = rooted_tree_memo_base<node_t>;
-  using base::rooted_tree_memo_base;
   using base::data, base::adj;
+  using base::rooted_tree_memo_base;
 
   void _solve(int u) override final {
     temp_t tmp = {};
     before_children(u, data[u], tmp);
-    for(int v : adj[u]) {
+    for (int v : adj[u]) {
       _solve(v);
       for_each_child(u, data[u], v, data[v], tmp);
     }
@@ -55,38 +54,32 @@ struct rooted_tree_memo : rooted_tree_memo_base<node_t> {
   }
 
   virtual void before_children(
-      [[maybe_unused]] int u, [[maybe_unused]] node_t& cur,
-      [[maybe_unused]] temp_t& tmp) {}
+      [[maybe_unused]] int u, [[maybe_unused]] node_t& cur, [[maybe_unused]] temp_t& tmp) {}
   virtual void for_each_child(
-      [[maybe_unused]] int u, [[maybe_unused]] node_t& cur,
-      [[maybe_unused]] int v, [[maybe_unused]] node_t& child,
-      [[maybe_unused]] temp_t& tmp) {}
+      [[maybe_unused]] int u, [[maybe_unused]] node_t& cur, [[maybe_unused]] int v,
+      [[maybe_unused]] node_t& child, [[maybe_unused]] temp_t& tmp) {}
   virtual void after_children(
-      [[maybe_unused]] int u, [[maybe_unused]] node_t& cur,
-      [[maybe_unused]] temp_t& tmp) {}
+      [[maybe_unused]] int u, [[maybe_unused]] node_t& cur, [[maybe_unused]] temp_t& tmp) {}
 };
 
 template <typename node_t>
 struct rooted_tree_memo<node_t, void> : rooted_tree_memo_base<node_t> {
   using base = rooted_tree_memo_base<node_t>;
-  using base::rooted_tree_memo_base;
   using base::data, base::adj;
+  using base::rooted_tree_memo_base;
 
   void _solve(int u) override final {
     before_children(u, data[u]);
-    for(int v : adj[u]) {
+    for (int v : adj[u]) {
       _solve(v);
       for_each_child(u, data[u], v, data[v]);
     }
     after_children(u, data[u]);
   }
 
-  virtual void before_children(
-      [[maybe_unused]] int u, [[maybe_unused]] node_t& cur) {}
+  virtual void before_children([[maybe_unused]] int u, [[maybe_unused]] node_t& cur) {}
   virtual void for_each_child(
-      [[maybe_unused]] int u, [[maybe_unused]] node_t& cur,
-      [[maybe_unused]] int v, [[maybe_unused]] node_t& child) {}
-  virtual void after_children(
-      [[maybe_unused]] int u, [[maybe_unused]] node_t& cur) {}
+      [[maybe_unused]] int u, [[maybe_unused]] node_t& cur, [[maybe_unused]] int v,
+      [[maybe_unused]] node_t& child) {}
+  virtual void after_children([[maybe_unused]] int u, [[maybe_unused]] node_t& cur) {}
 };
-

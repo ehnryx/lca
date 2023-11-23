@@ -13,20 +13,19 @@
  */
 #pragma once
 
-#include "suffix_array.h"
 #include "../data_structure/range_minimum_query.h"
+#include "suffix_array.h"
 
 template <typename T>
 struct suffix_array_lcp : suffix_array<T>, range_minimum_query<int> {
-  template <template<typename> typename container_t>
-  suffix_array_lcp(const container_t<T>& s):
-    suffix_array<T>(s), range_minimum_query<int>(suffix_array<T>::height) {}
+  template <template <typename> typename container_t>
+  suffix_array_lcp(const container_t<T>& s)
+      : suffix_array<T>(s), range_minimum_query<int>(suffix_array<T>::height) {}
   int lcp(int i, int j) const {
-    if(i == j) return (int)this->sa.size() - 1 - i;
+    if (i == j) return (int)this->sa.size() - 1 - i;
     int l = min(this->rank[i], this->rank[j]);
     int r = max(this->rank[i], this->rank[j]);
     return range_minimum_query<int>::query(l + 1, r);
   }
-  int operator [] (int i) { return suffix_array<T>::operator [] (i); }
+  int operator[](int i) { return suffix_array<T>::operator[](i); }
 };
-

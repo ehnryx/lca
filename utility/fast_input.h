@@ -24,7 +24,7 @@ struct fast_input {
   char buf[buf_size], *S, *T, c = 0;
   int positive;
   FILE* ifptr;
-  fast_input(FILE* _in = stdin): S(buf), T(buf), ifptr(_in) {}
+  fast_input(FILE* _in = stdin) : S(buf), T(buf), ifptr(_in) {}
 
   explicit operator bool() const { return c != EOF; }
 
@@ -38,20 +38,24 @@ struct fast_input {
   }
 
   inline void get(char& x) {
-    while (isspace(x = getc()) && x != EOF);
+    while (isspace(x = getc()) && x != EOF)
+      ;
   }
 
   inline void get(std::string& x) {
     x.clear();
-    while (isspace(c = getc()) && c != EOF);
+    while (isspace(c = getc()) && c != EOF)
+      ;
     for (; !isspace(c) && c != EOF; c = getc()) {
       x.push_back(c);
     }
   }
 
   inline void get(decltype(std::ignore)) {
-    while (isspace(c = getc()) && c != EOF);
-    for (; !isspace(c) && c != EOF; c = getc());
+    while (isspace(c = getc()) && c != EOF)
+      ;
+    for (; !isspace(c) && c != EOF; c = getc())
+      ;
   }
 
   template <typename var_t, std::enable_if_t<std::is_integral_v<var_t>, bool> = true>
@@ -183,7 +187,7 @@ struct fast_input {
   std::vector<std::vector<T>> readinit(int n, int m, T init) {
     std::vector out(n + 2 * pad_n, std::vector<T>(m + 2 * pad_m, init));
     for (int i = 0; i < n; i++) {
-      for(int j = 0; j < m; j++) {
+      for (int j = 0; j < m; j++) {
         *this >> out[pad_n + i][pad_m + j];
       }
     }
@@ -192,10 +196,10 @@ struct fast_input {
 
   template <typename T, int pad_n = 0, int pad_m = 0, int pad_h = 0>
   std::vector<std::vector<std::vector<T>>> readinit(int n, int m, int h, T init) {
-    std::vector out(n + 2 * pad_n, std::vector(m + 2 * pad_m,
-          std::vector<T>(h + 2 * pad_h, init)));
+    std::vector out(
+        n + 2 * pad_n, std::vector(m + 2 * pad_m, std::vector<T>(h + 2 * pad_h, init)));
     for (int i = 0; i < n; i++) {
-      for(int j = 0; j < m; j++) {
+      for (int j = 0; j < m; j++) {
         for (int k = 0; k < h; k++) {
           *this >> out[pad_n + i][pad_m + j][pad_h + k];
         }
@@ -204,4 +208,3 @@ struct fast_input {
     return out;
   }
 };
-

@@ -16,11 +16,14 @@
  */
 #pragma once
 
+#include <map>
+#include <vector>
+
 template <typename word_t = unsigned long long, typename T>
-int lcs_bitstring(const vector<T>& a, const vector<T>& b) {
+int lcs_bitstring(const std::vector<T>& a, const std::vector<T>& b) {
   if (size(a) > size(b)) return lcs_bitstring(b, a);
   int m = 0;
-  map<T, int> alphabet;
+  std::map<T, int> alphabet;
   for (const T& c : a) {
     if (!alphabet.count(c)) {
       alphabet[c] = m++;
@@ -29,16 +32,16 @@ int lcs_bitstring(const vector<T>& a, const vector<T>& b) {
   // precompute the bitstrings
   constexpr int word = 8 * sizeof(word_t);
   const int n = ((int)size(a) + word - 1) / word;
-  vector bits(m, vector<word_t>(n));
+  std::vector bits(m, vector<word_t>(n));
   for (auto [c, j] : alphabet) {
     for (int i = 0; i < (int)size(a); i++) {
       if (a[i] == c) {
-        bits[j][i/word] |= (word_t)1 << (i % word);
+        bits[j][i / word] |= (word_t)1 << (i % word);
       }
     }
   }
   // update lcs
-  vector<word_t> row(n);
+  std::vector<word_t> row(n);
   for (int i = 0; i < (int)size(b); i++) {
     if (!alphabet.count(b[i])) continue;
     const auto& bs = bits[alphabet[b[i]]];
@@ -46,12 +49,11 @@ int lcs_bitstring(const vector<T>& a, const vector<T>& b) {
       word_t x = row[j] | bs[j];
       bool new_carry = row[j] >> (word - 1) & 1;
       row[j] = x - (row[j] << 1 | carry) - borrow;
-      borrow = (borrow && !(row[j]+1)) || row[j] + borrow > x;
+      borrow = (borrow && !(row[j] + 1)) || row[j] + borrow > x;
       row[j] = (row[j] ^ x) & x;
       carry = new_carry;
     }
   }
-  return accumulate(begin(row), end(row), 0, [](int c, word_t v) {
-      return c + __builtin_popcountll(v); });
+  return accumulate(
+      begin(row), end(row), 0, [](int c, word_t v) { return c + __builtin_popcountll(v); });
 }
-

@@ -18,13 +18,16 @@
 
 #include "../utility/traits.h"
 #include "graph.h"
-#include <vector>
-#include <stack>
 
+#include <stack>
+#include <vector>
+
+// clang-format off
 MAKE_TRAITS(scc_traits,
   (BUILD_DAG, DEDUP_EDGES),
   DAG_DEDUP = BUILD_DAG | DEDUP_EDGES,
 );
+// clang-format on
 
 template <scc_traits>
 struct scc_dag_base {
@@ -50,9 +53,9 @@ struct strongly_connected : scc_dag_base<traits> {
   int size() const { return components; }
 
   template <typename weight_t>
-  strongly_connected(graph_t<weight_t> const& graph):
-    scc_dag_base<traits>(graph.size()), components(0),
-    idx(graph.size(), -1), low(graph.size(), -1), scc(graph.size(), -1) {
+  strongly_connected(graph_t<weight_t> const& graph)
+      : scc_dag_base<traits>(graph.size()), components(0), idx(graph.size(), -1),
+        low(graph.size(), -1), scc(graph.size(), -1) {
     for (int i = 0, index = 0; i < graph.size(); i++) {
       if (low[i] == -1) {
         index = build(graph, i, index);
@@ -62,7 +65,7 @@ struct strongly_connected : scc_dag_base<traits> {
       this->dag.resize(size());
       this->indegree.resize(size());
       for (int from = 0; from < size(); from++) {
-        std::vector<int>& neighbours = this->dag[from];;
+        std::vector<int>& neighbours = this->dag[from];
         for (int u : this->group[from]) {
           for (auto const& e : graph[u]) {
             if (int to = scc[e.to]; to != from) {
@@ -96,7 +99,7 @@ struct strongly_connected : scc_dag_base<traits> {
     }
     if (idx[u] == low[u]) {
       if constexpr (build_dag) this->group.emplace_back();
-      for (int v = -1; v != u; ) {
+      for (int v = -1; v != u;) {
         v = stk.top();
         stk.pop();
         scc[v] = components;
@@ -107,4 +110,3 @@ struct strongly_connected : scc_dag_base<traits> {
     return index;
   }
 };
-

@@ -11,7 +11,7 @@
 
 struct graph_traversal {
   std::vector<int> parent;
-  graph_traversal(int n): parent(n, -1) {}
+  graph_traversal(int n) : parent(n, -1) {}
   std::vector<int> get_path(int to) const {
     std::vector<int> path;
     if (parent[to] != -1) {
@@ -27,4 +27,3 @@ struct graph_traversal {
   const std::vector<int>& get_parents() const { return parent; }
   bool visited(int u) const { return parent[u] != -1; }
 };
-

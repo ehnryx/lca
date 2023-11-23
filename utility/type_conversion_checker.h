@@ -10,10 +10,9 @@ template <typename __class_t>
 struct _converts_to_bool {
   template <typename __class>
   static constexpr auto check(__class*) ->
-    typename std::is_void<std::void_t<decltype(bool(std::declval<__class&>()))>>::type;
+      typename std::is_void<std::void_t<decltype(bool(std::declval<__class&>()))>>::type;
   template <typename __dummy>
   static constexpr auto check(...) -> std::false_type;
   using type = decltype(check<__class_t>(0));
   static constexpr bool value = type::value;
 };
-

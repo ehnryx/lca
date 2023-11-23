@@ -23,14 +23,12 @@ template <typename T, class Compare = std::less<>>
 struct heap {
   std::vector<T> data;
 
-  heap(int n = 0) {
-    data.reserve(n);
-  }
+  heap(int n = 0) { data.reserve(n); }
   template <typename InputIt>
-  heap(InputIt first, InputIt last): data(first, last) {
+  heap(InputIt first, InputIt last) : data(first, last) {
     heapify(0);
   }
-  heap(const std::vector<T>& v): heap(v.begin(), v.end()) {}
+  heap(const std::vector<T>& v) : heap(v.begin(), v.end()) {}
 
   void push(const T& v) {
     data.push_back(v);
@@ -84,7 +82,7 @@ struct heap {
     return res;
   }
 
-private:
+ private:
   void _pull_up(size_t i) {
     while (i != 0) {
       size_t j = (i - 1) / 2;
@@ -98,7 +96,7 @@ private:
   }
 
   void _push_down(size_t i) {
-    for (size_t j = 2 * i + 1; j < data.size(); ) {
+    for (size_t j = 2 * i + 1; j < data.size();) {
       bool right = (j + 1 < data.size() && Compare()(data[j + 1], data[j]));
       if (right && Compare()(data[j + 1], data[i])) {
         swap(data[i], data[j + 1]);
@@ -113,4 +111,3 @@ private:
     }
   }
 };
-

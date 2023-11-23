@@ -32,11 +32,11 @@ struct dinic {
   struct edge {
     int to, rev;
     T cap, flow;
-    edge(int t, int r, const T& c, const T& f): to(t), rev(r), cap(c), flow(f) {}
+    edge(int t, int r, const T& c, const T& f) : to(t), rev(r), cap(c), flow(f) {}
   };
   std::vector<std::vector<edge>> adj;
   std::vector<int> layer, cur_edge;
-  dinic(int n): adj(n), layer(n), cur_edge(n) {}
+  dinic(int n) : adj(n), layer(n), cur_edge(n) {}
 
   int size() const { return (int)adj.size(); }
 
@@ -76,7 +76,7 @@ struct dinic {
     if (u == t || f == 0) return f;
     T res = 0;
     for (int i = cur_edge[u]; i < (int)adj[u].size() && f != 0; i++) {
-      cur_edge[u] = i; // save current edge
+      cur_edge[u] = i;  // save current edge
       if (layer[u] + 1 != layer[adj[u][i].to]) continue;
       if (T cur_flow = dfs(adj[u][i].to, t, std::min(f, adj[u][i].cap - adj[u][i].flow))) {
         adj[u][i].flow += cur_flow;
@@ -102,4 +102,3 @@ struct dinic {
     return res;
   }
 };
-

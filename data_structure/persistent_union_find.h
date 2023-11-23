@@ -21,8 +21,8 @@
 struct persistent_union_find {
   std::vector<int> parent, _size;
   std::vector<std::tuple<int, int, int, int>> memo;
-  union_find(int n): parent(n, -1), _size(n, 1) {}
-  int operator [] (int i) { return find(i); }
+  persistent_union_find(int n) : parent(n, -1), _size(n, 1) {}
+  int operator[](int i) { return find(i); }
   int size() const { return (int)parent.size(); }
   int size(int i) { return _size[find(i)]; }
   int find(int i) {
@@ -51,4 +51,3 @@ struct persistent_union_find {
     }
   }
 };
-

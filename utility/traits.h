@@ -11,24 +11,24 @@
  */
 #pragma once
 
-#include "macros.h"
 #include <array>
 #include <cassert>
 #include <string_view>
 #include <vector>
+#include "macros.h"
 
 namespace detail {
-  template <int N>
-  struct get_traits_type {
-    static_assert(N <= 64);
-    using type = std::conditional_t<N <= 16,
-        std::conditional_t<N <= 8, uint8_t, uint16_t>,
-        std::conditional_t<N <= 32, uint32_t, uint64_t>>;
-  };
-}
+template <int N>
+struct get_traits_type {
+  static_assert(N <= 64);
+  using type = std::conditional_t<
+      N <= 16, std::conditional_t<N <= 8, uint8_t, uint16_t>,
+      std::conditional_t<N <= 32, uint32_t, uint64_t>>;
+};
+}  // namespace detail
 
-#define _ADD_TRAIT_TO_SIZE(field_name) \
-  size += 1;
+// clang-format off
+#define _ADD_TRAIT_TO_SIZE(field_name) size += 1;
 
 #define _GET_TRAITS_SIZE(...) \
   [] { \
@@ -96,4 +96,4 @@ namespace detail {
     FOR_EACH(_MAKE_FIELD_CUSTOM, __VA_ARGS__) \
     static constexpr type NONE = 0; \
   }
-
+// clang-format on

@@ -34,14 +34,13 @@
 #pragma once
 
 #include "../utility/member_function_checker.h"
-#include "../utility/member_variable_checker.h"
 #include "../utility/member_type_getter.h"
+#include "../utility/member_variable_checker.h"
 
 #include <cassert>
 #include <stdexcept>
 #include <tuple>
 #include <vector>
-
 
 template <class Node_t, typename __Query_t = void>
 struct segment_tree {
@@ -55,8 +54,8 @@ struct segment_tree {
   MEMBER_FUNCTION_CHECKER(pull);
   MEMBER_FUNCTION_CHECKER_ANY_ARGS(merge);
   MEMBER_FUNCTION_CHECKER(default_value);
-  MEMBER_FUNCTION_CHECKER(break_condition); // TODO
-  MEMBER_FUNCTION_CHECKER(put_condition); // TODO
+  MEMBER_FUNCTION_CHECKER(break_condition);  // TODO
+  MEMBER_FUNCTION_CHECKER(put_condition);    // TODO
   static constexpr bool has_push = _has_push<Node_t, Node_t&, Node_t&>::value;
   static constexpr bool has_pull = _has_pull<Node_t, Node_t, Node_t>::value;
   static constexpr bool has_merge = _has_merge__any_args<Node_t>::value;
@@ -69,19 +68,21 @@ struct segment_tree {
 
   int lim, length;
   std::vector<Node_t> data;
-  Node_t& operator [] (int i) { return data[i]; }
+  Node_t& operator[](int i) { return data[i]; }
 
-  segment_tree(int n): lim(n),
-    length(1 << (lim == 1 ? 0 : 32 - __builtin_clz(lim - 1))), data(2 * length) {
+  segment_tree(int n)
+      : lim(n), length(1 << (lim == 1 ? 0 : 32 - __builtin_clz(lim - 1))), data(2 * length) {
     if constexpr (has_length) assign_lengths();
   }
-  segment_tree(int n, Node_t init): lim(n),
-    length(1 << (lim == 1 ? 0 : 32 - __builtin_clz(lim - 1))), data(2 * length, init) {
+  segment_tree(int n, Node_t init)
+      : lim(n), length(1 << (lim == 1 ? 0 : 32 - __builtin_clz(lim - 1))),
+        data(2 * length, init) {
     if constexpr (has_length) assign_lengths();
   }
   template <class Input_t>
-  segment_tree(const std::vector<Input_t>& a, int offset = 0): lim((int)size(a)),
-    length(1 << (lim == 1 ? 0 : 32 - __builtin_clz(lim - 1))), data(2*length) {
+  segment_tree(const std::vector<Input_t>& a, int offset = 0)
+      : lim((int)size(a)), length(1 << (lim == 1 ? 0 : 32 - __builtin_clz(lim - 1))),
+        data(2 * length) {
     for (int i = offset; i < lim; i++) {
       data[length + i] = Node_t(a[i]);
     }
@@ -90,7 +91,7 @@ struct segment_tree {
   }
   void build() {
     for (int i = length - 1; i > 0; i--) {
-      if constexpr (has_pull) data[i].pull(data[2*i], data[2*i + 1]);
+      if constexpr (has_pull) data[i].pull(data[2 * i], data[2 * i + 1]);
     }
   }
   void assign_lengths() {
@@ -124,19 +125,20 @@ struct segment_tree {
         return data[i].put(args...);
       }
       if (i >= length) {
-        throw std::invalid_argument("put_condition/break_condition is incorrect, "
-                               "trying to descend past a leaf");
+        throw std::invalid_argument(
+            "put_condition/break_condition is incorrect, "
+            "trying to descend past a leaf");
       }
     } else {
       if (l <= first && last <= r) {
         return data[i].put(args...);
       }
     }
-    if constexpr (has_push) data[i].push(data[2*i], data[2*i + 1]);
+    if constexpr (has_push) data[i].push(data[2 * i], data[2 * i + 1]);
     int mid = (first + last) / 2;
-    if(l <= mid) __update(l, r, 2*i, first, mid, args...);
-    if(mid < r) __update(l, r, 2*i + 1, mid + 1, last, args...);
-    if constexpr (has_pull) data[i].pull(data[2*i], data[2*i + 1]);
+    if (l <= mid) __update(l, r, 2 * i, first, mid, args...);
+    if (mid < r) __update(l, r, 2 * i + 1, mid + 1, last, args...);
+    if constexpr (has_pull) data[i].pull(data[2 * i], data[2 * i + 1]);
   }
 
   template <class... Args>
@@ -159,12 +161,12 @@ struct segment_tree {
   template <class... Args>
   Query_t __query(int l, int r, int i, int first, int last, Args&... args) {
     if (l <= first && last <= r) return data[i].get(args...);
-    if constexpr (has_push) data[i].push(data[2*i], data[2*i + 1]);
+    if constexpr (has_push) data[i].push(data[2 * i], data[2 * i + 1]);
     int mid = (first + last) / 2;
-    if(r <= mid) return __query(l, r, 2*i, first, mid, args...);
-    if(mid < l) return __query(l, r, 2*i + 1, mid + 1, last, args...);
-    Query_t left = __query(l, r, 2*i, first, mid, args...);
-    Query_t right = __query(l, r, 2*i + 1, mid + 1, last, args...);
+    if (r <= mid) return __query(l, r, 2 * i, first, mid, args...);
+    if (mid < l) return __query(l, r, 2 * i + 1, mid + 1, last, args...);
+    Query_t left = __query(l, r, 2 * i, first, mid, args...);
+    Query_t right = __query(l, r, 2 * i + 1, mid + 1, last, args...);
     if constexpr (!has_merge && std::is_same_v<Node_t, Query_t>) {
       return Node_t().pull(left, right);
     } else {
@@ -184,11 +186,11 @@ struct segment_tree {
   template <class... Args>
   void __update_point(int x, int i, int first, int last, Args&... args) {
     if (first == last) return data[i].put(args...);
-    if constexpr (has_push) data[i].push(data[2*i], data[2*i + 1]);
+    if constexpr (has_push) data[i].push(data[2 * i], data[2 * i + 1]);
     int mid = (first + last) / 2;
-    if (x <= mid) __update_point(x, 2*i, first, mid, args...);
-    else __update_point(x, 2*i + 1, mid + 1, last, args...);
-    if constexpr (has_pull) data[i].pull(data[2*i], data[2*i + 1]);
+    if (x <= mid) __update_point(x, 2 * i, first, mid, args...);
+    else __update_point(x, 2 * i + 1, mid + 1, last, args...);
+    if constexpr (has_pull) data[i].pull(data[2 * i], data[2 * i + 1]);
   }
 
   template <class... Args>
@@ -203,10 +205,10 @@ struct segment_tree {
   template <class... Args>
   Query_t __query_point(int x, int i, int first, int last, Args&... args) {
     if (first == last) return data[i].get(args...);
-    if constexpr (has_push) data[i].push(data[2*i], data[2*i + 1]);
+    if constexpr (has_push) data[i].push(data[2 * i], data[2 * i + 1]);
     int mid = (first + last) / 2;
-    if (x <= mid) return __query_point(x, 2*i, first, mid, args...);
-    else return __query_point(x, 2*i + 1, mid + 1, last, args...);
+    if (x <= mid) return __query_point(x, 2 * i, first, mid, args...);
+    else return __query_point(x, 2 * i + 1, mid + 1, last, args...);
   }
 
   template <class... Args>
@@ -234,12 +236,14 @@ struct segment_tree {
   template <class... Args>
   Query_t __query_up(int x, int i, int first, int last, Args&... args) {
     if (first == last) return data[i].get(args...);
-    if constexpr (has_push) data[i].push(data[2*i], data[2*i + 1]);
+    if constexpr (has_push) data[i].push(data[2 * i], data[2 * i + 1]);
     int mid = (first + last) / 2;
     if (x <= mid) {
-      return Node_t::merge(data[i].get(args...), __query_up(x, 2*i, first, mid, args...), args...);
+      return Node_t::merge(
+          data[i].get(args...), __query_up(x, 2 * i, first, mid, args...), args...);
     } else {
-      return Node_t::merge(data[i].get(args...), __query_up(x, 2*i + 1, mid + 1, last, args...), args...);
+      return Node_t::merge(
+          data[i].get(args...), __query_up(x, 2 * i + 1, mid + 1, last, args...), args...);
     }
   }
 
@@ -259,10 +263,10 @@ struct segment_tree {
   int __search_left(int l, int r, int i, int first, int last, Args&... args) {
     if (l <= first && last <= r && !data[i].contains(args...)) return lim;
     if (first == last) return first;
-    if constexpr (has_push) data[i].push(data[2*i], data[2*i + 1]);
+    if constexpr (has_push) data[i].push(data[2 * i], data[2 * i + 1]);
     int mid = (first + last) / 2;
-    int res = (l <= mid ? __search_left(l, r, 2*i, first, mid, args...) : lim);
-    if (res == lim && mid < r) res = __search_left(l, r, 2*i + 1, mid + 1, last, args...);
+    int res = (l <= mid ? __search_left(l, r, 2 * i, first, mid, args...) : lim);
+    if (res == lim && mid < r) res = __search_left(l, r, 2 * i + 1, mid + 1, last, args...);
     return res;
   }
 
@@ -282,11 +286,10 @@ struct segment_tree {
   int __search_right(int l, int r, int i, int first, int last, Args&... args) {
     if (l <= first && last <= r && !data[i].contains(args...)) return lim;
     if (first == last) return first;
-    if constexpr (has_push) data[i].push(data[2*i], data[2*i + 1]);
+    if constexpr (has_push) data[i].push(data[2 * i], data[2 * i + 1]);
     int mid = (first + last) / 2;
-    int res = (mid < r ? __search_right(l, r, 2*i + 1, mid + 1, last, args...) : lim);
-    if (res == lim && l <= mid) res = __search_right(l, r, 2*i, first, mid, args...);
+    int res = (mid < r ? __search_right(l, r, 2 * i + 1, mid + 1, last, args...) : lim);
+    if (res == lim && l <= mid) res = __search_right(l, r, 2 * i, first, mid, args...);
     return res;
   }
 };
-

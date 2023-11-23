@@ -25,12 +25,11 @@ struct li_chao_tree {
   const std::vector<T> query_points;
   std::vector<Line> data;
 
-  li_chao_tree(const std::vector<T>& qp):
-    query_points(_clean_query_points(qp)), data(2 * _get_capacity(query_points.size()), init_line) {}
+  li_chao_tree(const std::vector<T>& qp)
+      : query_points(_clean_query_points(qp)),
+        data(2 * _get_capacity(query_points.size()), init_line) {}
 
-  void add_line(Line v) {
-    return _add_line(v, 1, 0, query_points.size() - 1);
-  }
+  void add_line(Line v) { return _add_line(v, 1, 0, query_points.size() - 1); }
   void _add_line(Line v, int i, int left, int right) {
     if (left == right) {
       if (Compare()(v.eval(query_points[left]), data[i].eval(query_points[left]))) {
@@ -61,7 +60,8 @@ struct li_chao_tree {
 
   T query(T x) {
     auto it = std::lower_bound(query_points.begin(), query_points.end(), x);
-    if (it == query_points.end() or *it != x) throw std::invalid_argument("query(x) is not at a query_point");
+    if (it == query_points.end() or *it != x)
+      throw std::invalid_argument("query(x) is not at a query_point");
     return _query(std::distance(query_points.begin(), it), 1, 0, query_points.size() - 1);
   }
   T _query(int x, int i, int left, int right) {
@@ -70,29 +70,27 @@ struct li_chao_tree {
     if (x <= mid) {
       return std::min(data[i].eval(query_points[x]), _query(x, 2 * i, left, mid), Compare());
     } else {
-      return std::min(data[i].eval(query_points[x]), _query(x, 2 * i + 1, mid + 1, right), Compare());
+      return std::min(
+          data[i].eval(query_points[x]), _query(x, 2 * i + 1, mid + 1, right), Compare());
     }
   }
 
-private:
+ private:
   static constexpr Line _get_init_line() {
     return Line{
-      T(0),
-      Compare()(std::numeric_limits<T>::min(), std::numeric_limits<T>::max())
-        ? std::numeric_limits<T>::max()
-        : std::numeric_limits<T>::min(),
+        T(0),
+        Compare()(std::numeric_limits<T>::min(), std::numeric_limits<T>::max())
+            ? std::numeric_limits<T>::max()
+            : std::numeric_limits<T>::min(),
     };
   }
-  static int _get_capacity(int n) {
-    return 1 << (32 - __builtin_clz(std::max(n - 1, 1)));
-  }
+  static int _get_capacity(int n) { return 1 << (32 - __builtin_clz(std::max(n - 1, 1))); }
   static std::vector<T> _clean_query_points(std::vector<T> v) {
     std::sort(v.begin(), v.end());
     v.resize(std::unique(v.begin(), v.end()) - v.begin());
     return v;
   }
 
-public:
+ public:
   static constexpr Line init_line = _get_init_line();
 };
-

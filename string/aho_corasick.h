@@ -19,7 +19,7 @@ template <typename T, typename to_int_t>
 struct aho_corasick_node {
   int parent, fail, match, pattern;
   std::array<int, to_int_t::size> child;
-  aho_corasick_node(int p): parent(p), fail(-1), match(-1), pattern(-1) {
+  aho_corasick_node(int p) : parent(p), fail(-1), match(-1), pattern(-1) {
     fill(begin(child), end(child), -1);
   }
   void for_each_child(auto&& func) const {
@@ -35,7 +35,7 @@ template <typename T>
 struct aho_corasick_node<T, void> {
   int parent, fail, match, pattern;
   std::unordered_map<T, int> child;
-  aho_corasick_node(int p): parent(p), fail(-1), match(-1), pattern(-1) {}
+  aho_corasick_node(int p) : parent(p), fail(-1), match(-1), pattern(-1) {}
   void for_each_child(auto&& func) const {
     for (auto [c, v] : child) {
       func(v, c);
@@ -58,17 +58,16 @@ struct aho_corasick {
     nodes.reserve(total + 1);
     nodes.emplace_back(-1);  // root
   }
-  template <template<typename> typename container_t>
-  aho_corasick(
-      const std::vector<container_t<T>>& patterns,
-      int total = 0): aho_corasick(patterns.size(), total) {
+  template <template <typename> typename container_t>
+  aho_corasick(const std::vector<container_t<T>>& patterns, int total = 0)
+      : aho_corasick(patterns.size(), total) {
     for (const container_t<T>& s : patterns) {
       add(s);
     }
     build();
   }
 
-  template <template<typename> typename container_t>
+  template <template <typename> typename container_t>
   void add(const container_t<T>& s) {
     int u = root;  // 0 is root
     for (const T c : s) {
@@ -159,7 +158,7 @@ struct aho_corasick {
   }
 
   // func(pattern_id, index_of_end);
-  template <template<typename> typename container_t>
+  template <template <typename> typename container_t>
   void find_all(const container_t<T>& s, auto&& func) {
     find_ends(s, [&](int node_id, int s_id) {
       for (int pattern : get_patterns(node_id)) {
@@ -196,10 +195,9 @@ struct aho_corasick {
           u = nodes[u].child[c];
         }
       }
-      if(not func(u, i)) {
+      if (not func(u, i)) {
         break;
       }
     }
   }
 };
-

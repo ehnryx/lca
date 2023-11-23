@@ -19,19 +19,19 @@
 
 #include <queue>
 
-template <typename weight_t>
+template <typename weight_t, graph_traits _gt>
 struct depth_first : graph_traversal {
-  graph_t<weight_t> const& graph;
+  graph_t<weight_t, _gt> const& graph;
   std::vector<bool> visited;
-  depth_first(graph_t<weight_t> const& g)
+  depth_first(graph_t<weight_t, _gt> const& g)
       : graph_traversal(g.size()), graph(g), visited(g.size(), false) {}
   template <typename... CallbackFs>
   depth_first& run(
       std::vector<int> const& sources, graph_callbacks_t<CallbackFs...>&& callbacks) {
     auto run_dfs = [this, callbacks = std::move(callbacks)](auto&& self, int u) -> void {
-      static constexpr bool has_on_node = graph_callback_exists(callbacks.on_node);
-      static constexpr bool has_on_edge = graph_callback_exists(callbacks.on_edge);
-      static constexpr bool has_should_visit = graph_callbacks_exists(callbacks.should_visit);
+      static constexpr bool has_on_node = GRAPH_CALLBACK_EXISTS(callbacks.on_node);
+      static constexpr bool has_on_edge = GRAPH_CALLBACK_EXISTS(callbacks.on_edge);
+      static constexpr bool has_should_visit = GRAPH_CALLBACKS_EXISTS(callbacks.should_visit);
       visited[u] = true;
       if constexpr (has_on_node) callbacks.on_node(u);
       for (auto const& e : graph[u]) {

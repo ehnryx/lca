@@ -18,7 +18,7 @@
 #include "macros.h"
 
 namespace detail {
-template <int N>
+template <size_t N>
 struct get_traits_type {
   static_assert(N <= 64);
   using type = std::conditional_t<
@@ -32,13 +32,13 @@ struct get_traits_type {
 
 #define _GET_TRAITS_SIZE(...) \
   [] { \
-    int size = 0; \
+    size_t size = 0; \
     FOR_EACH(_ADD_TRAIT_TO_SIZE, __VA_ARGS__) \
     return size; \
   }()
 
 #define _ADD_TRAIT_TO_ARRAY(field_name) \
-  for (int i = 0; i < index; i++) { \
+  for (size_t i = 0; i < index; i++) { \
     assert(traits_array[i] != #field_name); \
   } \
   traits_array[index++] = #field_name;
@@ -46,7 +46,7 @@ struct get_traits_type {
 #define _MAKE_TRAITS_ARRAY(...) \
   [] { \
     std::array<std::string_view, _GET_TRAITS_SIZE(__VA_ARGS__)> traits_array; \
-    int index = 0; \
+    size_t index = 0; \
     FOR_EACH(_ADD_TRAIT_TO_ARRAY, __VA_ARGS__) \
     return traits_array; \
   }()
@@ -84,6 +84,7 @@ struct get_traits_type {
     constexpr traits_name(type v): value(v) {} \
     constexpr operator bool() const { return value; } \
     constexpr bool operator==(traits_name other) const { return value == other.value; } \
+    constexpr bool operator==(type other) const { return value == other; } \
     _MAKE_BINARY_OPERATOR(traits_name, &) \
     _MAKE_BINARY_OPERATOR(traits_name, |) \
     constexpr bool has_all(traits_name query) const { \

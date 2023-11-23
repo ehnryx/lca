@@ -2,11 +2,7 @@
 using namespace std;
 #define _USE_MATH_DEFINES
 
-#ifdef HENRYX
-#include "../push_relabel.h"
-#else
-#include "push_relabel.h"
-#endif
+%:include "graph/push_relabel.h"
 
 typedef double ld;
 typedef int ll;

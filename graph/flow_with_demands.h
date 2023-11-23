@@ -29,23 +29,24 @@ struct flow_with_demands : dinic<T> {
   std::vector<T> in, out;
   T saturated;
   flow_with_demands(int n)
-      : dinic<T>(n + 2), source(n), sink(n + 1), in(n), out(n), saturated(0) {}
+      : dinic<T>(n + 2), source(n), sink(n + 1), in(n), out(n), saturated(-1) {}
 
-  void add_edge(int a, int b, const T& d, const T& c) {
+  void add_edge(int a, int b, const T& demand, const T& cap) {
     if (a >= source or b >= source) {
       throw std::invalid_argument("add_edge: node indices out of bounds");
     }
-    if (d > c) {
+    if (demand > cap) {
       throw std::invalid_argument("add_edge: demand is larger than capacity");
     }
-    if (c != d) {
-      dinic<T>::add_edge(a, b, c - d);
+    if (demand != cap) {
+      dinic<T>::add_edge(a, b, cap - demand);
     }
-    in[b] += d;
-    out[a] += d;
+    in[b] += demand;
+    out[a] += demand;
   }
 
   void finalize() {
+    saturated = 0;
     for (int i = 0; i < source; i++) {
       if (in[i] != 0) {
         dinic<T>::add_edge(source, i, in[i]);
@@ -57,10 +58,16 @@ struct flow_with_demands : dinic<T> {
     }
   }
 
+  T flowable() {
+    if (saturated == -1) finalize();
+    return dinic<T>::flow(source, sink) == saturated;
+  }
+
   T flowable(int s, int t, T max_flow = std::numeric_limits<T>::max()) {
     if (s >= source or t >= source) {
       throw std::invalid_argument("flowable: node indices out of bounds");
     }
+    if (saturated == -1) finalize();
     dinic<T>::add_edge(t, s, max_flow);
     T res = (dinic<T>::flow(source, sink) == saturated ? dinic<T>::adj[t].back().flow : -1);
     dinic<T>::adj[s].pop_back();

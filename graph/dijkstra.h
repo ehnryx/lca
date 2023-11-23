@@ -17,12 +17,12 @@
 #include "graph.h"
 #include "graph_traversal.h"
 
-template <typename weight_t>
+template <typename weight_t, graph_traits _gt>
 struct dijkstra : graph_traversal {
-  const graph_t<weight_t>& graph;
+  const graph_t<weight_t, _gt>& graph;
   std::vector<weight_t> dist;
   const weight_t infinity;
-  dijkstra(const graph_t<weight_t>& g, weight_t inf)
+  dijkstra(const graph_t<weight_t, _gt>& g, weight_t inf)
       : graph_traversal(g.size()), graph(g), dist(g.size(), inf), infinity(inf) {}
   const std::vector<weight_t>& get_dists() const { return dist; }
   dijkstra& run(int source) { return run(std::vector({graph_adj<weight_t>(source, 0)})); }

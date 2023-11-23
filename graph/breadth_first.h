@@ -18,20 +18,20 @@
 #include "graph.h"
 #include "graph_traversal.h"
 
-template <typename weight_t>
+template <typename weight_t, graph_traits _gt>
 struct breadth_first : graph_traversal {
-  graph_t<weight_t> const& graph;
+  graph_t<weight_t, _gt> const& graph;
   std::vector<int> dist;
-  breadth_first(graph_t<weight_t> const& g)
+  breadth_first(graph_t<weight_t, _gt> const& g)
       : graph_traversal(g.size()), graph(g), dist(g.size(), -1) {}
   std::vector<int> const& get_dists() const { return dist; }
   // run bfs while avoiding previously visited nodes
   template <typename... CallbackFs>
   breadth_first& run(
       std::vector<int> const& sources, graph_callbacks_t<CallbackFs...>&& callbacks) {
-    static constexpr bool has_on_node = graph_callback_exists(callbacks.on_node);
-    static constexpr bool has_on_edge = graph_callback_exists(callbacks.on_edge);
-    static constexpr bool has_should_visit = graph_callback_exists(callbacks.should_visit);
+    static constexpr bool has_on_node = GRAPH_CALLBACK_EXISTS(callbacks.on_node);
+    static constexpr bool has_on_edge = GRAPH_CALLBACK_EXISTS(callbacks.on_edge);
+    static constexpr bool has_should_visit = GRAPH_CALLBACK_EXISTS(callbacks.should_visit);
     std::deque<int> to_visit;
     for (int source : sources) {
       if (dist[source] == -1) {

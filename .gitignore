@@ -9,3 +9,4 @@ to_submit.cpp
 *__illegible.*
 .vscode
 __pycache__
+.clangd

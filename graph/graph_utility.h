@@ -64,6 +64,5 @@ struct graph_callbacks_t {
   on_edge_t const& on_edge = {};
   should_visit_t const& should_visit = {};
 };
-constexpr bool graph_callback_exists(auto const& var) {
-  return not std::is_same_v<std::decay_t<decltype(var)>, graph_callback_placeholder_t>;
-}
+#define GRAPH_CALLBACK_EXISTS(callback) \
+  (not std::is_same_v<std::decay_t<decltype(callback)>, graph_callback_placeholder_t>)

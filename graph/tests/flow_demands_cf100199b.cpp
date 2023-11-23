@@ -1,21 +1,21 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-#include "../dinic.h"
-#include "../flow_with_demands.h"
+%:include "graph/dinic.h"
+%:include "graph/flow_with_demands.h"
 
 constexpr char nl = '\n';
 
 int main() {
   cin.tie(0)->sync_with_stdio(0);
-#ifndef HENRYX
+#ifdef ONLINE_JUDGE
   freopen("cooling.in", "r", stdin);
   freopen("cooling.out", "w", stdout);
 #endif
 
   int n, m;
   cin >> n >> m;
-  flow_with_demands<dinic, int> graph(n + 1);
+  flow_with_demands<int> graph(n + 1);
   vector idx(n + 1, vector<int>(n + 1, -1));
   vector<int> ans(m);
   for(int i=0; i<m; i++) {

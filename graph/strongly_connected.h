@@ -52,8 +52,8 @@ struct strongly_connected : scc_dag_base<traits> {
   int operator[](int i) const { return scc[i]; }
   int size() const { return components; }
 
-  template <typename weight_t>
-  strongly_connected(graph_t<weight_t> const& graph)
+  template <typename weight_t, graph_traits _gt>
+  strongly_connected(graph_t<weight_t, _gt> const& graph)
       : scc_dag_base<traits>(graph.size()), components(0), idx(graph.size(), -1),
         low(graph.size(), -1), scc(graph.size(), -1) {
     for (int i = 0, index = 0; i < graph.size(); i++) {
@@ -88,8 +88,8 @@ struct strongly_connected : scc_dag_base<traits> {
     }
   }
 
-  template <typename weight_t>
-  int build(graph_t<weight_t> const& graph, int u, int index) {
+  template <typename weight_t, graph_traits _gt>
+  int build(graph_t<weight_t, _gt> const& graph, int u, int index) {
     static std::stack<int> stk;
     stk.push(u);
     idx[u] = low[u] = index++;

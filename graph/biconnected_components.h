@@ -16,12 +16,12 @@
 
 #include <vector>
 
-template <typename weight_t>
+template <typename weight_t, graph_traits _gt>
 struct biconnected_components {
-  const graph_t<weight_t>& graph;
+  const graph_t<weight_t, _gt>& graph;
   std::vector<int> degree, depth, low, childcnt;
   std::vector<bool> articulation;
-  biconnected_components(const graph_t<weight_t>& g)
+  biconnected_components(const graph_t<weight_t, _gt>& g)
       : graph(g), degree(graph.size()), depth(graph.size(), -1), low(graph.size()),
         childcnt(graph.size()), articulation(graph.size()) {
     for (int i = 0; i < graph.size(); i++) {

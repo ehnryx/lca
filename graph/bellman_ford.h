@@ -23,7 +23,7 @@
 #include "graph.h"
 #include "graph_traversal.h"
 
-template <typename weight_t>
+template <typename weight_t, graph_traits _gt>
 struct bellman_ford : graph_traversal {
   static weight_t constexpr dist_floor = std::numeric_limits<weight_t>::min() / 2;
   std::vector<weight_t> dist;
@@ -31,7 +31,7 @@ struct bellman_ford : graph_traversal {
   std::vector<bool> in_neg;
   bool has_neg;
   bellman_ford(
-      graph_t<weight_t> const& graph, int source, weight_t inf, bool reachable_only = true)
+      graph_t<weight_t, _gt> const& graph, int source, weight_t inf, bool reachable_only = true)
       : bellman_ford(graph.size(), graph.get_edges(), source, inf, reachable_only) {}
   bellman_ford(
       int num_nodes, std::vector<graph_edge<weight_t>> const& edges, int source, weight_t inf,

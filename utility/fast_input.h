@@ -19,7 +19,7 @@
 
 #define USING_FAST_INPUT
 
-template <std::size_t buf_size = 10000>
+template <size_t buf_size = 10000>
 struct fast_input {
   char buf[buf_size], *S, *T, c = 0;
   int positive;
@@ -58,7 +58,8 @@ struct fast_input {
       ;
   }
 
-  template <typename var_t, std::enable_if_t<std::is_integral_v<var_t>, bool> = true>
+  template <typename var_t>
+    requires(std::is_integral_v<var_t>)
   inline void get(var_t& x) {
     x = 0;
     positive = 1;
@@ -73,7 +74,8 @@ struct fast_input {
     }
   }
 
-  template <typename var_t, std::enable_if_t<std::is_floating_point_v<var_t>, bool> = true>
+  template <typename var_t>
+    requires(std::is_floating_point_v<var_t>)
   inline void get(var_t& x) {
     x = 0;
     positive = 1;
@@ -110,7 +112,7 @@ struct fast_input {
     *this >> x.first >> x.second;
   }
 
-  template <std::size_t index = 0, typename... T>
+  template <size_t index = 0, typename... T>
   inline void get(std::tuple<T...>& x) {
     if constexpr (index < sizeof...(T)) {
       *this >> (std::get<index>(x));
@@ -154,7 +156,8 @@ struct fast_input {
     return x;
   }
 
-  template <typename... T, std::enable_if_t<sizeof...(T) != 1, bool> = true>
+  template <typename... T>
+    requires(sizeof...(T) != 1)
   std::tuple<T...> getv() {
     return getv<std::tuple<T...>>();
   }

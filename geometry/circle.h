@@ -23,8 +23,8 @@ struct circle_intersection_type {
     return std::holds_alternative<bool>(it) ? (std::get<bool>(it) ? -1 : 0)
                                             : (std::holds_alternative<one>(it) ? 1 : 2);
   }
-  auto get_one() const -> point<T> { return get<one>(it); }
-  auto get_two() const -> std::tuple<point<T>, point<T>> { return get<two>(it); }
+  auto get_one() const -> point<T> { return std::get<one>(it); }
+  auto get_two() const -> std::tuple<point<T>, point<T>> { return std::get<two>(it); }
 };
 
 template <typename T, typename U>
@@ -55,9 +55,11 @@ struct circle {
 
   circle(point<T> const& c, T const& r) : center(c), radius(r) {}
   circle(T x, T y, T r) : center(x, y), radius(r) {}
-  template <typename U, std::enable_if_t<geo::is_constructible_v<T, U>, bool> = true>
+  template <typename U>
+    requires(geo::is_constructible_v<T, U>)
   circle(circle<U> const& c) : center(c.center), radius(c.radius) {}
-  template <typename U, std::enable_if_t<not geo::is_constructible_v<T, U>, bool> = true>
+  template <typename U>
+    requires(not geo::is_constructible_v<T, U>)
   explicit circle(circle<U> const& c) : center(c.center), radius(c.radius) {}
 
   bool operator==(const circle& o) const { return center == o.center and radius == o.radius; }
@@ -87,6 +89,7 @@ struct circle {
     return (angle - sin(angle)) * radius * radius / 2;
   }
 
+  // first is on the left
   template <typename U>
   inter_t<U> intersect(circle<U> const& o) const {
     using I = geo::bigger_intersection_t<T, U>;
@@ -160,7 +163,8 @@ struct circle {
 };
 
 namespace geo {
-template <typename T, std::enable_if_t<point<T>::floating, bool> = true>
+template <typename T>
+  requires(point<T>::floating)
 bool equal(T eps, circle<T> const& a, circle<T> const& b) {
   return equal(eps, a.center, b.center) && std::abs(a.radius - b.radius) <= eps;
 }

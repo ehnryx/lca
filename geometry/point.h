@@ -53,7 +53,6 @@ constexpr bool is_constructible_v = is_constructible<T, From>::value;
 // clang-format off
 template <typename T>
 struct point {
-  static_assert(std::is_floating_point_v<T> or std::is_integral_v<T>);
   static constexpr bool floating = std::is_floating_point_v<T>;
   using type = T;
   using bigger_type = geo::bigger_type<T>;
@@ -69,9 +68,9 @@ struct point {
   }
   point(T const& _x, T const& _y) : x(_x), y(_y) {}
   point(std::complex<T> const& v) : x(v.real()), y(v.imag()) {}
-  template <typename U, std::enable_if_t<geo::is_constructible_v<T, U>, bool> = true>
+  template <typename U> requires(geo::is_constructible_v<T, U>)
   point(point<U> const& v) : x(v.x), y(v.y) {}
-  template <typename U, std::enable_if_t<not geo::is_constructible_v<T, U>, bool> = true>
+  template <typename U> requires(not geo::is_constructible_v<T, U>)
   explicit point(point<U> const& v) : x(v.x), y(v.y) {}
   template <typename U = T>
   explicit operator std::complex<U>() const { return std::complex<U>(x, y); }
@@ -109,6 +108,7 @@ struct point {
 
   T real() const { return x; }
   T imag() const { return y; }
+  T manhattan() const { return std::abs(x) + std::abs(y); }
   void real(T const& v) { x = v; }
   void imag(T const& v) { y = v; }
 
@@ -119,8 +119,9 @@ struct point {
   template <typename U = bigger_type> auto absl() const { return sqrtl(norm<U>()); }
   template <typename U = type> auto arg() const { return atan2(U(y), U(x)); }
   template <typename U = type> auto argl() const { return atan2l(U(y), U(x)); }
-  template <typename U, typename V, bool F = floating>
-  static std::enable_if_t<F, point> polar(U const& radius, V const& angle) {
+
+  template <typename U, typename V>
+  static point polar(U const& radius, V const& angle) requires (floating) {
     return point(radius * cos(angle), radius * sin(angle));
   }
 
@@ -160,15 +161,18 @@ template <typename T> auto argl(point<T> const& v) { return v.argl(); }
 template <typename T> auto absl(point<T> const& v) { return v.absl(); }
 template <typename T> auto dot(point<T> const& a, point<T> const& b) { return a.dot(b); }
 template <typename T> auto cross(point<T> const& a, point<T> const& b) { return a.cross(b); }
+template <typename T> auto manhattan(point<T> const& v) { return v.manhattan(); }
 // clang-format on
 
 namespace geo {
-template <typename T, std::enable_if_t<point<T>::floating, bool> = true>
+template <typename T>
+  requires(point<T>::floating)
 bool equal(T eps, point<T> const& a, point<T> const& b) {
   return abs(a - b) <= eps;
 }
 
-template <typename T, std::enable_if_t<point<T>::floating, bool> = true>
+template <typename T>
+  requires(point<T>::floating)
 bool less_than(T eps, point<T> const& a, point<T> const& b) {
   return a.x + eps < b.x or (a.x <= b.x + eps && a.y + eps < b.y);
 }
@@ -179,11 +183,13 @@ struct epsilon {
   explicit epsilon(T const& v) : value(v) {}
   operator T const&() const { return value; }
 };
-template <typename T, std::enable_if_t<point<T>::floating, bool> = true>
+template <typename T>
+  requires(point<T>::floating)
 int sign(T x, epsilon<T> eps) {
   return x < -eps ? -1 : x > eps ? 1 : 0;
 }
-template <typename T, std::enable_if_t<not point<T>::floating, bool> = true>
+template <typename T>
+  requires(not point<T>::floating)
 int sign(T x) {
   return x < 0 ? -1 : x > 0 ? 1 : 0;
 }

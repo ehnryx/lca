@@ -22,6 +22,8 @@ struct fraction {
     den = d < 0 ? -d / g : d / g;
   }
   fraction(const T& n, const T& d, bool) : num(n), den(d) {}  // skip gcd
+  static fraction from_pair(const T& n, const T& d) { return fraction(n, d, false); }
+  static fraction inf() { return from_pair(1, 0); }
   template <typename F>
   fraction(const fraction<F>& o) : num(o.num), den(o.den) {}
   const T& numerator() const { return num; }

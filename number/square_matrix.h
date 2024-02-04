@@ -66,7 +66,8 @@ struct square_matrix {
     data = move(res);
     return *this;
   }
-  template <typename exp_t, typename = std::enable_if_t<std::is_integral_v<exp_t>>>
+  template <typename exp_t>
+    requires(std::is_integral_v<exp_t>)
   square_matrix pow(exp_t exponent) const {
     square_matrix res(1), base(*this);
     for (; exponent > 0; exponent /= 2) {

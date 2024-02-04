@@ -44,6 +44,7 @@ struct mod_int {
   friend std::ostream& operator<<(std::ostream& os, const mod_int& num) { return os << num.v; }
   mod_t value() const { return v; }
   mod_t legible_value() const { return 2 * v <= mod ? v : v - mod; }
+  explicit operator bool() const { return v; }
   bool operator==(const mod_int& o) const { return v == o.v; }
   bool operator!=(const mod_int& o) const { return v != o.v; }
   mod_int operator+(const mod_int& o) const { return mod_int(*this) += o; }

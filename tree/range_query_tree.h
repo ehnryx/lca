@@ -83,6 +83,11 @@ struct range_query_tree : rooted_tree {
     }
   }
 
+  int subtree_start(int u) const { return start[u]; }
+  int subtree_end(int u) const { return start[u] + subtree[u] - 1; }
+  int subtree_size(int u) const { return subtree[u]; }
+  int index(int u) const { return start[u]; }
+
   template <typename... Args>
   void update_point(int u, const Args&... args) {
     range_ds.update_point(start[u], args...);

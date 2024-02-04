@@ -30,6 +30,7 @@ struct int_base10 {
   bool negative;
   std::vector<int> digits;
   int operator[](size_t i) const { return i < digits.size() ? digits[i] : 0; }
+  explicit operator bool() const { return not is_zero(); }
   bool is_zero() const { return digits.size() == 1 && digits[0] == 0; }
   bool is_one() const { return digits.size() == 1 && digits[0] == 1; }
   int_base10& clear() {

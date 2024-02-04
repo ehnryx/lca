@@ -11,54 +11,40 @@
 #include <algorithm>
 
 namespace utility {
-// keep
-template <typename T = void>
-struct keep {
-  T operator()(const T& old_v, const T&) const { return old_v; }
+template <typename... T>
+struct always_false {
+  bool operator()(...) const { return false; }
 };
-template <>
-struct keep<void> {
-  template <typename input_t>
-  input_t operator()(const input_t& old_v, const input_t&) const {
-    return old_v;
-  }
-};
-
-// replace
-template <typename T = void>
-struct replace {
-  T operator()(const T&, const T& new_v) const { return new_v; }
-};
-template <>
-struct replace<void> {
-  template <typename input_t>
-  input_t operator()(const input_t&, const input_t& new_v) const {
-    return new_v;
-  }
+template <typename... T>
+struct always_true {
+  bool operator()(...) const { return true; }
 };
 
 template <typename T = void, typename Compare = std::less<>>
 struct min {
-  T operator()(const T& a, const T& b) const { return std::min<T>(a, b, Compare()); }
+  T operator()(const T& a, const T& b) const { return std::min(a, b, Compare()); }
 };
 template <typename Compare>
 struct min<void, Compare> {
-  template <typename input_t>
-  input_t operator()(const input_t& a, const input_t& b) const {
-    return std::min(a, b, std::less<>());
+  template <typename T>
+  T operator()(const T& a, const T& b) const {
+    return std::min<T>(a, b, Compare());
   }
 };
 
-// functional form of std::max
-template <typename T = void, typename Compare = std::less<>>
-struct max {
-  T operator()(const T& a, const T& b) const { return std::max<T>(a, b, Compare()); }
-};
-template <typename Compare>
-struct max<void, Compare> {
-  template <typename input_t>
-  input_t operator()(const input_t& a, const input_t& b) const {
-    return std::max(a, b, std::less<>());
+template <typename T = void>
+using max = min<T, std::greater<T>>;
+
+template <typename T = void>
+using keep = min<T, always_true<T>>;
+
+template <typename T = void>
+using replace = min<T, always_false<T>>;
+
+template <typename T, T floor_v, typename Compare = std::less<>>
+struct floored_min {
+  T operator()(const T& a, const T& b) const {
+    return std::max(std::min(a, b, Compare()), floor_v, Compare());
   }
 };
 }  // namespace utility

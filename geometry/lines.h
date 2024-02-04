@@ -6,21 +6,25 @@
 
 #include "point.h"
 
-template <typename T, std::enable_if_t<point<T>::floating, bool> = true>
+template <typename T>
+  requires(point<T>::floating)
 bool collinear(T const& eps, point<T> const& a, point<T> const& b, point<T> const& v) {
   return geo::equal(eps, a, v) or std::abs(cross(a - v, b - v)) <= eps * abs(a - v);
 }
-template <typename T, std::enable_if_t<not point<T>::floating, bool> = true>
+template <typename T>
+  requires(not point<T>::floating)
 bool collinear(point<T> const& a, point<T> const& b, point<T> const& v) {
   return cross(a - v, b - v) == 0;
 }
 
-template <typename T, std::enable_if_t<point<T>::floating, bool> = true>
+template <typename T>
+  requires(point<T>::floating)
 bool parallel(
     T const& eps, point<T> const& a, point<T> const& b, point<T> const& c, point<T> const& d) {
   return geo::equal(eps, a, b) || std::abs(cross(a - b, c - d)) <= eps * abs(a - b);
 }
-template <typename T, std::enable_if_t<not point<T>::floating, bool> = true>
+template <typename T>
+  requires(not point<T>::floating)
 bool parallel(point<T> const& a, point<T> const& b, point<T> const& c, point<T> const& d) {
   return cross(a - b, c - d) == 0;
 }
@@ -68,21 +72,24 @@ auto segment_closest(point<T> const& a, point<T> const& b, point<T> const& v) {
   }
 }
 
-template <typename T, std::enable_if_t<point<T>::floating, bool> = true>
+template <typename T>
+  requires(point<T>::floating)
 bool on_segment(
     T const& eps, point<T> const& a, point<T> const& b, point<T> const& v,
     geo::strict strict = false) {
   if (geo::equal(eps, a, v) || geo::equal(eps, b, v)) return not strict;
   return collinear(eps, a, b, v) && dot(b - a, v - a) > 0 && dot(a - b, v - b) > 0;
 }
-template <typename T, std::enable_if_t<not point<T>::floating, bool> = true>
+template <typename T>
+  requires(not point<T>::floating)
 bool on_segment(
     point<T> const& a, point<T> const& b, point<T> const& v, geo::strict strict = false) {
   if (a == v || b == v) return not strict;
   return collinear(a, b, v) && dot(b - a, v - a) > 0 && dot(a - b, v - b) > 0;
 }
 
-template <typename T, std::enable_if_t<point<T>::floating, bool> = true>
+template <typename T>
+  requires(point<T>::floating)
 bool seg_x_seg(
     T const& eps, point<T> const& a, point<T> const& b, point<T> const& c, point<T> const& d,
     geo::strict strict = false) {
@@ -102,7 +109,8 @@ bool seg_x_seg(
   int r4 = geo::sign(cross(d - c, b - c), geo::epsilon{eps * cd});
   return strict ? r1 * r2 < 0 && r3 * r4 < 0 : r1 * r2 <= 0 && r3 * r4 <= 0;
 }
-template <typename T, std::enable_if_t<not point<T>::floating, bool> = true>
+template <typename T>
+  requires(not point<T>::floating)
 bool seg_x_seg(
     point<T> const& a, point<T> const& b, point<T> const& c, point<T> const& d,
     geo::strict strict = false) {

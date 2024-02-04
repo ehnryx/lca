@@ -14,73 +14,19 @@
  */
 #pragma once
 
-#include <cassert>
-#include <stdexcept>
-#include <tuple>
+#include "nd_indexer.h"
+
 #include <vector>
-
-template <size_t dims>
-struct nd_array_indexer : nd_array_indexer<dims - 1> {
-  static_assert(dims > 1);
-  using nested_indexer = nd_array_indexer<dims - 1>;
-  const size_t _size;
-  template <typename... Args>
-  nd_array_indexer(size_t cur_dim, Args... ds)
-      : nested_indexer(ds...), _size(nested_indexer::size() * cur_dim) {}
-  size_t size() const { return _size; }
-  template <typename... Args>
-  size_t get(size_t cur_i, Args... is) const {
-    return cur_i * nested_indexer::size() + nested_indexer::get(is...);
-  }
-  template <typename... Args>
-  size_t at(size_t cur_i, Args... is) const {
-    size_t index = cur_i * nested_indexer::size() + nested_indexer::at(is...);
-    assert(index < _size);
-    return index;
-  }
-  template <typename... Args>
-  size_t at_slow(size_t cur_i, Args... is) const {
-    if (size_t index = cur_i * nested_indexer::size() + nested_indexer::at_slow(is...);
-        index < _size) [[likely]]
-      return index;
-    throw std::invalid_argument(
-        "nd_array_indexer<" + std::to_string(dims) + "> out of bounds @ " +
-        std::to_string(cur_i));
-  }
-  auto from_index(size_t i) const {
-    size_t cur_i = i / nested_indexer::size();
-    return std::tuple_cat(
-        std::tuple(cur_i), nested_indexer::from_index(i - nested_indexer::size() * cur_i));
-  }
-};
-
-template <>
-struct nd_array_indexer<1> {
-  const size_t _size;
-  nd_array_indexer(size_t dim, ...) : _size(dim) {}
-  size_t size() const { return _size; }
-  size_t get(size_t i) const { return i; }
-  size_t at(size_t i) const {
-    assert(i < _size);
-    return i;
-  }
-  size_t at_slow(size_t i) const {
-    if (i < _size) [[likely]]
-      return i;
-    throw std::invalid_argument("nd_array_indexer<1> out of bounds @ " + std::to_string(i));
-  }
-  auto from_index(size_t i) const { return std::tuple(i); }
-};
 
 template <typename T, size_t dims>
 struct nd_array {
-  const nd_array_indexer<dims> indexer;
+  const nd_indexer<dims> indexer;
   std::vector<T> data;
   template <typename... Args>
   nd_array(Args... ds) : indexer(ds...), data(indexer.size(), _get_init(ds...)) {}
   template <typename... U>
   nd_array(std::tuple<U...> ds, T init = {})
-      : indexer(std::make_from_tuple<nd_array_indexer<dims>>(ds)), data(indexer.size(), init) {}
+      : indexer(std::make_from_tuple<nd_indexer<dims>>(ds)), data(indexer.size(), init) {}
   size_t size() const { return indexer.size(); }
   T& operator[](size_t i) { return data[i]; }
   const T& operator[](size_t i) const { return data[i]; }

@@ -12,6 +12,11 @@ def parse_args():
   return parser.parse_args()
 
 
+def get_include(line: str):
+  s, t = line.find("\""), line.rfind("\"")
+  return line[s+1:t]
+
+
 def main_impl(*, input_f, output_f, lca_root):
   PATH_TO_LCA = lca_root
   if PATH_TO_LCA[-1] != '/':
@@ -35,11 +40,11 @@ def main_impl(*, input_f, output_f, lca_root):
         elif not wait:
           if len(line) > 10 and line[:10] == "#include \"":
             ouf.write(f"// START {line}")
-            expand(line.strip()[10:-1], ouf, True, digraphs)
+            expand(get_include(line), ouf, True, digraphs)
             ouf.write(f"// END {line}")
           elif len(line) > 11 and line[:11] == "%:include \"":
             ouf.write(f"// START {line}")
-            expand(PATH_TO_LCA + line.strip()[11:-1], ouf, True, True)
+            expand(PATH_TO_LCA + get_include(line), ouf, True, True)
             ouf.write(f"// END {line}")
           elif digraphs and False:  # this is stupid
             ouf.write(

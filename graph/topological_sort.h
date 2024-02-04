@@ -14,9 +14,8 @@
 
 #include <stack>
 
-template <
-    typename weight_t, graph_traits _gt, typename... CallbackFs,
-    typename = std::enable_if_t<_gt.has_any(graph_traits::IN_DEGREE)>>
+template <typename weight_t, graph_traits _gt, typename... CallbackFs>
+  requires(_gt.has_any(graph_traits::IN_DEGREE))
 std::vector<int> topological_sort(
     graph_t<weight_t, _gt> const& graph, graph_callbacks_t<CallbackFs...>&& callbacks) {
   static constexpr bool has_on_node = GRAPH_CALLBACK_EXISTS(callbacks.on_node);
@@ -46,6 +45,7 @@ std::vector<int> topological_sort(
 }
 
 template <typename weight_t, graph_traits _gt>
+  requires(_gt.has_any(graph_traits::IN_DEGREE))
 std::vector<int> topological_sort(graph_t<weight_t, _gt> const& graph) {
   return topological_sort(graph, graph_callbacks_t{});
 }

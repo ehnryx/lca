@@ -160,7 +160,7 @@ struct splay_tree : splay_tree_memory_base<_node_t, max_size> {
   bool is_left_child(node_t* x) const { return x != nil && x->is_left_child(); }
 
   //---------------------------------------------------------------------------
-  // iterators
+  // iterators (do not splay)
 
   template <bool forward_it>
   struct iterator {

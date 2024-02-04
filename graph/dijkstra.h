@@ -9,13 +9,15 @@
  *  O(V + ElogE) maybe
  *  V = #vertices, E = #edges
  * STATUS
- *  untested: cf/20c
+ *  tested: cf/20c, boj/1753
  */
 #pragma once
 
-#include <queue>
+#include "../data_structure/heap.h"
 #include "graph.h"
 #include "graph_traversal.h"
+
+#include <queue>
 
 template <typename weight_t, graph_traits _gt>
 struct dijkstra : graph_traversal {
@@ -35,10 +37,7 @@ struct dijkstra : graph_traversal {
     return run(hacked);
   }
   dijkstra& run(const std::vector<graph_adj<weight_t>>& sources) {
-    std::priority_queue<
-        graph_adj<weight_t>, std::vector<graph_adj<weight_t>>,
-        std::greater<graph_adj<weight_t>>>
-        to_visit;
+    heap<graph_adj<weight_t>, std::less<graph_adj<weight_t>>> to_visit;
     for (auto [source, dist_to_source] : sources) {
       if (dist[source] == infinity || dist_to_source < dist[source]) {
         dist[source] = dist_to_source;

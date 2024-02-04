@@ -10,8 +10,7 @@
  * TIME
  *  O(log) push/pop
  * STATUS
- *  untested
- * SLOW!!!
+ *  boj/1753
  */
 #pragma once
 
@@ -19,14 +18,14 @@
 #include <limits>
 #include <vector>
 
-template <typename T, class Compare = std::less<>>
+template <typename T, class Compare = std::less<T>>
 struct heap {
   std::vector<T> data;
 
   heap(int n = 0) { data.reserve(n); }
   template <typename InputIt>
   heap(InputIt first, InputIt last) : data(first, last) {
-    heapify(0);
+    _heapify(0);
   }
   heap(const std::vector<T>& v) : heap(v.begin(), v.end()) {}
 
@@ -34,15 +33,13 @@ struct heap {
     data.push_back(v);
     _pull_up(data.size() - 1);
   }
-
   template <typename... Args>
   void emplace(Args&&... args) {
     data.emplace_back(std::forward<Args>(args)...);
     _pull_up(data.size() - 1);
   }
-
   void pop() {
-    swap(data[0], data.back());
+    std::swap(data[0], data.back());
     data.pop_back();
     if (!data.empty()) _push_down(0);
   }
@@ -50,17 +47,6 @@ struct heap {
   const T& top() const { return data.front(); }
   bool empty() const { return data.empty(); }
   int size() const { return (int)data.size(); }
-
-  void heapify(size_t i) {
-    size_t j = 2 * i;
-    if (j < data.size()) {
-      heapify(j);
-      if (j + 1 < data.size()) {
-        heapify(j + 1);
-      }
-    }
-    _push_down(i);
-  }
 
   std::vector<T> ordered(size_t limit = std::numeric_limits<size_t>::max()) const {
     if (empty()) return {};
@@ -83,11 +69,19 @@ struct heap {
   }
 
  private:
+  void _heapify(size_t i) {
+    if (i >= data.size()) return;
+    size_t j = 2 * i + 1;
+    _heapify(j);
+    _heapify(j + 1);
+    _push_down(i);
+  }
+
   void _pull_up(size_t i) {
     while (i != 0) {
       size_t j = (i - 1) / 2;
       if (Compare()(data[i], data[j])) {
-        swap(data[i], data[j]);
+        std::swap(data[i], data[j]);
       } else {
         break;
       }
@@ -99,10 +93,10 @@ struct heap {
     for (size_t j = 2 * i + 1; j < data.size();) {
       bool right = (j + 1 < data.size() && Compare()(data[j + 1], data[j]));
       if (right && Compare()(data[j + 1], data[i])) {
-        swap(data[i], data[j + 1]);
+        std::swap(data[i], data[j + 1]);
         i = j + 1;
       } else if (!right && Compare()(data[j], data[i])) {
-        swap(data[i], data[j]);
+        std::swap(data[i], data[j]);
         i = j;
       } else {
         break;

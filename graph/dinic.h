@@ -19,16 +19,15 @@
  */
 #pragma once
 
-#include "../utility/types.h"
-
 #include <cassert>
 #include <limits>
 #include <queue>
+#include <type_traits>
 #include <vector>
 
 template <typename T>
 struct dinic {
-  using bigger_type = typename utility::bigger_type<T>;
+  using bigger_type = std::conditional_t<std::is_same_v<T, int>, long long, T>;
   struct edge {
     int to, rev;
     T cap, flow;

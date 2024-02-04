@@ -6,6 +6,7 @@
  */
 #pragma once
 
+#include <functional>
 #include <utility>
 
 template <typename derived_t>
@@ -37,7 +38,7 @@ struct splay_node_base : splay_node_base_common<derived_t> {
   splay_node_base(const key_t& k, const value_t& v)
       : splay_node_base_common<derived_t>(1), key(k), value(v) {}
   bool operator<(const derived_t& other) const { return key < other.key; }
-  out_t get_value() { return out_t(ref(key), ref(value)); }
+  out_t get_value() { return out_t(std::ref(key), std::ref(value)); }
 };
 
 template <typename derived_t, typename _key_t, typename _value_t>
@@ -51,7 +52,7 @@ struct splay_node_base<
   value_t value;
   splay_node_base() : splay_node_base_common<derived_t>(0), value() {}
   splay_node_base(const value_t& v) : splay_node_base_common<derived_t>(1), value(v) {}
-  out_t get_value() { return value; }
+  out_t get_value() { return std::ref(value); }
 };
 
 template <typename derived_t, typename _key_t, typename _value_t>
@@ -66,7 +67,7 @@ struct splay_node_base<
   splay_node_base() : splay_node_base_common<derived_t>(0), key() {}
   splay_node_base(const key_t& k) : splay_node_base_common<derived_t>(1), key(k) {}
   bool operator<(const derived_t& other) const { return key < other.key; }
-  out_t get_value() { return key; }
+  out_t get_value() { return std::ref(key); }
 };
 
 template <typename derived_t, typename _key_t, typename _value_t>

@@ -1,4 +1,4 @@
-/* Weighted Longest Increasing Subsequence
+/* Mo's algorithm
  * USAGE
  *  mo_solver<T, ...> solver(l, r);  // bounds of indices
  *  solver.add_event(l, r, t, ...);  // types given in decl

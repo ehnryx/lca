@@ -20,7 +20,7 @@
  */
 #pragma once
 
-#include "graph.h"
+#include "graph_common.h"
 #include "graph_traversal.h"
 
 template <typename weight_t, graph_traits _gt>

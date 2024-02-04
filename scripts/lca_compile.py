@@ -10,7 +10,7 @@ COMPILE_COMMAND = (
     "g++-11 -g -std=c++20 {code} -o {binary} -O2 -Wall -Wextra -Wshadow"
     #" -Wconversion"
     " -Wno-sign-compare"
-    " -Wfatal-errors"
+    " -fmax-errors=1"
 )
 
 OPT_INFO_FLAGS = "-fopt-info-vec-optimized -fopt-info-loop-optimized".split()

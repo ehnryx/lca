@@ -46,6 +46,7 @@ template <class Node_t, typename __Query_t = void>
 struct segment_tree {
   using node_t = Node_t;
   MEMBER_TYPE_GETTER(out_t);
+  // TODO maybe make Query_t auto
   using Query_t = typename _get_type_out_t<Node_t, __Query_t>::type;
   static_assert(std::is_same_v<Query_t, __Query_t> || std::is_void_v<__Query_t>);
 
@@ -54,17 +55,16 @@ struct segment_tree {
   MEMBER_FUNCTION_CHECKER(pull);
   MEMBER_FUNCTION_CHECKER_ANY_ARGS(merge);
   MEMBER_FUNCTION_CHECKER(default_value);
-  MEMBER_FUNCTION_CHECKER(break_condition);  // TODO
-  MEMBER_FUNCTION_CHECKER(put_condition);    // TODO
+  MEMBER_FUNCTION_CHECKER_ANY_ARGS(break_condition);
+  MEMBER_FUNCTION_CHECKER_ANY_ARGS(put_condition);
   static constexpr bool has_push = _has_push<Node_t, Node_t&, Node_t&>::value;
   static constexpr bool has_pull = _has_pull<Node_t, Node_t, Node_t>::value;
   static constexpr bool has_merge = _has_merge__any_args<Node_t>::value;
   static constexpr bool has_default_value = _has_default_value<Node_t>::value;
   static constexpr bool has_length = _has_length<Node_t>::value;
-  // TODO fix this
-  static constexpr bool has_break_condition = _has_break_condition<Node_t>::value;
-  static_assert(!_has_put_condition<Node_t>::value || has_break_condition);
-  // end TODO
+  static constexpr bool has_break_condition = _has_break_condition__any_args<Node_t>::value;
+  static constexpr bool has_put_condition = _has_put_condition__any_args<Node_t>::value;
+  static_assert(has_break_condition == has_put_condition);  // must have both
 
   int lim, length;
   std::vector<Node_t> data;
@@ -119,7 +119,7 @@ struct segment_tree {
   }
   template <class C = segment_tree<node_t>, class... Args>
   void __update(int l, int r, int i, int first, int last, Args&... args) {
-    if constexpr (has_break_condition) {
+    if constexpr (has_break_condition or has_put_condition) {
       if (data[i].break_condition(args...)) return;
       if (l <= first && last <= r && data[i].put_condition(args...)) {
         return data[i].put(args...);

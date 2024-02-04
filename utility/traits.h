@@ -11,11 +11,13 @@
  */
 #pragma once
 
+#include "macros.h"
+
 #include <array>
+#include <bit>
 #include <cassert>
 #include <string_view>
 #include <vector>
-#include "macros.h"
 
 namespace detail {
 template <size_t N>
@@ -88,10 +90,13 @@ struct get_traits_type {
     _MAKE_BINARY_OPERATOR(traits_name, &) \
     _MAKE_BINARY_OPERATOR(traits_name, |) \
     constexpr bool has_all(traits_name query) const { \
-      return (value & query.value) == query.value; \
+      return type(value & query.value) == query.value; \
     } \
     constexpr bool has_any(traits_name query) const { \
-      return (value & query.value) != 0; \
+      return type(value & query.value) != 0; \
+    } \
+    constexpr size_t count(traits_name query) const { \
+      return std::popcount(type(value & query.value)); \
     } \
     _MAKE_TRAITS_FIELDS traits_fields \
     FOR_EACH(_MAKE_FIELD_CUSTOM, __VA_ARGS__) \

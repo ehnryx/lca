@@ -13,8 +13,7 @@
  */
 #pragma once
 
-#include "graph.h"
-#include "graph/graph_utility.h"
+#include "graph_common.h"
 #include "graph_traversal.h"
 
 #include <queue>
@@ -31,7 +30,7 @@ struct depth_first : graph_traversal {
     auto run_dfs = [this, callbacks = std::move(callbacks)](auto&& self, int u) -> void {
       static constexpr bool has_on_node = GRAPH_CALLBACK_EXISTS(callbacks.on_node);
       static constexpr bool has_on_edge = GRAPH_CALLBACK_EXISTS(callbacks.on_edge);
-      static constexpr bool has_should_visit = GRAPH_CALLBACKS_EXISTS(callbacks.should_visit);
+      static constexpr bool has_should_visit = GRAPH_CALLBACK_EXISTS(callbacks.should_visit);
       visited[u] = true;
       if constexpr (has_on_node) callbacks.on_node(u);
       for (auto const& e : graph[u]) {
